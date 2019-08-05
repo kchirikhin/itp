@@ -1,0 +1,5 @@
+numpy
+pandas
+rpy2
+mpi4py
+msgpack

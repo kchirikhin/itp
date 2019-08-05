@@ -1,0 +1,15 @@
+#ifndef FTABLE_H_INCLUDED
+#define FTABLE_H_INCLUDED
+
+#include "dframe.h"
+#include "preproc_info.h"
+
+namespace itp {
+    template <typename Index, typename Factor, typename Value>
+    class Forecast_table : public Data_frame<Index, Factor, Value>, public Preproc_info<Value> {
+    public:
+        using Data_frame<Index, Factor, Value>::Data_frame;
+    };
+} // of itp
+
+#endif // FTABLE_H_INCLUDED

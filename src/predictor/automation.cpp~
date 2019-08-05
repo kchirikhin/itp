@@ -1,0 +1,5 @@
+#include "automation.h"
+
+Double_t krichevsky_predictor(Symbol_t sym, size_t sym_freq, size_t total_freq, size_t alphabet) {
+  return (static_cast<double>(sym_freq) + 1./2) / (static_cast<double>(counters[sym]) + alphabet/2.);
+}

@@ -1,0 +1,9 @@
+#include <tseries.h>
+
+#include <gtest/gtest.h>
+
+TEST(PlainTseriesTest, CreatingEmptySeries) {
+    Plain_series<int> series;
+
+    EXPEXT_EQ(series.size(), 0);
+}
