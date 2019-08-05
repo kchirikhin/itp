@@ -17,7 +17,7 @@
 #ifndef SDFA_H_INCLUDED
 #define SDFA_H_INCLUDED
 
-#include "automation.h"
+#include "automaton.h"
 #include "head.h"
 
 #include <array>

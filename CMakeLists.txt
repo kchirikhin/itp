@@ -9,10 +9,10 @@ set(SOURCE_DIR src/predictor)
 include_directories(${SOURCE_DIR})
 
 # All source files developed in the scope of that project.
-set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cpp ${SOURCE_DIR}/sampler.cpp
-  ${SOURCE_DIR}/continuation.cpp ${SOURCE_DIR}/compressors.cpp ${SOURCE_DIR}/head.cpp
-  ${SOURCE_DIR}/sdfa.cpp ${SOURCE_DIR}/builders.cpp ${SOURCE_DIR}/compression_prediction.cpp
-  ${SOURCE_DIR}/automation.cpp ${SOURCE_DIR}/ttransformations.cpp)
+set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
+  ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
+  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/builders.cc ${SOURCE_DIR}/compression_prediction.cc
+  ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc)
 file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h")
 
 # Include third-party library for high-precision floating-point arithmetic.
@@ -42,7 +42,7 @@ set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd)
 # Build the Python binding.
 add_subdirectory(lib/pybind11)
 include_directories(lib/pybind11)
-pybind11_add_module(predictor ${SOURCE_DIR}/pyexport.cpp ${PREDICTOR_SOURCES}
+pybind11_add_module(predictor ${SOURCE_DIR}/pyexport.cc ${PREDICTOR_SOURCES}
   ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
 
 target_compile_options(predictor PUBLIC -fPIC -Wall -pedantic)
@@ -59,14 +59,20 @@ set(GMOCK_LIB gmock_main gmock)
 include_directories(${GTEST_INCLUDE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 
-set(PREDICTOR_TESTS tests/test_predictor.cpp tests/test_builders.cpp tests/test_tseries.cpp
-  tests/test_automation.cpp)
+set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_builders.cc tests/test_tseries.cc
+  tests/test_automaton.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
 target_link_libraries(pred_test rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
 add_test(pred_test pred_tests)
 
-set(BIGNUMS_TESTS tests/test_bignums.cpp)
+set(BIGNUMS_TESTS tests/test_bignums.cc)
 add_executable(bignums_test ${BIGNUMS_TESTS} src/predictor/bignums.h)
 target_link_libraries(bignums_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(bignums_test bignums_test)
+
+set(AUTOMATON_TESTS tests/test_automaton.cc src/predictor/automaton.cc src/predictor/sdfa.cc src/predictor/head.cc)
+add_executable(automaton_test ${AUTOMATON_TESTS} src/predictor/automaton.h src/predictor/sdfa.h
+  src/predictor/head.h)
+target_link_libraries(automaton_test ${GTEST_LIB} ${GMOCK_LIB})
+add_test(automaton_test automaton_test)

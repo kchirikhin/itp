@@ -1,4 +1,4 @@
-#include "automation.h"
+#include "automaton.h"
 
 namespace itp {
     void Automation_word::set_time_series(const Plain_tseries<Symbol_t> *ts) {
