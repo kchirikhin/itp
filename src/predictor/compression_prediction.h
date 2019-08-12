@@ -11,17 +11,17 @@ namespace itp {
     template <typename T>
     class Codes_lengths_computer {
     public:
-        using Trajectories = std::vector<Continuation<Symbol_t>>;
+        using Trajectories = std::vector<Continuation<Symbol>>;
 
         virtual ~Codes_lengths_computer() = default;
 
-        virtual Continuations_distribution<T>
-        append_each_trajectory_and_compute(const Plain_tseries<Symbol_t> &history,
+        virtual ContinuationsDistribution<T>
+        append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
                                            size_t alphabet, size_t length_of_continuation,
                                            const Names &compressors_to_compute,
                                            const Trajectories &possible_continuations) const;
-        virtual Continuations_distribution<T>
-        append_each_trajectory_and_compute(const Plain_tseries<Symbol_t> &history, size_t alphabet,
+        virtual ContinuationsDistribution<T>
+        append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history, size_t alphabet,
                                            size_t length_of_continuation,
                                            const Names &compressors_to_compute) const;
     private:
@@ -39,14 +39,14 @@ namespace itp {
         explicit Compression_based_predictor(Weights_generator_ptr weights_generator,
                                              size_t difference_order = 0);
 
-        Continuations_distribution<Orig_type> predict(Preprocessed_tseries<Orig_type, New_type> history, size_t horizont,
+        ContinuationsDistribution<Orig_type> predict(Preprocessed_tseries<Orig_type, New_type> history, size_t horizont,
                                               const std::vector<Names> &compressors) const override final;
 
         void set_difference_order(size_t n);
         size_t get_difference_order() const;
 
     protected:
-        virtual Continuations_distribution<Orig_type> obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history,
+        virtual ContinuationsDistribution<Orig_type> obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history,
                                                                         size_t horizont,
                                                                         const Names &compressors) const = 0;
     private:
@@ -54,17 +54,17 @@ namespace itp {
         size_t difference_order;
     };
 
-    class Multialphabet_distribution_predictor : public Compression_based_predictor<Double_t, Double_t> {
+    class Multialphabet_distribution_predictor : public Compression_based_predictor<Double, Double> {
     public:
         Multialphabet_distribution_predictor() = delete;
-        Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double_t> codes_lengths_computer,
+        Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
                                              Sampler_ptr sampler, size_t max_q, size_t difference=0);
 
-        Continuations_distribution<Double_t>
-        obtain_code_probabilities(const Preprocessed_tseries<Double_t, Double_t> &ts, size_t horizont,
+        ContinuationsDistribution<Double>
+        obtain_code_probabilities(const Preprocessed_tseries<Double, Double> &ts, size_t horizont,
                                   const Group &compressors) const override;
     private:
-        Codes_lengths_computer_ptr<Double_t> codes_lengths_computer;
+        Codes_lengths_computer_ptr<Double> codes_lengths_computer;
         Sampler_ptr sampler;
         size_t log2_max_partition_cardinality;
         Weights_generator_ptr partitions_weights_gen;
@@ -76,34 +76,34 @@ namespace itp {
         Single_alphabet_distribution_predictor() = delete;
         explicit Single_alphabet_distribution_predictor(Codes_lengths_computer_ptr<Orig_type>, size_t=0);
     protected:
-        Continuations_distribution<Orig_type> obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &, size_t,
+        ContinuationsDistribution<Orig_type> obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &, size_t,
                                                                 const Names &) const override final;
-        virtual Preprocessed_tseries<Orig_type, Symbol_t> sample(const Preprocessed_tseries<Orig_type,New_type> &) const = 0;
+        virtual Preprocessed_tseries<Orig_type, Symbol> sample(const Preprocessed_tseries<Orig_type,New_type> &) const = 0;
 
     private:
         Codes_lengths_computer_ptr<Orig_type> codes_lengths_computer;
     };
 
-    class Real_distribution_predictor : public Single_alphabet_distribution_predictor<Double_t, Double_t> {
+    class Real_distribution_predictor : public Single_alphabet_distribution_predictor<Double, Double> {
     public:
         Real_distribution_predictor() = delete;
-        Real_distribution_predictor(Codes_lengths_computer_ptr<Double_t> codes_lengths_computer,
+        Real_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
                                     Sampler_ptr sampler, size_t partition_cardinality,
                                     size_t difference=0);
     protected:
-        Preprocessed_tseries<Double_t, Symbol_t> sample(const Preprocessed_tseries<Double_t, Double_t> &history) const override;
+        Preprocessed_tseries<Double, Symbol> sample(const Preprocessed_tseries<Double, Double> &history) const override;
     private:
         Sampler_ptr sampler;
         size_t partition_cardinality;
     };
 
-    class Discrete_distribution_predictor : public Single_alphabet_distribution_predictor<Symbol_t, Symbol_t> {
+    class Discrete_distribution_predictor : public Single_alphabet_distribution_predictor<Symbol, Symbol> {
     public:
         Discrete_distribution_predictor() = delete;
-        Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol_t> codes_lengths_computer,
+        Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol> codes_lengths_computer,
                                         Sampler_ptr sampler, size_t difference=0);
     protected:
-        Preprocessed_tseries<Symbol_t, Symbol_t> sample(const Preprocessed_tseries<Symbol_t, Symbol_t> &history) const override;
+        Preprocessed_tseries<Symbol, Symbol> sample(const Preprocessed_tseries<Symbol, Symbol> &history) const override;
     private:
         Sampler_ptr sampler;
     };
@@ -115,8 +115,8 @@ namespace itp {
 } // of itp
 
 template <typename T>
-itp::Continuations_distribution<T>
-itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const Plain_tseries<Symbol_t> &history,
+itp::ContinuationsDistribution<T>
+itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
                                                                 size_t alphabet,
                                                                 size_t length_of_continuation,
                                                                 const Names &compressors_to_compute,
@@ -126,10 +126,10 @@ itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const Plain_t
 
     Compressors_pool::get_instance().init_compressors_for_ts(0, alphabet-1, length_of_continuation);
 
-    Continuations_distribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
+    ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                          std::begin(compressors_to_compute), std::end(compressors_to_compute));
     size_t full_series_length = history.size() + length_of_continuation;
-    std::unique_ptr<Symbol_t[]> buffer(new Symbol_t[full_series_length]);
+    std::unique_ptr<Symbol[]> buffer(new Symbol[full_series_length]);
     std::copy(history.cbegin(), history.cend(), buffer.get());
     for (const auto &continuation : possible_continuations) {
         std::copy(continuation.cbegin(), continuation.cend(), buffer.get()+history.size());
@@ -145,14 +145,14 @@ itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const Plain_t
 }
 
 template <typename T>
-itp::Continuations_distribution<T>
-itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const Plain_tseries<Symbol_t> &history,
+itp::ContinuationsDistribution<T>
+itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
                                                                 size_t alphabet,
                                                                 size_t length_of_continuation,
                                                                 const Names &compressors_to_compute) const {
     assert(0 < alphabet);
-    std::vector<Continuation<Symbol_t>> possible_continuations;
-    Continuation<Symbol_t> continuation(alphabet, length_of_continuation);
+    std::vector<Continuation<Symbol>> possible_continuations;
+    Continuation<Symbol> continuation(alphabet, length_of_continuation);
     for (size_t i = 0; i < pow(alphabet, length_of_continuation); ++i) {
         possible_continuations.push_back(continuation++);
     }
@@ -162,7 +162,7 @@ itp::Codes_lengths_computer<T>::append_each_trajectory_and_compute(const Plain_t
 }
 
 template <typename Orig_type, typename New_type>
-itp::Continuations_distribution<Orig_type>
+itp::ContinuationsDistribution<Orig_type>
 itp::Compression_based_predictor<Orig_type, New_type>::predict(Preprocessed_tseries<Orig_type, New_type> history,
                                              size_t horizont,
                                              const std::vector<Names> &compressors) const  {
@@ -176,7 +176,7 @@ itp::Compression_based_predictor<Orig_type, New_type>::predict(Preprocessed_tser
 }
 
 template <typename Orig_type, typename New_type>
-itp::Continuations_distribution<Orig_type>
+itp::ContinuationsDistribution<Orig_type>
 itp::Single_alphabet_distribution_predictor<Orig_type, New_type>::obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history,
                                                                           size_t horizont,
                                                                           const Names &compressors) const {

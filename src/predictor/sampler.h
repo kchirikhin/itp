@@ -23,11 +23,11 @@ namespace itp {
 
         virtual Sampler* clone();
 
-        Preprocessed_tseries<Double_t, Symbol_t> sample(const Preprocessed_tseries<Double_t, Double_t> &, size_t);
-        Preprocessed_tseries<Symbol_t, Symbol_t> normalize(const Preprocessed_tseries<Symbol_t, Symbol_t> &);
+        Preprocessed_tseries<Double, Symbol> sample(const Preprocessed_tseries<Double, Double> &, size_t);
+        Preprocessed_tseries<Symbol, Symbol> normalize(const Preprocessed_tseries<Symbol, Symbol> &);
 
         template <typename T>
-        Double_t desample(Symbol_t, const Preproc_info<T> &);
+        Double desample(Symbol, const Preproc_info<T> &);
 
     private:
         double indent = 0.1;
@@ -37,7 +37,7 @@ namespace itp {
 } // of itp
 
 template <typename T>
-itp::Double_t itp::Sampler::desample(Symbol_t s, const Preproc_info<T> &info) {
+itp::Double itp::Sampler::desample(Symbol s, const Preproc_info<T> &info) {
     if (!info.is_sampled()) {
         return s;
     }

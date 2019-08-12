@@ -3,7 +3,7 @@
 #include <cassert>
 
 namespace itp {
-    bool increment(std::vector<Symbol_t> &sequence, size_t min, size_t max) {
+    bool increment(std::vector<Symbol> &sequence, size_t min, size_t max) {
         if (min > max) {
             throw std::invalid_argument(_S("In increment function: min should not be greater than max"
                                            "(provided values are ") +
@@ -32,7 +32,7 @@ namespace itp {
         return false;
     }
 
-    std::ostream & operator << (std::ostream &ost, const Continuation<Symbol_t> &cont) {
+    std::ostream & operator << (std::ostream &ost, const Continuation<Symbol> &cont) {
         for (size_t i = 0; i < cont.size(); ++i) {
             ost << (int)cont[i];
         }
@@ -40,8 +40,8 @@ namespace itp {
         return ost;
     }
 
-    bool operator < (const std::pair<Continuation<Symbol_t>, Double_t> &lhs,
-                     const std::pair<Continuation<Symbol_t>, Double_t> &rhs) {
+    bool operator < (const std::pair<Continuation<Symbol>, Double> &lhs,
+                     const std::pair<Continuation<Symbol>, Double> &rhs) {
         return lhs.second < rhs.second;
     }
 } // itp

@@ -20,29 +20,29 @@ std::string trim_line(const std::string &line, const std::function<int(int)> &is
     return line.substr(first_non_empty, last_non_empty - first_non_empty + 1);
 }
 
-itp::Pointwise_predictor_ptr<itp::Symbol_t, itp::Symbol_t> Forecasting_algorithm_discrete::make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol_t> computer,
+itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> Forecasting_algorithm_discrete::make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer,
                                                                                            itp::Sampler_ptr sampler, size_t difference) const {
     auto dpredictor = std::make_shared<itp::Discrete_distribution_predictor>(computer, sampler,
                                                                         difference);
-    return std::make_shared<itp::Basic_pointwise_predictor<itp::Symbol_t, itp::Symbol_t>>(dpredictor);
+    return std::make_shared<itp::Basic_pointwise_predictor<itp::Symbol, itp::Symbol>>(dpredictor);
 }
 
 void Forecasting_algorithm_real::set_quants_count(size_t n) {
     quants_count = n;
 }
 
-itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t> Forecasting_algorithm_real::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer,
+itp::Pointwise_predictor_ptr<itp::Double, itp::Double> Forecasting_algorithm_real::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
                                                                                        itp::Sampler_ptr sampler, size_t difference) const {
     auto dpredictor = std::make_shared<itp::Real_distribution_predictor>(computer, sampler, quants_count, difference);
-    return std::make_shared<itp::Basic_pointwise_predictor<itp::Double_t, itp::Double_t>>(dpredictor);
+    return std::make_shared<itp::Basic_pointwise_predictor<itp::Double, itp::Double>>(dpredictor);
 }
 
-itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t>
-Forecasting_algorithm_multialphabet::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer, itp::Sampler_ptr sampler, size_t difference) const {
+itp::Pointwise_predictor_ptr<itp::Double, itp::Double>
+Forecasting_algorithm_multialphabet::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer, itp::Sampler_ptr sampler, size_t difference) const {
     auto dpredictor = std::make_shared<itp::Multialphabet_distribution_predictor>(computer, sampler,
                                                                              quants_count,
                                                                              difference);
-    return std::make_shared<itp::Basic_pointwise_predictor<itp::Double_t, itp::Double_t>>(dpredictor);
+    return std::make_shared<itp::Basic_pointwise_predictor<itp::Double, itp::Double>>(dpredictor);
 }
 
 void check_args(size_t horizont, size_t difference, int sparse) {
@@ -66,7 +66,7 @@ inline void check_quants_count_range(size_t quants_count) {
 }
 
 std::map<std::string, std::vector<double>>
-make_forecast_real(const std::vector<itp::Double_t> &time_series,
+make_forecast_real(const std::vector<itp::Double> &time_series,
                    const itp::Names &compressors_groups, size_t horizont,
                    size_t difference, size_t quants_count, int sparse) {
     check_args(horizont, difference, sparse);
@@ -90,13 +90,13 @@ make_forecast_multialphabet(const std::vector<double> &history,
     Forecasting_algorithm_multialphabet make_forecast;
     make_forecast.set_quants_count(max_quants_count);
 
-    std::vector<itp::Double_t> transformed_history;
+    std::vector<itp::Double> transformed_history;
     std::copy(begin(history), end(history), std::back_inserter(transformed_history));
     return make_forecast(transformed_history, compressors_groups, horizont, difference, sparse);
 }
 
 std::map<std::string, std::vector<double>>
-make_forecast_discrete(const std::vector<itp::Symbol_t> &history,
+make_forecast_discrete(const std::vector<itp::Symbol> &history,
                        const std::vector<std::string> &compressors_groups, size_t horizont,
                        size_t difference, int sparse) {
     check_args(horizont, difference, sparse);

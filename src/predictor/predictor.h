@@ -12,11 +12,11 @@
 
 // Interface of the library.
 namespace itp {
-    //std::pair<Symbol_t, Symbol_t> find_confidence_interval(const Symbols_distributions &, double);
+    //std::pair<Symbol, Symbol> find_confidence_interval(const SymbolsDistributions &, double);
 
 
     template <typename T>
-    std::ostream &operator << (std::ostream &ost, const Continuations_distribution<T> &table);
+    std::ostream &operator << (std::ostream &ost, const ContinuationsDistribution<T> &table);
 
     inline bool is_power_of_two(std::size_t n) {
         return (n > 0 && ((n & (n - 1)) == 0));
@@ -28,7 +28,7 @@ namespace itp {
     public:
         virtual ~Distribution_predictor() = default;
 
-        virtual Continuations_distribution<Orig_type> predict(Preprocessed_tseries<Orig_type, New_type> history, size_t horizont,
+        virtual ContinuationsDistribution<Orig_type> predict(Preprocessed_tseries<Orig_type, New_type> history, size_t horizont,
                 const std::vector<Names> &compressors) const = 0;
     };
 
@@ -83,7 +83,7 @@ namespace itp {
 } // of itp
 
 template <typename T>
-std::ostream & itp::operator << (std::ostream &ost, const Continuations_distribution<T> &table) {
+std::ostream & itp::operator << (std::ostream &ost, const ContinuationsDistribution<T> &table) {
   ost << "-\t";
   for (const auto &compressor : table.get_factors()) {
     ost << compressor << '\t';
@@ -105,7 +105,7 @@ itp::Forecast<Orig_type> itp::Sparse_predictor<Orig_type, New_type>::predict(Pre
     std::vector<Forecast<Orig_type>> results(sparse);
     size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse));
     for (size_t i = 0; i < sparse; ++i) {
-        Plain_tseries<New_type> sparse_ts_data;
+        PlainTimeSeries<New_type> sparse_ts_data;
         for (size_t j = i; j < history.size(); j += sparse) {
             sparse_ts_data.push_back(history[j]);
         }

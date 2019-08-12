@@ -73,10 +73,9 @@ itp::Automation_compressor::Automation_compressor()
     : automation {new Sensing_DFA {0, 255, 127}} {}
 
 size_t itp::Automation_compressor::operator ()(const unsigned char *data, size_t size,
-                                          unsigned char **tmp_buffer, size_t *buffer_size) {
-    auto probability = automation->eval_probability(Plain_tseries<Symbol_t>(data, data+size));
-    // std::cout << to_string(probability) << ' ';
-    auto res = ceil(-log2(automation->eval_probability(Plain_tseries<Symbol_t>(data, data+size))));
+                                               unsigned char **tmp_buffer, size_t *buffer_size) {
+    auto probability = automation->EvalProbability(Plain_tseries<Symbol_t>(data, data+size));
+    auto res = ceil(-log2(automation->EvalProbability(Plain_tseries<Symbol_t>(data, data+size))));
     size_t res_to_ret;
     if (std::numeric_limits<size_t>::max() < res) {
         res_to_ret = std::numeric_limits<size_t>::max();

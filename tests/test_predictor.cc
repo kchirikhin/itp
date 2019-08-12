@@ -9,7 +9,7 @@
 using namespace itp;
 
 TEST(SamplerTest, SampleRealTimeSeriesWithNoIndent_sample_TimeSeriesIsDiscretized) {
-    Plain_tseries<Double_t> ts {0.1, 0.15, 0.2, 0.5, 10, 5.25, 3.17, 2.85, 8};
+    PlainTimeSeries<Double> ts {0.1, 0.15, 0.2, 0.5, 10, 5.25, 3.17, 2.85, 8};
     double indent {0.};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t partition_cardinality {20};
@@ -27,7 +27,7 @@ TEST(SamplerTest, SampleRealTimeSeriesWithNoIndent_sample_TimeSeriesIsDiscretize
 }
 
 TEST(SamplerTest, SampleRealTimeSeriesWithIndent_sample_TimeSeriesIsDiscretized) {
-    Plain_tseries<Double_t> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
+    PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
     double indent {.1};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t partition_cardinality {4};
@@ -46,7 +46,7 @@ TEST(SamplerTest, SampleRealTimeSeriesWithIndent_sample_TimeSeriesIsDiscretized)
 }
 
 TEST(SamplerTest, DiscreteTimeSeries_normalize_Works) {
-    Plain_tseries<Symbol_t> ts{2, 6, 5, 3, 2};
+    PlainTimeSeries<Symbol> ts{2, 6, 5, 3, 2};
     auto sampler = std::make_shared<Sampler>();
     auto quanted = sampler->normalize(ts);
     EXPECT_EQ(0, quanted[0]);
@@ -63,7 +63,7 @@ TEST(SamplerTest, DiscreteTimeSeries_normalize_Works) {
 }
 
 TEST(SamplerTest, RealTimeSeries_desample_Works) {
-    Plain_tseries<Double_t> v{1, 2, 4, 3};
+    PlainTimeSeries<Double> v{1, 2, 4, 3};
     auto sampler = std::make_shared<Sampler>(0.);
     auto quanted = sampler->sample(v, 3);
     EXPECT_EQ(0, quanted[0]);
@@ -78,7 +78,7 @@ TEST(SamplerTest, RealTimeSeries_desample_Works) {
 }
 
 TEST(IncrementTest, main) {
-    std::vector<Symbol_t> vec(4);
+    std::vector<Symbol> vec(4);
     std::fill(begin(vec), end(vec), 0);
     increment(vec, 0, 3);
     EXPECT_EQ(vec[0], 1);
@@ -157,7 +157,7 @@ TEST(IncrementTest, main) {
     EXPECT_EQ(vec[2], 0);
     EXPECT_EQ(vec[3], 0);
 
-    std::vector<Symbol_t> vec1(1);
+    std::vector<Symbol> vec1(1);
     vec[0] = 0;
     for (size_t i = 0; i < 256; ++i) {
         EXPECT_EQ(vec1[0], i);
@@ -187,8 +187,8 @@ TEST(WeightsGeneratorTest, GenerateSeveralWeights_generate_Works) {
 }
 
 TEST(DifferentizerTest, RealTimeSeriesZeroDifference_diff_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 0);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 0);
     EXPECT_EQ(df.size(), v.size());
     for (size_t i = 0; i < v.size(); ++i) {
         EXPECT_NEAR(v[i], df[i], 1e-5);
@@ -196,9 +196,9 @@ TEST(DifferentizerTest, RealTimeSeriesZeroDifference_diff_Works) {
 }
 
 TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifference_diff_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    Plain_tseries<Double_t> v_expected = {1.2, 1.1, -4.8, 3.2, -2.1, 2.3, 4.3, -2.8};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 1);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    PlainTimeSeries<Double> v_expected = {1.2, 1.1, -4.8, 3.2, -2.1, 2.3, 4.3, -2.8};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 1);
     EXPECT_EQ(df.size(), v_expected.size());
     for (size_t i = 0; i < v_expected.size(); ++i) {
         EXPECT_NEAR(v_expected[i], df[i], 1e-5);
@@ -206,9 +206,9 @@ TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifference_diff_Works) {
 }
 
 TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifference_diff_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    Plain_tseries<Double_t> vv_expected = {-0.1, -5.9, 8.0, -5.3, 4.4, 2.0, -7.1};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 2);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    PlainTimeSeries<Double> vv_expected = {-0.1, -5.9, 8.0, -5.3, 4.4, 2.0, -7.1};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 2);
     EXPECT_EQ(df.size(), vv_expected.size());
     for (size_t i = 0; i < vv_expected.size(); ++i) {
         EXPECT_NEAR(vv_expected[i], df[i], 1e-5);
@@ -216,11 +216,11 @@ TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifference_diff_Works) {
 }
 
 TEST(DifferentizerTest, RealTimeSeriesZeroDifferentiated_integrate_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 0);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 0);
     std::string compressor1 = "zlib";
     std::string compressor2 = "bzip2";
-    Forecast<Double_t> fake_forecast;
+    Forecast<Double> fake_forecast;
     fake_forecast(compressor1, 0).point = 1.0;
     fake_forecast(compressor1, 1).point = 2.0;
     fake_forecast(compressor2, 0).point = 3.0;
@@ -234,11 +234,11 @@ TEST(DifferentizerTest, RealTimeSeriesZeroDifferentiated_integrate_Works) {
 }
 
 TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifferentiated_integrate_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 1);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 1);
     std::string compressor1 = "zlib";
     std::string compressor2 = "bzip2";
-    Forecast<Double_t> fake_forecast;
+    Forecast<Double> fake_forecast;
     fake_forecast(compressor1, 0).point = 1.0;
     fake_forecast(compressor1, 1).point = 2.0;
     fake_forecast(compressor2, 0).point = 3.0;
@@ -254,11 +254,11 @@ TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifferentiated_integrate_Works)
 }
 
 TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifferentiated_integrate_Works) {
-    Plain_tseries<Double_t> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
-    auto df = diff_n(Preprocessed_tseries<Double_t, Double_t>{v}, 2);
+    PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
+    auto df = diff_n(Preprocessed_tseries<Double, Double>{v}, 2);
     std::string compressor1 = "zlib";
     std::string compressor2 = "bzip2";
-    Forecast<Double_t> fake_forecast;
+    Forecast<Double> fake_forecast;
     fake_forecast(compressor1, 0).point = 1.0;
     fake_forecast(compressor1, 1).point = 2.0;
     fake_forecast(compressor2, 0).point = 3.0;
@@ -289,7 +289,7 @@ TEST(DataFrameTest, Constructors) {
     EXPECT_EQ(df1.index_size(), 3);
     EXPECT_EQ(df1.factors_size(), 6);
 
-    Data_frame<Continuation<Symbol_t>, int, double> df2(Continuations_generator<Symbol_t>(4, 2), 16.);
+    Data_frame<Continuation<Symbol>, int, double> df2(Continuations_generator<Symbol>(4, 2), 16.);
     EXPECT_EQ(df2.index_size(), 16);
 
     Data_frame<int, int, int> df4{{1, 2, 3, 10},
@@ -349,7 +349,7 @@ TEST(DataFrameIteratorTest, main) {
 }
 
 TEST(ContinuationTest, main) {
-    Continuation<Symbol_t> c(2, 4);
+    Continuation<Symbol> c(2, 4);
     for (size_t i = 0; i < c.size(); ++i) {
         EXPECT_EQ(c[i], 0);
     }
@@ -370,7 +370,7 @@ TEST(ContinuationTest, main) {
     EXPECT_EQ(c[2], 0);
     EXPECT_EQ(c[3], 0);
 
-    Continuation<Symbol_t> c1(2);
+    Continuation<Symbol> c1(2);
     EXPECT_THROW(c1 < c, std::invalid_argument);
     EXPECT_THROW(c1 > c, std::invalid_argument);
     EXPECT_NE(c1, c);
@@ -384,64 +384,64 @@ TEST(ContinuationTest, main) {
     }
     EXPECT_TRUE(c.overflow());
 
-    Continuation<Symbol_t> c2 = {1, 2, 3, 4};
+    Continuation<Symbol> c2 = {1, 2, 3, 4};
     EXPECT_EQ(c2.size(), 4);
     EXPECT_EQ(c2.get_alphabet_size(), 5);
     for (size_t i = 0; i < 4; ++i) {
         EXPECT_EQ(c2[i], i + 1);
     }
 
-    Continuation<Symbol_t> c3(256, 1);
+    Continuation<Symbol> c3(256, 1);
     for (size_t i = 0; i < 256; ++i) {
-        EXPECT_EQ(c3++, Continuation<Symbol_t>({static_cast<unsigned char>(i)}));
+        EXPECT_EQ(c3++, Continuation<Symbol>({static_cast<unsigned char>(i)}));
     }
 }
 
 TEST(CodesLengthsComputerTest,
      ComputeLengthsForAllContinuations_append_each_trajectory_and_compute_ComputedCorrectly) {
-    Plain_tseries<Symbol_t> history {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    PlainTimeSeries<Symbol> history {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
     size_t alphabet {2};
     size_t length_of_continuation {3};
     Names compressors_to_compute {"zstd", "ppmd"};
 
-    Codes_lengths_computer<Symbol_t> computer;
+    Codes_lengths_computer<Symbol> computer;
     auto result = computer.append_each_trajectory_and_compute(history, alphabet,
                                                               length_of_continuation,
                                                               compressors_to_compute);
 
     ASSERT_EQ(8, result.index_size());
 
-    Continuation<Symbol_t> c(alphabet, length_of_continuation);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    Continuation<Symbol> c(alphabet, length_of_continuation);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 120.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 120.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 112.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
     ++c;
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "zstd")), 176.);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c, "ppmd")), 104.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 104.);
 }
 
 TEST(CompressorsPoolTest, compression) {
@@ -466,7 +466,7 @@ TEST(CompressorsPoolTest, compression) {
 class TablesConvertersTest : public ::testing::Test {
 protected:
     TablesConvertersTest() {
-        Continuation<Symbol_t> c(2, 3);
+        Continuation<Symbol> c(2, 3);
         test_table(c, compressor1) = 2;
         test_table(c++, compressor2) = 3;
         test_table(c, compressor1) = 4;
@@ -487,51 +487,51 @@ protected:
 
     std::string compressor1 = "zlib";
     std::string compressor2 = "ppmd";
-    Continuations_distribution<Symbol_t> test_table;
+    ContinuationsDistribution<Symbol> test_table;
 };
 
 TEST_F(TablesConvertersTest, TableWithCodeLengthsIsGiven_to_code_probabilities_ConvertedCorrectly) {
-    Continuation<Symbol_t> c1(2, 3);
+    Continuation<Symbol> c1(2, 3);
     to_code_probabilities(begin(test_table), end(test_table));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -2));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -3));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -4));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -2));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -2));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -1));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -3));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -3));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -4));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -6));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -4));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -4));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -3));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -3));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1, compressor1)), pow(2, -2));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c1++, compressor2)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -2));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -4));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -2));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -2));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -1));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -4));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -6));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -4));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -4));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -3));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -2));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -3));
 }
 
 TEST_F(TablesConvertersTest, TableWithCodeProbabilitiesIsGiven_to_probabilities_ConvertedCorrectly) {
-    Continuation<Symbol_t> c1(2, 3);
+    Continuation<Symbol> c1(2, 3);
     to_code_probabilities(begin(test_table), end(test_table));
     auto result = to_probabilities(std::move(test_table));
 
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -2) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -4) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -2) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -2) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -1) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -3) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -4) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -6) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -4) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -4) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -3) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1, compressor1)), pow(2, -2) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -2) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -4) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -2) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -2) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -1) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -3) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -4) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -6) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -4) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -4) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -3) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1, compressor1)), pow(2, -2) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
 }
 
 TEST_F(TablesConvertersTest, TableWithProbabilitiesIsGiven_cumulated_for_step_SummedUpCorrectly) {
@@ -539,25 +539,25 @@ TEST_F(TablesConvertersTest, TableWithProbabilitiesIsGiven_cumulated_for_step_Su
     auto probabilities_table = to_probabilities(test_table);
     auto t1 = cumulated_for_step(probabilities_table, 0);
 
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor1)), (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor1)), (1 - (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor1)), (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor1)), (1 - (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875));
 
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor2)), (2 * pow(2, -3) + pow(2, -1) + pow(2, -6)) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor2)), (1 - (2 * pow(2, -3) + pow(2, -1) + pow(2, -6)) / 1.328125));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor2)), (2 * pow(2, -3) + pow(2, -1) + pow(2, -6)) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor2)), (1 - (2 * pow(2, -3) + pow(2, -1) + pow(2, -6)) / 1.328125));
 
     t1 = cumulated_for_step(probabilities_table, 1);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor1)), (3 * pow(2, -4) + pow(2, -2)) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor1)), (1 - (3 * pow(2, -4) + pow(2, -2)) / 1.1875));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor1)), (3 * pow(2, -4) + pow(2, -2)) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor1)), (1 - (3 * pow(2, -4) + pow(2, -2)) / 1.1875));
 
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor2)), (pow(2, -3) + pow(2, -2) + pow(2, -6) + pow(2, -4)) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor2)), (1 - (pow(2, -3) + pow(2, -2) + pow(2, -6) + pow(2, -4)) / 1.328125));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor2)), (pow(2, -3) + pow(2, -2) + pow(2, -6) + pow(2, -4)) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor2)), (1 - (pow(2, -3) + pow(2, -2) + pow(2, -6) + pow(2, -4)) / 1.328125));
 
     t1 = cumulated_for_step(probabilities_table, 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor1)), (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor1)), (1 - (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor1)), (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor1)), (1 - (2 * pow(2, -2) + pow(2, -4) + pow(2, -3)) / 1.1875));
 
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(0, compressor2)), (2 * pow(2, -3) + pow(2, -1) + pow(2, -2)) / 1.328125);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(t1(1, compressor2)), (1 - (2 * pow(2, -3) + pow(2, -1) + pow(2, -2)) / 1.328125));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(0, compressor2)), (2 * pow(2, -3) + pow(2, -1) + pow(2, -2)) / 1.328125);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor2)), (1 - (2 * pow(2, -3) + pow(2, -1) + pow(2, -2)) / 1.328125));
 }
 
 TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_weights_ProbabilitiesCombinedCorrectly) {
@@ -569,41 +569,41 @@ TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_
     EXPECT_EQ(compressors.size(), 3);
     EXPECT_EQ(test_table.index_size(), 8);
     auto compressor = compressors[2];
-    Continuation<Symbol_t> c(2, 3);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -3)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -2)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -1)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -3) + pow(2, -3)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -6)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -4)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -3) + pow(2, -3)) / 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -3)) / 2);
+    Continuation<Symbol> c(2, 3);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -3)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -2)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -1)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -3) + pow(2, -3)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -6)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -4) + pow(2, -4)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -3) + pow(2, -3)) / 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -3)) / 2);
 }
 
 TEST(MergeTest, main) {
     std::vector<std::string> compressors = {"gzip", "bzip2"};
 
-    Continuations_distribution<Symbol_t> table1(Continuations_generator<Symbol_t>(2, 2), 4);
-    Continuations_distribution<Symbol_t> table2(Continuations_generator<Symbol_t>(4, 2), 16);
-    Continuations_distribution<Symbol_t> table3(Continuations_generator<Symbol_t>(8, 2), 64);
+    ContinuationsDistribution<Symbol> table1(Continuations_generator<Symbol>(2, 2), 4);
+    ContinuationsDistribution<Symbol> table2(Continuations_generator<Symbol>(4, 2), 16);
+    ContinuationsDistribution<Symbol> table3(Continuations_generator<Symbol>(8, 2), 64);
 
     table1.add_factor(begin(compressors), end(compressors));
     table2.add_factor(begin(compressors), end(compressors));
     table3.add_factor(begin(compressors), end(compressors));
 
-    Continuation<Symbol_t> c(2, 2);
+    Continuation<Symbol> c(2, 2);
     table1(c++, "gzip") = 0.25;
     table1(c++, "gzip") = 0.5;
     table1(c++, "gzip") = 0.75;
     table1(c++, "gzip") = 1.;
 
-    c = Continuation<Symbol_t>(2, 2);
+    c = Continuation<Symbol>(2, 2);
     table1(c++, "bzip2") = 0.2;
     table1(c++, "bzip2") = 0.4;
     table1(c++, "bzip2") = 0.6;
     table1(c++, "bzip2") = 0.8;
 
-    c = Continuation<Symbol_t>(4, 2);
+    c = Continuation<Symbol>(4, 2);
     table2(c++, "gzip") = 0.1;
     table2(c++, "gzip") = 0.2;
     table2(c++, "gzip") = 0.3;
@@ -621,7 +621,7 @@ TEST(MergeTest, main) {
     table2(c++, "gzip") = 1.5;
     table2(c++, "gzip") = 1.6;
 
-    c = Continuation<Symbol_t>(4, 2);
+    c = Continuation<Symbol>(4, 2);
     table2(c++, "bzip2") = 1.1;
     table2(c++, "bzip2") = 1.2;
     table2(c++, "bzip2") = 1.3;
@@ -649,16 +649,16 @@ TEST(MergeTest, main) {
     auto wgen = std::make_shared<Countable_weights_generator>();
     auto weights = wgen->generate(3);
     std::vector<size_t> alphabets{2, 4, 8};
-    auto result = merge(std::vector<Continuations_distribution<Symbol_t>>{table1, table2, table3}, alphabets, weights);
+    auto result = merge(std::vector<ContinuationsDistribution<Symbol>>{table1, table2, table3}, alphabets, weights);
 
-    c = Continuation<Symbol_t>(8, 2);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c++, "gzip")), (0.25 * 0.5 + 0.1 * 1 / 6. + 0));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c++, "gzip")), (0.25 * 0.5 + 0.1 * 1 / 6. + 1. / 3.));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c++, "gzip")), (0.25 * 0.5 + 0.2 * 1 / 6. + 2. / 3.));
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c++, "gzip")), (0.25 * 0.5 + 0.2 * 1 / 6. + 3. / 3.));
+    c = Continuation<Symbol>(8, 2);
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c++, "gzip")), (0.25 * 0.5 + 0.1 * 1 / 6. + 0));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c++, "gzip")), (0.25 * 0.5 + 0.1 * 1 / 6. + 1. / 3.));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c++, "gzip")), (0.25 * 0.5 + 0.2 * 1 / 6. + 2. / 3.));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c++, "gzip")), (0.25 * 0.5 + 0.2 * 1 / 6. + 3. / 3.));
     ASSERT_EQ(c[0], 4);
     ASSERT_EQ(c[1], 0);
-    EXPECT_DOUBLE_EQ(static_cast<Double_t>(result(c++, "gzip")), (0.5 * 0.5 + 0.3 * 1 / 6. + 4. / 3.));
+    EXPECT_DOUBLE_EQ(static_cast<Double>(result(c++, "gzip")), (0.5 * 0.5 + 0.3 * 1 / 6. + 4. / 3.));
     // todo
 }
 
@@ -671,36 +671,36 @@ TEST(MergeTest, main) {
   }*/
 
 /*TEST(ContinueOneStepTest, main) {
-  std::vector<Continuation<Symbol_t>> conts{{1, 0, 0, 1},
+  std::vector<Continuation<Symbol>> conts{{1, 0, 0, 1},
   {0, 1, 1, 1}};
   auto result = continue_one_step(conts, 2);
   ASSERT_EQ(result.size(), 4);
-  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol_t>({1, 0, 0, 1, 0})), end(result));
-  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol_t>({1, 0, 0, 1, 1})), end(result));
-  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol_t>({0, 1, 1, 1, 0})), end(result));
-  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol_t>({0, 1, 1, 1, 1})), end(result));
+  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol>({1, 0, 0, 1, 0})), end(result));
+  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol>({1, 0, 0, 1, 1})), end(result));
+  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol>({0, 1, 1, 1, 0})), end(result));
+  EXPECT_NE(std::find(begin(result), end(result), Continuation<Symbol>({0, 1, 1, 1, 1})), end(result));
 
-  std::vector<Continuation<Symbol_t>> empty_vec;
+  std::vector<Continuation<Symbol>> empty_vec;
   result = continue_one_step(empty_vec, 3);
   ASSERT_EQ(result.size(), 3);
   }
 
   TEST(FindTopContinuationsTest, main) {
   std::string compressor{"gzip"};
-  Continuations_distribution t{Continuations_generator<Symbol_t>(3, 2), 9};
-  t(Continuation<Symbol_t>({1, 2}), compressor) = 0.5;
-  t(Continuation<Symbol_t>({2, 2}), compressor) = 0.1;
-  t(Continuation<Symbol_t>({0, 0}), compressor) = 0.3;
+  ContinuationsDistribution t{Continuations_generator<Symbol>(3, 2), 9};
+  t(Continuation<Symbol>({1, 2}), compressor) = 0.5;
+  t(Continuation<Symbol>({2, 2}), compressor) = 0.1;
+  t(Continuation<Symbol>({0, 0}), compressor) = 0.3;
 
   auto vec = find_top_continuations(t, 1., 2);
   EXPECT_EQ(vec.size(), 2);
-  EXPECT_NE(std::find(begin(vec), end(vec), Continuation<Symbol_t>({1, 2})), end(vec));
-  EXPECT_NE(std::find(begin(vec), end(vec), Continuation<Symbol_t>({0, 0})), end(vec));
+  EXPECT_NE(std::find(begin(vec), end(vec), Continuation<Symbol>({1, 2})), end(vec));
+  EXPECT_NE(std::find(begin(vec), end(vec), Continuation<Symbol>({0, 0})), end(vec));
   }*/
 
 TEST(CompressionMethodsTest, main) {
-    std::vector<Symbol_t> time_series1 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4};
-    std::vector<Symbol_t> time_series2 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4, 10, 10, 129, 200,
+    std::vector<Symbol> time_series1 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4};
+    std::vector<Symbol> time_series2 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4, 10, 10, 129, 200,
                                           198, 232, 190, 42, 12, 23, 43, 54, 54, 32};
 
     /*size_t c1 = lcacomp_compress(time_series1.data(), time_series1.size());
@@ -799,8 +799,8 @@ TEST_F(CustomCompressionMehtodsTest, OneByOne) {
 }
 
 TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect) {
-    Plain_tseries<Double_t> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-    auto computer {std::make_shared<Codes_lengths_computer<Double_t>>()};
+    PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
+    auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
     auto indent {0.1};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t partition_cardinality {4};
@@ -808,7 +808,7 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
     std::vector<Names> compressors {{"zlib"}, {"rp"}, {"zlib", "rp"}};
     Real_distribution_predictor_ptr dpredictor = std::make_shared<Real_distribution_predictor> (computer, sampler, partition_cardinality);
     dpredictor->set_difference_order(0);
-    Basic_pointwise_predictor<Double_t, Double_t> ppredictor{dpredictor};
+    Basic_pointwise_predictor<Double, Double> ppredictor{dpredictor};
     auto forecast = ppredictor.predict(ts, horizont, compressors);
 
     EXPECT_NEAR(forecast("zlib", 0).point, 1.8615389823, 1e-5);
@@ -823,21 +823,21 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
 
 TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect) {
     std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
-    auto computer {std::make_shared<Codes_lengths_computer<Symbol_t>>()};
+    auto computer {std::make_shared<Codes_lengths_computer<Symbol>>()};
     auto sampler {std::make_shared<Sampler>()};
     size_t horizont {2};
     std::vector<Names> compressors {{"zlib", "rp"}};
     Discrete_distribution_predictor_ptr dpredictor = std::make_shared<Discrete_distribution_predictor>(computer, sampler);
-    Basic_pointwise_predictor<Symbol_t, Symbol_t> ppredictor {dpredictor};
-    Forecast<Symbol_t> forecast = ppredictor.predict(ts, horizont, compressors);
+    Basic_pointwise_predictor<Symbol, Symbol> ppredictor {dpredictor};
+    Forecast<Symbol> forecast = ppredictor.predict(ts, horizont, compressors);
     std::vector<double> expected_forecast{1.0264274976, 1.0151519618};
     EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
     EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
 }
 
 TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect) {
-    std::vector<Double_t> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-    auto computer {std::make_shared<Codes_lengths_computer<Double_t>>()};
+    std::vector<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
+    auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
     auto indent {0.1};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t max_partition_cardinality {4};
@@ -846,17 +846,17 @@ TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_
     auto dpredictor = std::make_shared<Multialphabet_distribution_predictor>(computer, sampler,
                                                                              max_partition_cardinality);
     dpredictor->set_difference_order(0);
-    Basic_pointwise_predictor<Double_t, Double_t> ppredictor {dpredictor};
-    Forecast<Double_t> forecast = ppredictor.predict(ts, horizont, compressors);
+    Basic_pointwise_predictor<Double, Double> ppredictor {dpredictor};
+    Forecast<Double> forecast = ppredictor.predict(ts, horizont, compressors);
     std::vector<double> expected_forecast {3.0934987622, 3.0934080567};
     EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
     EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
 }
 
 TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_PredictionIsCorrect) {
-    std::vector<Double_t> ts{3.4, 2.5, 0.1, 0.5, 3.9, 4.0, 4.8, 2.8, 1.5, 1.3, 1.8, 2.1,
+    std::vector<Double> ts{3.4, 2.5, 0.1, 0.5, 3.9, 4.0, 4.8, 2.8, 1.5, 1.3, 1.8, 2.1,
             2, 3.5, 4.9, 5.0, 5.1, 4.5, 2.1};
-    auto computer {std::make_shared<Codes_lengths_computer<Double_t>>()};
+    auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
     auto indent {0.1};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t horizont {4};
@@ -866,9 +866,9 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
                                                                             sampler,
                                                                             max_quants_count)};
     size_t sparse = 2;
-    auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double_t, Double_t>>(dpredictor);
-    Sparse_predictor<Double_t, Double_t> sparse_predictor {ppredictor, sparse};
-    Forecast<Double_t> forecast = sparse_predictor.predict(ts, horizont, compressors);
+    auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
+    Sparse_predictor<Double, Double> sparse_predictor {ppredictor, sparse};
+    Forecast<Double> forecast = sparse_predictor.predict(ts, horizont, compressors);
     std::vector<double> expected_forecast {3.7364683941, 3.8542121847, 3.0934080567, 2.75};
     EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
     EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -877,10 +877,10 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
 }
 
 TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect) {
-    Plain_tseries<Double_t> ts {940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15,
+    PlainTimeSeries<Double> ts {940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15,
             2342.52, 2602.45, 2927.87, 3103.96, 3360.27, 3807.63, 4387.88, 4936.99};
 
-    auto computer {std::make_shared<Codes_lengths_computer<Double_t>>()};
+    auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
     auto indent {0.1};
     auto sampler {std::make_shared<Sampler>(indent)};
     size_t horizont {6};
@@ -890,12 +890,12 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
                                                                              sampler,
                                                                              max_quants_count);
     dpredictor->set_difference_order(1);
-    auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double_t, Double_t>>(dpredictor);
+    auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
     size_t sparse = 2;
-    Sparse_predictor<Double_t, Double_t> sparse_predictor{ppredictor, sparse};
-    Forecast<Double_t> forecast = sparse_predictor.predict(ts, horizont, compressors);
+    Sparse_predictor<Double, Double> sparse_predictor{ppredictor, sparse};
+    Forecast<Double> forecast = sparse_predictor.predict(ts, horizont, compressors);
 
-    Plain_tseries<Double_t> expected_forecast {5427.0124308808, 5917.0363290153,
+    PlainTimeSeries<Double> expected_forecast {5427.0124308808, 5917.0363290153,
             6407.0594768841, 6262.0988838384, 6165.6275143097, 6999.809906989};
     EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
     EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);

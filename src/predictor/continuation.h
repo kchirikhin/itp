@@ -8,84 +8,85 @@
 #include <algorithm>
 
 namespace itp {
-  static const unsigned int bits_in_byte = 8;
 
-  template<typename T>
-  struct Forecast_point {
-    T point;
+static const unsigned int bits_in_byte = 8;
 
-    // Confidence interval.
-    T left_border;
-    T right_border;
-  };
+template<typename T>
+struct Forecast_point {
+  T point;
 
-  bool increment(std::vector<Symbol_t> &sequence, size_t min, size_t max);
+  // Confidence interval.
+  T left_border;
+  T right_border;
+};
 
-  template<typename T>
-  class Continuation {
-  public:
-    explicit Continuation(T init_symbol = 0);
-    Continuation(size_t alphabet, size_t size, T init_symbol = 0);
-    Continuation(std::initializer_list<T> list);
+bool increment(std::vector<Symbol> &sequence, size_t min, size_t max);
 
-    const T &operator[](size_t ind) const;
+template<typename T>
+class Continuation {
+ public:
+  explicit Continuation(T init_symbol = 0);
+  Continuation(size_t alphabet, size_t size, T init_symbol = 0);
+  Continuation(std::initializer_list<T> list);
 
-    Continuation<T> operator++(int);
-    Continuation<T> &operator++();
+  const T &operator[](size_t ind) const;
 
-    size_t size() const;
+  Continuation<T> operator++(int);
+  Continuation<T> &operator++();
 
-    bool is_init() const;
-    bool overflow() const;
+  size_t size() const;
 
-    size_t get_alphabet_size() const;
+  bool is_init() const;
+  bool overflow() const;
 
-    bool operator < (const Continuation<T> &rhs) const;
-    bool operator > (const Continuation<T> &rhs) const;
-    bool operator == (const Continuation<T> &rhs) const;
-    bool operator != (const Continuation<T> &rhs) const;
-    Continuation<T> operator / (T divisor) const;
+  size_t get_alphabet_size() const;
 
-    void push_back(const T &item);
+  bool operator < (const Continuation<T> &rhs) const;
+  bool operator > (const Continuation<T> &rhs) const;
+  bool operator == (const Continuation<T> &rhs) const;
+  bool operator != (const Continuation<T> &rhs) const;
+  Continuation<T> operator / (T divisor) const;
 
-    typename std::vector<T>::const_iterator cbegin() const;
-    typename std::vector<T>::const_iterator cend() const;
+  void push_back(const T &item);
 
-  private:
-    std::vector<T> continuation;
-    size_t alphabet_size;
-    bool is_overflow;
-  };
+  typename std::vector<T>::const_iterator cbegin() const;
+  typename std::vector<T>::const_iterator cend() const;
 
-  template<typename T>
-  class Continuations_generator {
-  public:
-    Continuations_generator(size_t alphabet, size_t size)
+ private:
+  std::vector<T> continuation;
+  size_t alphabet_size;
+  bool is_overflow;
+};
+
+template<typename T>
+class Continuations_generator {
+ public:
+  Continuations_generator(size_t alphabet, size_t size)
       : c(alphabet, size) {}
 
-    Continuation<T> operator()() {
-      return c++;
-    }
+  Continuation<T> operator()() {
+    return c++;
+  }
 
-  private:
-    Continuation<T> c;
-  };
+ private:
+  Continuation<T> c;
+};
 
-  std::ostream & operator << (std::ostream &, const Continuation<Symbol_t> &);
-  bool operator < (const std::pair<Continuation<Symbol_t>, Double_t> &,
-                   const std::pair<Continuation<Symbol_t>, Double_t> &);
+std::ostream & operator << (std::ostream &, const Continuation<Symbol> &);
+bool operator < (const std::pair<Continuation<Symbol>, Double> &,
+                 const std::pair<Continuation<Symbol>, Double> &);
 } // of itp
 
 template <typename T>
 itp::Continuation<T>::Continuation(T init_symbol)
-  : Continuation(init_symbol + 1, 1, init_symbol)
+    : Continuation(init_symbol + 1, 1, init_symbol)
 {
   // DO NOTHING
 }
 
 template <typename T>
 itp::Continuation<T>::Continuation(size_t alphabet, size_t size, T init_symbol)
-  : continuation(size, init_symbol), is_overflow(false)
+    : continuation(size, init_symbol), is_overflow(false)
 {
   alphabet_size = alphabet;
   if (alphabet_size <= init_symbol) {
@@ -250,27 +251,27 @@ typename std::vector<T>::const_iterator itp::Continuation<T>::cend() const
 }
 
 namespace std {
-  template<>
-  struct hash<itp::Continuation<itp::Symbol_t>> {
-    size_t operator()(const itp::Continuation<itp::Symbol_t> &c) const {
-      size_t h = 0;
-      for (size_t i = 0; i < c.size(); ++i) {
-        h = (2 * h + c[i]) % q;
-      }
-
-      return h;
+template<>
+struct hash<itp::Continuation<itp::Symbol>> {
+  size_t operator()(const itp::Continuation<itp::Symbol> &c) const {
+    size_t h = 0;
+    for (size_t i = 0; i < c.size(); ++i) {
+      h = (2 * h + c[i]) % q;
     }
 
-    static const size_t q = 32452843;
-  };
+    return h;
+  }
 
-  template<>
-  struct equal_to<itp::Continuation<itp::Symbol_t>> {
-    bool operator()(const itp::Continuation<itp::Symbol_t> &r,
-                    const itp::Continuation<itp::Symbol_t> &r2) const {
-      return r == r2;
-    }
-  };
+  static const size_t q = 32452843;
+};
+
+template<>
+struct equal_to<itp::Continuation<itp::Symbol>> {
+  bool operator()(const itp::Continuation<itp::Symbol> &r,
+                  const itp::Continuation<itp::Symbol> &r2) const {
+    return r == r2;
+  }
+};
 } // of std
 
 #endif // CONTINUATION_H

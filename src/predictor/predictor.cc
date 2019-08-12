@@ -9,15 +9,15 @@
 #include <sstream>
 
 namespace itp {
-    std::pair<Symbol_t, Symbol_t> find_confidence_interval(const Symbols_distributions &d,
+    std::pair<Symbol, Symbol> find_confidence_interval(const SymbolsDistributions &d,
                                                            double confidence_probability) {
         return std::make_pair(0, 0);
     }
 
-    Double_t mean(const Symbols_distributions &d,
-                  const Symbols_distributions::Factor_type &compressor,
+    Double mean(const SymbolsDistributions &d,
+                  const SymbolsDistributions::Factor_type &compressor,
                   Sampler_ptr sampler, const Desample_info &info) {
-        Double_t sum {0};
+        Double sum {0};
         for (auto interval_no : d.get_index()) {
             sum += d(interval_no, compressor) * sampler->desample(interval_no, info);
         }
@@ -25,7 +25,7 @@ namespace itp {
         return sum;
     }
 
-    std::ostream & operator << (std::ostream &ost, const Continuations_distribution &table) {
+    std::ostream & operator << (std::ostream &ost, const ContinuationsDistribution &table) {
         ost << "-\t";
         for (const auto &compressor : table.get_factors()) {
             ost << compressor << '\t';
@@ -91,17 +91,17 @@ namespace itp {
         return unique_names;
     }
 
-    std::vector<Double_t> Weights_generator::generate(size_t n) const {
+    std::vector<Double> Weights_generator::generate(size_t n) const {
         assert(0 < n);
-        std::vector<Double_t> result(n);
+        std::vector<Double> result(n);
         std::fill(begin(result), end(result), 1./n);
         return result;
     }
 
-    std::vector<Double_t> Countable_weights_generator::generate(size_t n) const {
+    std::vector<Double> Countable_weights_generator::generate(size_t n) const {
         assert(0 < n);
 
-        std::vector<Double_t> result(n);
+        std::vector<Double> result(n);
         for (size_t i = 0; i < n - 1; ++i) {
             result[i] = 1. / (i + 1.) - 1. / (i + 2.);
         }

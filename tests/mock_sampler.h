@@ -7,10 +7,10 @@
 
 namespace itp {
   class SamplerMock : public Sampler {
-    MOCK_METHOD3(sample, Sampling_result(const Plain_tseries<Double_t> &, size_t,
-                                                  Double_t));
-    MOCK_METHOD1(normalize, Sampling_result(const Plain_tseries<Symbol_t> &));
-      MOCK_METHOD2(desample, Double_t(Double_t s, const Desample_info &info));
+    MOCK_METHOD3(sample, Sampling_result(const PlainTimeSeries<Double> &, size_t,
+                                                  Double));
+    MOCK_METHOD1(normalize, Sampling_result(const PlainTimeSeries<Symbol> &));
+      MOCK_METHOD2(desample, Double(Double s, const Desample_info &info));
   };
 }
 

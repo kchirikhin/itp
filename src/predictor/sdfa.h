@@ -34,48 +34,48 @@
 #define EXIT_IF_IMPOSSIBLE(procedure_call) if(!(procedure_call)) return false;
 
 namespace itp {
-  bool less (long lhs, size_t rhs);
+bool less (long lhs, size_t rhs);
 
+/**
+ * 10-head SDFA, completly as described in the paper.
+ *
+ */
+class Sensing_DFA : public MultiheadAutomaton<10> {
+ public:
+  Sensing_DFA(Symbol min_symbol, Symbol max_symbol, Symbol default_symbol);
+
+ private:
   /**
-   * 10-head SDFA, completly as described in the paper.
+   * Run main "infinite" loop.
    *
    */
-  class Sensing_DFA : public Multihead_automation<10> {
-  public:
-      Sensing_DFA(Symbol_t min_symbol, Symbol_t max_symbol, Symbol_t default_symbol);
+  void Run() override;
 
-  private:
-    /**
-     * Run main "infinite" loop.
-     *
-     */
-    void run() override;
+  Symbol mean_symbol() const;
 
-      Symbol_t mean_symbol() const;
+  void guess_if_rightmost(const Head &, IsPredictionConfident);
+  void guess_if_rightmost(const Head &, Symbol, IsPredictionConfident);
 
-      void guess_if_rightmost(const Head &, Is_prediction_confident);
-      void guess_if_rightmost(const Head &, Symbol_t, Is_prediction_confident);
+  /**
+   * All procedures based on pseudocode from the paper and very close to it.
+   *
+   */
+  bool advance_one(size_t);
+  bool advance_many(size_t);
 
-    /**
-     * All procedures based on pseudocode from the paper and very close to it.
-     *
-     */
-    bool advance_one(size_t);
-    bool advance_many(size_t);
-
-    bool correction();
-    bool matching();
+  bool correction();
+  bool matching();
 
 
-    /**
-     * Actually array of the heads is declared in the base class, but for
-     * more similarity with the paper's code, make references to heads with
-     * special names in the paper.
-     *
-     */
-    const Head &h3a, &inner, &outer, &l, &r, &t;
-    Symbol_t default_symbol;
-  };
+  /**
+   * Actually array of the heads is declared in the base class, but for
+   * more similarity with the paper's code, make references to heads with
+   * special names in the paper.
+   *
+   */
+  const Head &h3a, &inner, &outer, &l, &r, &t;
+  Symbol default_symbol;
+};
 } // of itp
 
 #endif // SDFA_H_INCLUDED

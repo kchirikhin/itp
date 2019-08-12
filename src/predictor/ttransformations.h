@@ -12,23 +12,23 @@ namespace itp {
     public:
         virtual ~Weights_generator() = default;
 
-        virtual std::vector<Double_t> generate(size_t n) const;
+        virtual std::vector<Double> generate(size_t n) const;
     };
 
     class Countable_weights_generator : public Weights_generator {
     public:
-        virtual std::vector<Double_t> generate(size_t n) const;
+        virtual std::vector<Double> generate(size_t n) const;
     };
 
     using Weights_generator_ptr = std::shared_ptr<Weights_generator>;
 
     template <typename T>
-    Double_t mean(const Symbols_distributions<T> &d,
-                  const typename Symbols_distributions<T>::Factor_type &compressor) {
-        Double_t sum {0};
+    Double mean(const SymbolsDistributions<T> &d,
+                  const typename SymbolsDistributions<T>::Factor_type &compressor) {
+        Double sum {0};
         Sampler sampler {d.get_desample_indent()};
         for (auto interval_no : d.get_index()) {
-            sum += static_cast<Double_t>(d(interval_no, compressor) * sampler.desample(interval_no, d));
+            sum += static_cast<Double>(d(interval_no, compressor) * sampler.desample(interval_no, d));
         }
 
         return sum;
@@ -83,7 +83,7 @@ namespace itp {
 
     template <typename Forward_iterator>
     inline void to_code_probabilities(Forward_iterator first, Forward_iterator last) {
-        Prec_double_t base = 2.;
+        HighPrecDouble base = 2.;
         while (first != last) {
             *first = bignums::pow(base, -(*first));
             ++first;
@@ -91,7 +91,7 @@ namespace itp {
     }
 
     template <typename T>
-    void form_group_forecasts(Continuations_distribution<T> &code_probabilities,
+    void form_group_forecasts(ContinuationsDistribution<T> &code_probabilities,
                               const std::vector<Names> &compressors_groups,
                               Weights_generator_ptr weights_generator)  {
         for (const auto &group : compressors_groups) {
@@ -110,12 +110,12 @@ namespace itp {
     }
 
     template <typename T>
-    Continuations_distribution<T> to_probabilities(Continuations_distribution<T> code_probabilities) {
-        Double_t cumulated_sum;
+    ContinuationsDistribution<T> to_probabilities(ContinuationsDistribution<T> code_probabilities) {
+        Double cumulated_sum;
         for (const auto &compressor : code_probabilities.get_factors()) {
             cumulated_sum = .0;
             for (const auto &continuation : code_probabilities.get_index()) {
-                cumulated_sum += static_cast<Double_t>(code_probabilities(continuation, compressor));
+                cumulated_sum += static_cast<Double>(code_probabilities(continuation, compressor));
             }
 
             for (const auto &continuation : code_probabilities.get_index()) {
@@ -127,9 +127,9 @@ namespace itp {
     }
 
     template <typename T>
-    Continuations_distribution<T> merge(const std::vector<Continuations_distribution<T>> &tables,
+    ContinuationsDistribution<T> merge(const std::vector<ContinuationsDistribution<T>> &tables,
                                         const std::vector<size_t> &alphabets,
-                                        const std::vector<Double_t> &weights) {
+                                        const std::vector<Double> &weights) {
         assert(tables.size() == weights.size());
         assert(std::is_sorted(begin(alphabets), end(alphabets)));
 
@@ -140,7 +140,7 @@ namespace itp {
                 return maximal_alphabet / item;
             });
 
-        Continuations_distribution<T> result(tables[tables.size()-1]);
+        ContinuationsDistribution<T> result(tables[tables.size()-1]);
         for (const auto &continuation : result.get_index()) {
             for (const auto &compressor : result.get_factors()) {
                 result(continuation, compressor) = .0;
@@ -156,11 +156,11 @@ namespace itp {
     }
 
     template <typename T>
-    Forecast<T> to_pointwise_forecasts(const Continuations_distribution<T> &table, size_t h,
+    Forecast<T> to_pointwise_forecasts(const ContinuationsDistribution<T> &table, size_t h,
                                        double confidence_probability = 0.95) {
         Forecast<T> result;
         for (size_t i = 0; i < h; ++i) {
-            Symbols_distributions<T> d = cumulated_for_step(table, i);
+            SymbolsDistributions<T> d = cumulated_for_step(table, i);
             for (auto compressor : d.get_factors()) {
                 result(compressor, i).point = mean(d, compressor);
             }
@@ -171,11 +171,11 @@ namespace itp {
     }
 
     template <typename T>
-    Symbols_distributions<T> cumulated_for_step(const Continuations_distribution<T> &table,
+    SymbolsDistributions<T> cumulated_for_step(const ContinuationsDistribution<T> &table,
                                              std::size_t step)  {
         assert(step <= 1000);
 
-        Symbols_distributions<T> result;
+        SymbolsDistributions<T> result;
         for (const auto &continuation : table.get_index()) {
             for (const auto &compressor : table.get_factors()) {
                 result(continuation[step], compressor) = 0;

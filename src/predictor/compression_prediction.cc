@@ -3,11 +3,11 @@
 #include "ttransformations.h"
 
 namespace itp {
-    Multialphabet_distribution_predictor::Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double_t> codes_lengths_computer,
+    Multialphabet_distribution_predictor::Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
                                                                                Sampler_ptr sampler,
                                                                                size_t max_q,
                                                                                size_t difference_order)
-        : Compression_based_predictor<Double_t, Double_t> {difference_order},
+        : Compression_based_predictor<Double, Double> {difference_order},
         codes_lengths_computer{codes_lengths_computer}, sampler{sampler},
         partitions_weights_gen {std::make_shared<Countable_weights_generator>()} {
             assert(codes_lengths_computer != nullptr);
@@ -17,10 +17,10 @@ namespace itp {
             log2_max_partition_cardinality = log2(max_q);
         }
 
-    Continuations_distribution<Double_t>
-    Multialphabet_distribution_predictor::obtain_code_probabilities(const Preprocessed_tseries<Double_t, Double_t> &history, size_t horizont, const Group &archivers) const {
+    ContinuationsDistribution<Double>
+    Multialphabet_distribution_predictor::obtain_code_probabilities(const Preprocessed_tseries<Double, Double> &history, size_t horizont, const Group &archivers) const {
         size_t N = log2_max_partition_cardinality;
-        std::vector<Continuations_distribution<Double_t>> tables(N);
+        std::vector<ContinuationsDistribution<Double>> tables(N);
         std::vector<size_t> alphabets(N);
         for (size_t i = 0; i < N; ++i) {
             alphabets[i] = static_cast<size_t>(pow(2, i+1));
@@ -35,7 +35,7 @@ namespace itp {
         for (size_t i = 0; i < N; ++i) {
             add_value_to_each(begin(tables[i]), end(tables[i]), (N - i - 1) * message_length);
         }
-        auto global_minimal_code_length = min_value_of_all_tables<decltype(tables)::const_iterator, Double_t>(tables.cbegin(), tables.cend());
+        auto global_minimal_code_length = min_value_of_all_tables<decltype(tables)::const_iterator, Double>(tables.cbegin(), tables.cend());
         for (auto &table : tables) {
             add_value_to_each(begin(table), end(table), -global_minimal_code_length);
             to_code_probabilities(begin(table), end(table));
@@ -47,21 +47,21 @@ namespace itp {
         return table;
     }
 
-    Real_distribution_predictor::Real_distribution_predictor(Codes_lengths_computer_ptr<Double_t> codes_lengths_computer, Sampler_ptr sampler, size_t partition_cardinality, size_t difference_order)
+    Real_distribution_predictor::Real_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer, Sampler_ptr sampler, size_t partition_cardinality, size_t difference_order)
         : Single_alphabet_distribution_predictor {codes_lengths_computer, difference_order}, sampler{sampler},
           partition_cardinality {partition_cardinality} {}
 
-    Preprocessed_tseries<Double_t, Symbol_t>
-    Real_distribution_predictor::sample(const Preprocessed_tseries<Double_t, Double_t> &history) const {
+    Preprocessed_tseries<Double, Symbol>
+    Real_distribution_predictor::sample(const Preprocessed_tseries<Double, Double> &history) const {
         auto sampling_result = sampler->sample(history, partition_cardinality);
         return sampling_result;
     }
 
-    Discrete_distribution_predictor::Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol_t> codes_lengths_computer, Sampler_ptr sampler, size_t difference_order)
+    Discrete_distribution_predictor::Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol> codes_lengths_computer, Sampler_ptr sampler, size_t difference_order)
         : Single_alphabet_distribution_predictor {codes_lengths_computer, difference_order}, sampler{sampler} {}
 
-    Preprocessed_tseries<Symbol_t, Symbol_t>
-    Discrete_distribution_predictor::sample(const Preprocessed_tseries<Symbol_t, Symbol_t> &history) const {
+    Preprocessed_tseries<Symbol, Symbol>
+    Discrete_distribution_predictor::sample(const Preprocessed_tseries<Symbol, Symbol> &history) const {
         return sampler->normalize(history);
     }
 } // itp

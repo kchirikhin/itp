@@ -78,14 +78,14 @@ std::map<std::string, std::vector<double>>
  * Forecast originally discrete time series.
  *
  */
-class Forecasting_algorithm_discrete : public Forecasting_algorithm<itp::Symbol_t> {
+class Forecasting_algorithm_discrete : public Forecasting_algorithm<itp::Symbol> {
 protected:
-    itp::Pointwise_predictor_ptr<itp::Symbol_t, itp::Symbol_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol_t> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+    itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::Sampler_ptr sampler, size_t difference) const override;
 };
 
-class Forecasting_algorithm_discrete_automation : public Forecasting_algorithm<itp::Symbol_t> {
+class Forecasting_algorithm_discrete_automation : public Forecasting_algorithm<itp::Symbol> {
 protected:
-    itp::Pointwise_predictor_ptr<itp::Symbol_t, itp::Symbol_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol_t> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+    itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::Sampler_ptr sampler, size_t difference) const override;
 };
 
 /**
@@ -93,36 +93,36 @@ protected:
  * only one partition cardinality).
  *
  */
-class Forecasting_algorithm_real : public Forecasting_algorithm<itp::Double_t> {
+class Forecasting_algorithm_real : public Forecasting_algorithm<itp::Double> {
 public:
   void set_quants_count(size_t n);
 protected:
-    itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer,
+    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
                                                     itp::Sampler_ptr sampler, size_t difference) const override;
   size_t quants_count;
 };
 
 class Forecasting_algorithm_real_automation : public Forecasting_algorithm_real {
 protected:
-    itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer,
+    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
                                                     itp::Sampler_ptr sampler, size_t difference) const override;
 };
 
 class Forecasting_algorithm_multialphabet : public Forecasting_algorithm_real {
 protected:
-    itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer, itp::Sampler_ptr sampler, size_t difference) const override;
 };
 
 class Forecasting_algorithm_multialphabet_automation : public Forecasting_algorithm_real_automation {
 protected:
-    itp::Pointwise_predictor_ptr<itp::Double_t, itp::Double_t> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double_t> computer,
+    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
                                                       itp::Sampler_ptr sampler, size_t difference) const override;
 };
 
 void check_args(size_t horizont, size_t difference, size_t quants_count, int sparse);
 
 std::map<std::string, std::vector<double>>
-make_forecast_real(const std::vector<itp::Double_t> &time_series,
+make_forecast_real(const std::vector<itp::Double> &time_series,
                    const itp::Names &compressors_groups, size_t horizont,
                    size_t difference, size_t quants_count, int sparse);
 
@@ -132,7 +132,7 @@ make_forecast_multialphabet(const std::vector<double> &history,
                             size_t difference, size_t max_quants_count, int sparse);
 
 std::map<std::string, std::vector<double>>
-make_forecast_discrete(const std::vector<itp::Symbol_t> &history,
+make_forecast_discrete(const std::vector<itp::Symbol> &history,
                        const std::vector<std::string> &compressors_groups, size_t horizont,
                        size_t difference, int sparse);
 #endif // BUILDERS_H_INCLUDED

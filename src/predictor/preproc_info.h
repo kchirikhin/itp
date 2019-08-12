@@ -28,8 +28,8 @@ namespace itp {
         void clear_dsample_table();
         bool is_sampled() const;
 
-        void set_desample_indent(Double_t);
-        Double_t get_desample_indent() const;
+        void set_desample_indent(Double);
+        Double get_desample_indent() const;
 
         void copy_preprocessing_info_from(const Preproc_info<T> &);
    
@@ -39,7 +39,7 @@ namespace itp {
         size_t alphabet;
 
         std::vector<T> desample_table;
-        Double_t desample_indent;
+        Double desample_indent;
         bool sampled = false;
     };
 } // of itp
@@ -98,12 +98,12 @@ bool itp::Preproc_info<T>::is_sampled() const {
 }
 
 template <typename T>
-void itp::Preproc_info<T>::set_desample_indent(Double_t new_indent) {
+void itp::Preproc_info<T>::set_desample_indent(Double new_indent) {
     desample_indent = new_indent;
 }
 
 template <typename T>
-itp::Double_t itp::Preproc_info<T>::get_desample_indent() const {
+itp::Double itp::Preproc_info<T>::get_desample_indent() const {
     return desample_indent;
 }
 

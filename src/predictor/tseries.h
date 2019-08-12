@@ -22,12 +22,12 @@ namespace itp {
     template <typename Orig_type, typename New_type>
     class Preprocessed_tseries : public Preproc_info<Orig_type> {
     public:
-        using iterator = typename Plain_tseries<New_type>::iterator;
-        using const_iterator = typename Plain_tseries<New_type>::const_iterator;
+        using iterator = typename PlainTimeSeries<New_type>::iterator;
+        using const_iterator = typename PlainTimeSeries<New_type>::const_iterator;
 
         Preprocessed_tseries() = default;
         Preprocessed_tseries(size_t, New_type);
-        Preprocessed_tseries(const Plain_tseries<New_type> &);
+        Preprocessed_tseries(const PlainTimeSeries<New_type> &);
 
         template <typename Iter>
         Preprocessed_tseries(Iter, Iter);
@@ -44,10 +44,10 @@ namespace itp {
         New_type& operator[](size_t);
         const New_type& operator[](size_t) const;
 
-        const Plain_tseries<New_type> & to_plain_tseries() const;
+        const PlainTimeSeries<New_type> & to_plain_tseries() const;
 
     private:
-        Plain_tseries<New_type> series;
+        PlainTimeSeries<New_type> series;
     };
 
     template <typename Orig_type, typename New_type>
@@ -59,7 +59,7 @@ itp::Preprocessed_tseries<Orig_type, New_type>::Preprocessed_tseries(size_t sz, 
     : series(sz, init_elem) {}
 
 template <typename Orig_type, typename New_type>
-itp::Preprocessed_tseries<Orig_type, New_type>::Preprocessed_tseries(const Plain_tseries<New_type> &ts)
+itp::Preprocessed_tseries<Orig_type, New_type>::Preprocessed_tseries(const PlainTimeSeries<New_type> &ts)
     : series(std::begin(ts), std::end(ts)) {}
 
 template <typename Orig_type, typename New_type>
@@ -110,7 +110,7 @@ const New_type& itp::Preprocessed_tseries<Orig_type, New_type>::operator[](size_
 }
 
 template <typename Orig_type, typename New_type>
-const itp::Plain_tseries<New_type> & itp::Preprocessed_tseries<Orig_type, New_type>::to_plain_tseries() const {
+const itp::PlainTimeSeries<New_type> & itp::Preprocessed_tseries<Orig_type, New_type>::to_plain_tseries() const {
     return series;
 }
 
