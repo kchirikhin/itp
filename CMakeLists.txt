@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(itp LANGUAGES CXX)
 
@@ -59,20 +59,19 @@ set(GMOCK_LIB gmock_main gmock)
 include_directories(${GTEST_INCLUDE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 
-set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_builders.cc tests/test_tseries.cc
-  tests/test_automaton.cc)
+set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_builders.cc tests/test_tseries.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
 target_link_libraries(pred_test rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
-add_test(pred_test pred_tests)
+add_test(NAME pred_test COMMAND pred_test)
 
 set(BIGNUMS_TESTS tests/test_bignums.cc)
 add_executable(bignums_test ${BIGNUMS_TESTS} src/predictor/bignums.h)
 target_link_libraries(bignums_test ${GTEST_LIB} ${GMOCK_LIB})
-add_test(bignums_test bignums_test)
+add_test(NAME bignums_test COMMAND bignums_test)
 
 set(AUTOMATON_TESTS tests/test_automaton.cc src/predictor/automaton.cc src/predictor/sdfa.cc src/predictor/head.cc)
 add_executable(automaton_test ${AUTOMATON_TESTS} src/predictor/automaton.h src/predictor/sdfa.h
   src/predictor/head.h)
 target_link_libraries(automaton_test ${GTEST_LIB} ${GMOCK_LIB})
-add_test(automaton_test automaton_test)
+add_test(NAME automaton_test COMMAND automaton_test)
