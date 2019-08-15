@@ -13,6 +13,7 @@
 #include <memory>
 
 namespace itp {
+
 class Sampler {
  public:
   Sampler() = default;
@@ -32,8 +33,30 @@ class Sampler {
  private:
   double indent = 0.1;
 };
-
 using Sampler_ptr = std::shared_ptr<Sampler>;
+
+namespace exp {
+
+template <typename OriginalType>
+class Sampler;
+
+template <>
+class Sampler<Double> {
+ public:
+  Preprocessed_tseries<Double, Symbol> Transform(const Preprocessed_tseries<Double, Double> &, size_t);
+  Double InverseTransform(Symbol, const Preproc_info<Double> &);
+
+ private:
+  double indent_ = 0.1;
+};
+
+template <>
+class Sampler<Symbol> {
+ public:
+  Preprocessed_tseries<Symbol, Symbol> Transform(const Preprocessed_tseries<Symbol, Symbol> &);
+  Symbol InverseTransform(Symbol, const Preproc_info<Symbol> &);
+};
+} // exp
 } // of itp
 
 template <typename T>

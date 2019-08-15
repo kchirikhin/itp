@@ -20,7 +20,7 @@ using Symbol = unsigned char;
 using HighPrecDouble = bignums::Big_double<12, 24>;
 //using HighPrecDouble = boost::multiprecision::mpfr_float;
 //using HighPrecDouble = long double;
-using Double = HighPrecDouble;
+using Double = double;
     
 
 template <typename T>

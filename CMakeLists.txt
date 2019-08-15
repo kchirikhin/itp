@@ -75,3 +75,8 @@ add_executable(automaton_test ${AUTOMATON_TESTS} src/predictor/automaton.h src/p
   src/predictor/head.h)
 target_link_libraries(automaton_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME automaton_test COMMAND automaton_test)
+
+set(SAMPLERS_TESTS tests/test_samplers.cc src/predictor/sampler.cc)
+add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
+target_link_libraries(samplers_tests rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME samplers_tests COMMAND samplers_tests)

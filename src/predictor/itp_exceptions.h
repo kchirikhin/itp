@@ -24,6 +24,10 @@ class ItpException : public std::exception {
 class RangeError : public ItpException {
   using ItpException::ItpException;
 };
+
+class SeriesTooShortError : public ItpException {
+  using ItpException::ItpException;
+};
 } // itp
 
 #endif // ITP_EXCEPTIONS_H_INCLUDED_
