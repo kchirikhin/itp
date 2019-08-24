@@ -30,36 +30,36 @@ std::string trim_line(const std::string &line, const std::function<int(int)> &is
 
 template <typename T>
 class Forecasting_algorithm {
-    // static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
-public:
+  // static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
+ public:
   std::map<std::string, std::vector<double>>
-    operator () (const std::vector<T> &time_series,
-                 const itp::Names &compressors_groups, size_t horizont,
-                 size_t difference, int sparse);
+  operator () (const std::vector<T> &time_series,
+               const itp::Names &compressors_groups, size_t horizont,
+               size_t difference, int sparse);
 
-protected:
+ protected:
 
-/**
- * Factory method.
- *
- */
-    virtual itp::Pointwise_predictor_ptr<T, T> make_predictor(itp::Codes_lengths_computer_ptr<T> computer, itp::Sampler_ptr sampler, size_t difference) const = 0;
+  /**
+   * Factory method.
+   *
+   */
+  virtual itp::Pointwise_predictor_ptr<T, T> make_predictor(itp::Codes_lengths_computer_ptr<T> computer,
+                                                            itp::SamplerPtr<T> sampler, size_t difference) const = 0;
 };
 
 template <typename T>
 std::map<std::string, std::vector<double>>
-  Forecasting_algorithm<T>::operator () (const std::vector<T> &time_series,
-               const itp::Names &compressors_groups, size_t horizont,
-               size_t difference, int sparse) {
-    auto computer {std::make_shared<itp::Codes_lengths_computer<T>>()};
-  auto indent {0.1};
-  auto sampler {std::make_shared<itp::Sampler>(indent)};
+Forecasting_algorithm<T>::operator () (const std::vector<T> &time_series,
+                                       const itp::Names &compressors_groups, size_t horizont,
+                                       size_t difference, int sparse) {
+  auto computer = std::make_shared<itp::Codes_lengths_computer<T>>();
+  auto sampler = std::make_shared<itp::Sampler<T>>();
   std::vector<itp::Names> compressors {
     itp::split_concatenated_names(compressors_groups)};
   itp::Pointwise_predictor_ptr<T, T> pointwise_predictor = make_predictor(computer,
                                                                           sampler, difference);
   if (sparse > 0) {
-      pointwise_predictor = std::make_shared<itp::Sparse_predictor<T, T>>(pointwise_predictor, sparse);
+    pointwise_predictor = std::make_shared<itp::Sparse_predictor<T, T>>(pointwise_predictor, sparse);
   }
 
   itp::Forecast<T> res = pointwise_predictor->predict(time_series, horizont, compressors);
@@ -79,13 +79,13 @@ std::map<std::string, std::vector<double>>
  *
  */
 class Forecasting_algorithm_discrete : public Forecasting_algorithm<itp::Symbol> {
-protected:
-    itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::SamplerPtr<itp::Symbol> sampler, size_t difference) const override;
 };
 
 class Forecasting_algorithm_discrete_automation : public Forecasting_algorithm<itp::Symbol> {
-protected:
-    itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer, itp::SamplerPtr<itp::Symbol> sampler, size_t difference) const override;
 };
 
 /**
@@ -94,29 +94,29 @@ protected:
  *
  */
 class Forecasting_algorithm_real : public Forecasting_algorithm<itp::Double> {
-public:
+ public:
   void set_quants_count(size_t n);
-protected:
-    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
-                                                    itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
+                                                                        itp::SamplerPtr<itp::Double> sampler, size_t difference) const override;
   size_t quants_count;
 };
 
 class Forecasting_algorithm_real_automation : public Forecasting_algorithm_real {
-protected:
-    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
-                                                    itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
+                                                                        itp::SamplerPtr<itp::Double> sampler, size_t difference) const override;
 };
 
 class Forecasting_algorithm_multialphabet : public Forecasting_algorithm_real {
-protected:
-    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer, itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer, itp::SamplerPtr<itp::Double> sampler, size_t difference) const override;
 };
 
 class Forecasting_algorithm_multialphabet_automation : public Forecasting_algorithm_real_automation {
-protected:
-    itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
-                                                      itp::Sampler_ptr sampler, size_t difference) const override;
+ protected:
+  itp::Pointwise_predictor_ptr<itp::Double, itp::Double> make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
+                                                                        itp::SamplerPtr<itp::Double> sampler, size_t difference) const override;
 };
 
 void check_args(size_t horizont, size_t difference, size_t quants_count, int sparse);

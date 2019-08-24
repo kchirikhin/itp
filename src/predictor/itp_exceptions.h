@@ -4,6 +4,11 @@
 #include <exception>
 #include <string_view>
 
+#define DECLARE_ITP_EXCEPTION_SUBTYPE(Name) \
+  class Name : public ItpException { \
+    using ItpException::ItpException; \
+  }
+
 namespace itp {
 
 class ItpException : public std::exception {
@@ -21,13 +26,11 @@ class ItpException : public std::exception {
   std::string description_;
 };
 
-class RangeError : public ItpException {
-  using ItpException::ItpException;
-};
-
-class SeriesTooShortError : public ItpException {
-  using ItpException::ItpException;
-};
+DECLARE_ITP_EXCEPTION_SUBTYPE(RangeError);
+DECLARE_ITP_EXCEPTION_SUBTYPE(SeriesTooShortError);
+DECLARE_ITP_EXCEPTION_SUBTYPE(EmptyInputError);
+DECLARE_ITP_EXCEPTION_SUBTYPE(InvalidDigitError);
+DECLARE_ITP_EXCEPTION_SUBTYPE(InvalidBaseError);
 } // itp
 
 #endif // ITP_EXCEPTIONS_H_INCLUDED_

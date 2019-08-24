@@ -14,9 +14,10 @@
 #include "primitive_dtypes.h"
 #include "preproc_info.h"
 
-#include <vector>
-#include <iostream>
 #include <initializer_list>
+#include <iostream>
+#include <utility>
+#include <vector>
 
 namespace itp {
 
@@ -54,6 +55,9 @@ class Preprocessed_tseries : public Preproc_info<Orig_type> {
 
   reference operator[](size_t);
   const_reference operator[](size_t) const;
+
+  void push_back(const New_type &);
+  void push_back(New_type &&);
 
   const PlainTimeSeries<New_type>& to_plain_tseries() const;
 
@@ -148,6 +152,16 @@ New_type& itp::Preprocessed_tseries<Orig_type, New_type>::operator[](size_t n) {
 template <typename Orig_type, typename New_type>
 const New_type& itp::Preprocessed_tseries<Orig_type, New_type>::operator[](size_t n) const {
   return series[n];
+}
+
+template <typename Orig_type, typename New_type>
+void itp::Preprocessed_tseries<Orig_type, New_type>::push_back(const New_type &to_insert) {
+  series.push_back(to_insert);
+}
+
+template <typename Orig_type, typename New_type>
+void itp::Preprocessed_tseries<Orig_type, New_type>::push_back(New_type &&to_insert) {
+  series.push_back(std::forward<New_type>(to_insert));
 }
 
 template <typename Orig_type, typename New_type>

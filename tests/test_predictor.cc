@@ -2,141 +2,31 @@
 #include <compression_prediction.h>
 #include <continuation.h>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <iterator>
 
 using namespace itp;
-
-TEST(SamplerTest, SampleRealTimeSeriesWithNoIndent_sample_TimeSeriesIsDiscretized) {
-  PlainTimeSeries<Double> ts {0.1, 0.15, 0.2, 0.5, 10, 5.25, 3.17, 2.85, 8};
-  double indent {0.};
-  auto sampler {std::make_shared<Sampler>(indent)};
-  size_t partition_cardinality {20};
-  auto sampled {sampler->sample(ts, partition_cardinality)};
-  EXPECT_EQ(0, sampled[0]);
-  EXPECT_EQ(0, sampled[1]);
-  EXPECT_EQ(0, sampled[2]);
-  EXPECT_EQ(0, sampled[3]);
-  EXPECT_EQ(19, sampled[4]);
-  EXPECT_EQ(10, sampled[5]);
-  EXPECT_EQ(6, sampled[6]);
-  EXPECT_EQ(5, sampled[7]);
-  EXPECT_EQ(15, sampled[8]);
-  EXPECT_EQ(9, sampled.size());
-}
-
-TEST(SamplerTest, SampleRealTimeSeriesWithIndent_sample_TimeSeriesIsDiscretized) {
-  PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-  double indent {.1};
-  auto sampler {std::make_shared<Sampler>(indent)};
-  size_t partition_cardinality {4};
-  auto sampled {sampler->sample(ts, partition_cardinality)};
-  EXPECT_EQ(2, sampled[0]);
-  EXPECT_EQ(0, sampled[1]);
-  EXPECT_EQ(2, sampled[2]);
-  EXPECT_EQ(3, sampled[3]);
-  EXPECT_EQ(1, sampled[4]);
-  EXPECT_EQ(1, sampled[5]);
-  EXPECT_EQ(1, sampled[6]);
-  EXPECT_EQ(3, sampled[7]);
-  EXPECT_EQ(3, sampled[8]);
-  EXPECT_EQ(1, sampled[9]);
-  EXPECT_EQ(10, sampled.size());
-}
-
-TEST(SamplerTest, DiscreteTimeSeries_normalize_Works) {
-  PlainTimeSeries<Symbol> ts{2, 6, 5, 3, 2};
-  auto sampler = std::make_shared<Sampler>();
-  auto quanted = sampler->normalize(ts);
-  EXPECT_EQ(0, quanted[0]);
-  EXPECT_EQ(4, quanted[1]);
-  EXPECT_EQ(3, quanted[2]);
-  EXPECT_EQ(1, quanted[3]);
-  EXPECT_EQ(0, quanted[4]);
-
-  EXPECT_DOUBLE_EQ(2, sampler->desample(quanted[0], quanted));
-  EXPECT_DOUBLE_EQ(6, sampler->desample(quanted[1], quanted));
-  EXPECT_DOUBLE_EQ(5, sampler->desample(quanted[2], quanted));
-  EXPECT_DOUBLE_EQ(3, sampler->desample(quanted[3], quanted));
-  EXPECT_DOUBLE_EQ(2, sampler->desample(quanted[4], quanted));
-}
-
-TEST(SamplerTest, RealTimeSeries_desample_Works) {
-  PlainTimeSeries<Double> v{1, 2, 4, 3};
-  auto sampler = std::make_shared<Sampler>(0.);
-  auto quanted = sampler->sample(v, 3);
-  EXPECT_EQ(0, quanted[0]);
-  EXPECT_EQ(1, quanted[1]);
-  EXPECT_EQ(2, quanted[2]);
-  EXPECT_EQ(2, quanted[3]);
-
-  EXPECT_DOUBLE_EQ(1.5, sampler->desample(quanted[0], quanted));
-  EXPECT_DOUBLE_EQ(2.5, sampler->desample(quanted[1], quanted));
-  EXPECT_DOUBLE_EQ(3.5, sampler->desample(quanted[2], quanted));
-  EXPECT_DOUBLE_EQ(3.5, sampler->desample(quanted[3], quanted));
-}
+using namespace testing;
 
 TEST(IncrementTest, main) {
   std::vector<Symbol> vec(4);
   std::fill(begin(vec), end(vec), 0);
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 1);
-  EXPECT_EQ(vec[1], 0);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
+  std::vector<std::vector<Symbol>> expected_values = {
+    {1, 0, 0, 0}, {2, 0, 0, 0}, {0, 1, 0, 0}, {1, 1, 0, 0},
+    {2, 1, 0, 0}, {0, 2, 0, 0}, {1, 2, 0, 0}, {2, 2, 0, 0}
+  };
+  
+  for (size_t i = 0; i < expected_values.size(); ++i) {
+    increment(vec, 0, 3);
+    EXPECT_THAT(vec, ElementsAreArray(expected_values[i]));
+  }
 
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 2);
-  EXPECT_EQ(vec[1], 0);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 0);
-  EXPECT_EQ(vec[1], 1);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 1);
-  EXPECT_EQ(vec[1], 1);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 2);
-  EXPECT_EQ(vec[1], 1);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 0);
-  EXPECT_EQ(vec[1], 2);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 1);
-  EXPECT_EQ(vec[1], 2);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 2);
-  EXPECT_EQ(vec[1], 2);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
-
-  increment(vec, 0, 3);
-  increment(vec, 0, 3);
-  increment(vec, 0, 3);
-  increment(vec, 0, 3);
-
-  EXPECT_EQ(vec[0], 0);
-  EXPECT_EQ(vec[1], 1);
-  EXPECT_EQ(vec[2], 1);
-  EXPECT_EQ(vec[3], 0);
+  for (size_t i = 0; i < 4; ++i) {
+    increment(vec, 0, 3);
+  }
+  EXPECT_THAT(vec, ElementsAre(0, 1, 1, 0));
 
   EXPECT_THROW(increment(vec, 1, 3), std::invalid_argument);
   EXPECT_THROW(increment(vec, 3, 1), std::invalid_argument);
@@ -145,17 +35,10 @@ TEST(IncrementTest, main) {
   for (size_t i = 0; i < 80; ++i) {
     increment(vec, 0, 3);
   }
-
-  EXPECT_EQ(vec[0], 2);
-  EXPECT_EQ(vec[1], 2);
-  EXPECT_EQ(vec[2], 2);
-  EXPECT_EQ(vec[3], 2);
+  EXPECT_THAT(vec, ElementsAre(2, 2, 2, 2));
 
   increment(vec, 0, 3);
-  EXPECT_EQ(vec[0], 0);
-  EXPECT_EQ(vec[1], 0);
-  EXPECT_EQ(vec[2], 0);
-  EXPECT_EQ(vec[3], 0);
+  EXPECT_THAT(vec, ElementsAre(0, 0, 0, 0));
 
   std::vector<Symbol> vec1(1);
   vec[0] = 0;
@@ -800,11 +683,10 @@ TEST_F(CustomCompressionMehtodsTest, OneByOne) {
 
 TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect) {
   PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-  auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
-  auto indent {0.1};
-  auto sampler {std::make_shared<Sampler>(indent)};
-  size_t partition_cardinality {4};
-  size_t horizont {2};
+  auto computer = std::make_shared<Codes_lengths_computer<Double>>();
+  auto sampler = std::make_shared<Sampler<Double>>();
+  auto partition_cardinality = 4u;
+  auto horizont = 2u;
   std::vector<Names> compressors {{"zlib"}, {"rp"}, {"zlib", "rp"}};
   Real_distribution_predictor_ptr dpredictor = std::make_shared<Real_distribution_predictor> (computer, sampler, partition_cardinality);
   dpredictor->set_difference_order(0);
@@ -823,9 +705,9 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
 
 TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect) {
   std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
-  auto computer {std::make_shared<Codes_lengths_computer<Symbol>>()};
-  auto sampler {std::make_shared<Sampler>()};
-  size_t horizont {2};
+  auto computer = std::make_shared<Codes_lengths_computer<Symbol>>();
+  auto sampler = std::make_shared<Sampler<Symbol>>();
+  size_t horizont = 2u;
   std::vector<Names> compressors {{"zlib", "rp"}};
   Discrete_distribution_predictor_ptr dpredictor = std::make_shared<Discrete_distribution_predictor>(computer, sampler);
   Basic_pointwise_predictor<Symbol, Symbol> ppredictor {dpredictor};
@@ -837,11 +719,10 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecas
 
 TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect) {
   std::vector<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-  auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
-  auto indent {0.1};
-  auto sampler {std::make_shared<Sampler>(indent)};
-  size_t max_partition_cardinality {4};
-  size_t horizont {2};
+  auto computer = std::make_shared<Codes_lengths_computer<Double>>();
+  auto sampler = std::make_shared<Sampler<Double>>();
+  auto max_partition_cardinality = 4u;
+  auto horizont = 2u;
   std::vector<Names> compressors {{"zlib", "rp"}};
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor>(computer, sampler,
                                                                            max_partition_cardinality);
@@ -856,9 +737,8 @@ TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_
 TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_PredictionIsCorrect) {
   std::vector<Double> ts{3.4, 2.5, 0.1, 0.5, 3.9, 4.0, 4.8, 2.8, 1.5, 1.3, 1.8, 2.1,
         2, 3.5, 4.9, 5.0, 5.1, 4.5, 2.1};
-  auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
-  auto indent {0.1};
-  auto sampler {std::make_shared<Sampler>(indent)};
+  auto computer = std::make_shared<Codes_lengths_computer<Double>>();
+  auto sampler = std::make_shared<Sampler<Double>>();
   size_t horizont {4};
   std::vector<Names> compressors {{"zlib", "rp"}};
   size_t max_quants_count = 4;
@@ -880,10 +760,9 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   PlainTimeSeries<Double> ts {940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15,
         2342.52, 2602.45, 2927.87, 3103.96, 3360.27, 3807.63, 4387.88, 4936.99};
 
-  auto computer {std::make_shared<Codes_lengths_computer<Double>>()};
-  auto indent {0.1};
-  auto sampler {std::make_shared<Sampler>(indent)};
-  size_t horizont {6};
+  auto computer = std::make_shared<Codes_lengths_computer<Double>>();
+  auto sampler = std::make_shared<Sampler<Double>>();
+  size_t horizont = 6u;
   std::vector<Names> compressors {{"zlib", "rp"}};
   size_t max_quants_count = 4;
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor>(computer,

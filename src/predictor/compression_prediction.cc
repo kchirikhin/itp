@@ -4,7 +4,7 @@
 
 namespace itp {
 Multialphabet_distribution_predictor::Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
-                                                                           Sampler_ptr sampler,
+                                                                           SamplerPtr<Double> sampler,
                                                                            size_t max_q,
                                                                            size_t difference_order)
     : Compression_based_predictor<Double, Double> {difference_order},
@@ -24,7 +24,7 @@ Multialphabet_distribution_predictor::obtain_code_probabilities(const Preprocess
   std::vector<size_t> alphabets(N);
   for (size_t i = 0; i < N; ++i) {
     alphabets[i] = static_cast<size_t>(pow(2, i+1));
-    auto sampled_ts = sampler->sample(history, alphabets[i]);
+    auto sampled_ts = sampler->Transform(history, alphabets[i]);
     tables[i] = codes_lengths_computer->append_each_trajectory_and_compute(sampled_ts.to_plain_tseries(),
                                                                            static_cast<size_t>(pow(2, i + 1)),
                                                                            horizont, archivers);
@@ -47,7 +47,7 @@ Multialphabet_distribution_predictor::obtain_code_probabilities(const Preprocess
   return table;
 }
 
-Real_distribution_predictor::Real_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer, Sampler_ptr sampler, size_t partition_cardinality, size_t difference_order)
+Real_distribution_predictor::Real_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer, SamplerPtr<Double> sampler, size_t partition_cardinality, size_t difference_order)
     : Single_alphabet_distribution_predictor {codes_lengths_computer, difference_order}, sampler{sampler},
       partition_cardinality {partition_cardinality} {
   // DO NOTHING
@@ -55,17 +55,17 @@ Real_distribution_predictor::Real_distribution_predictor(Codes_lengths_computer_
 
 Preprocessed_tseries<Double, Symbol>
 Real_distribution_predictor::sample(const Preprocessed_tseries<Double, Double> &history) const {
-  auto sampling_result = sampler->sample(history, partition_cardinality);
+  auto sampling_result = sampler->Transform(history, partition_cardinality);
   return sampling_result;
 }
 
-Discrete_distribution_predictor::Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol> codes_lengths_computer, Sampler_ptr sampler, size_t difference_order)
+Discrete_distribution_predictor::Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol> codes_lengths_computer, SamplerPtr<Symbol> sampler, size_t difference_order)
     : Single_alphabet_distribution_predictor {codes_lengths_computer, difference_order}, sampler{sampler} {
   // DO NOTHING
 }
 
 Preprocessed_tseries<Symbol, Symbol>
 Discrete_distribution_predictor::sample(const Preprocessed_tseries<Symbol, Symbol> &history) const {
-  return sampler->normalize(history);
+  return sampler->Transform(history);
 }
 } // itp

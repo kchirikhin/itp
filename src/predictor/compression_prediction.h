@@ -59,7 +59,7 @@ class Multialphabet_distribution_predictor : public Compression_based_predictor<
  public:
   Multialphabet_distribution_predictor() = delete;
   Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
-                                       Sampler_ptr sampler, size_t max_q, size_t difference = 0);
+                                       SamplerPtr<Double> sampler, size_t max_q, size_t difference = 0);
 
   ContinuationsDistribution<Double>
   obtain_code_probabilities(const Preprocessed_tseries<Double, Double> &ts, size_t horizont,
@@ -67,7 +67,7 @@ class Multialphabet_distribution_predictor : public Compression_based_predictor<
   
  private:
   Codes_lengths_computer_ptr<Double> codes_lengths_computer;
-  Sampler_ptr sampler;
+  SamplerPtr<Double> sampler;
   size_t log2_max_partition_cardinality;
   Weights_generator_ptr partitions_weights_gen;
 };
@@ -92,13 +92,13 @@ class Real_distribution_predictor : public Single_alphabet_distribution_predicto
  public:
   Real_distribution_predictor() = delete;
   Real_distribution_predictor(Codes_lengths_computer_ptr<Double> codes_lengths_computer,
-                              Sampler_ptr sampler, size_t partition_cardinality,
+                              SamplerPtr<Double> sampler, size_t partition_cardinality,
                               size_t difference = 0);
  protected:
   Preprocessed_tseries<Double, Symbol> sample(const Preprocessed_tseries<Double, Double> &history) const override;
   
  private:
-  Sampler_ptr sampler;
+  SamplerPtr<Double> sampler;
   size_t partition_cardinality;
 };
 
@@ -106,13 +106,13 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
  public:
   Discrete_distribution_predictor() = delete;
   Discrete_distribution_predictor(Codes_lengths_computer_ptr<Symbol> codes_lengths_computer,
-                                  Sampler_ptr sampler, size_t difference=0);
+                                  SamplerPtr<Symbol> sampler, size_t difference=0);
 
  protected:
   Preprocessed_tseries<Symbol, Symbol> sample(const Preprocessed_tseries<Symbol, Symbol> &history) const override;
 
  private:
-  Sampler_ptr sampler;
+  SamplerPtr<Symbol> sampler;
 };
 
 template <typename Orig_type, typename New_type>
@@ -219,7 +219,7 @@ size_t itp::Compression_based_predictor<Orig_type, New_type>::get_difference_ord
 }
 
 template <typename Orig_type, typename New_type>
-itp::Single_alphabet_distribution_predictor<Orig_type, New_type>::Single_alphabet_distribution_predictor(Codes_lengths_computer_ptr<Orig_type> codes_lengths_computer, size_t difference)
+itp::Single_alphabet_distribution_predictor<Orig_type, New_type>::Single_alphabet_distribution_predictor(Codes_lengths_computer_ptr<Orig_type> codes_lengths_computer, size_t)
     : codes_lengths_computer {codes_lengths_computer} {
   // DO NOTHING
 }

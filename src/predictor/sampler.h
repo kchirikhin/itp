@@ -7,35 +7,13 @@
 
 #include "dtypes.h"
 
-#include <vector>
-#include <utility>
 #include <cassert>
+#include <functional>
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace itp {
-
-class Sampler {
- public:
-  Sampler() = default;
-  explicit Sampler(double);
-
-  void set_indent(double);
-  double get_indent() const;
-
-  virtual Sampler* clone();
-
-  Preprocessed_tseries<Double, Symbol> sample(const Preprocessed_tseries<Double, Double> &, size_t);
-  Preprocessed_tseries<Symbol, Symbol> normalize(const Preprocessed_tseries<Symbol, Symbol> &);
-
-  template <typename T>
-  Double desample(Symbol, const Preproc_info<T> &);
-
- private:
-  double indent = 0.1;
-};
-using Sampler_ptr = std::shared_ptr<Sampler>;
-
-namespace exp {
 
 template <typename OriginalType>
 class Sampler;
@@ -56,19 +34,54 @@ class Sampler<Symbol> {
   Preprocessed_tseries<Symbol, Symbol> Transform(const Preprocessed_tseries<Symbol, Symbol> &);
   Symbol InverseTransform(Symbol, const Preproc_info<Symbol> &);
 };
-} // exp
-} // of itp
+
+template <>
+class Sampler<VectorDouble> {
+ public:
+  Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorDouble> &,
+                                                       size_t);
+  VectorDouble InverseTransform(Symbol, const Preproc_info<VectorDouble> &);
+
+ private:
+  double indent_ = 0.1;
+};
 
 template <typename T>
-itp::Double itp::Sampler::desample(Symbol s, const Preproc_info<T> &info) {
-  if (!info.is_sampled()) {
-    return s;
-  }
-        
-  assert(!info.get_desample_table().empty());
-  assert(s < info.get_desample_table().size());
+using SamplerPtr = std::shared_ptr<Sampler<T>>;
 
-  return (info.get_desample_table())[s];
+template <typename ForwardIterator, typename Value>
+typename std::iterator_traits<ForwardIterator>::value_type pointwise_operation(
+    ForwardIterator first, ForwardIterator last, std::function<Value(Value, Value)> op) {
+  using ElemType = typename std::iterator_traits<ForwardIterator>::value_type;
+
+  ElemType to_return = *first;
+  while (++first != last) {
+    auto to_return_iter = std::begin(to_return);
+    for (auto value : *first) {
+      if (op(value, *to_return_iter)) {
+        *to_return_iter = value;
+      }
+      ++to_return_iter;
+    }
+  }
+
+  return to_return;
 }
+
+template <typename ForwardIterator>
+typename std::iterator_traits<ForwardIterator>::value_type pointwise_max_elements(ForwardIterator first,
+                                                                                  ForwardIterator last) {
+  return pointwise_operation<ForwardIterator, Double>(first, last, std::greater<Double>());
+}
+
+template <typename ForwardIterator>
+typename std::iterator_traits<ForwardIterator>::value_type pointwise_min_elements(ForwardIterator first,
+                                                                                  ForwardIterator last) {
+  return pointwise_operation<ForwardIterator, Double>(first, last, std::less<Double>());
+}
+
+Symbol ConvertNumberToDec(const VectorSymbol &, size_t);
+VectorSymbol ConvertDecToNumber(Symbol, size_t);
+} // of itp
 
 #endif // ITP_SAMPLER_H_INCLUDED_
