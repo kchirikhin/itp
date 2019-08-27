@@ -219,7 +219,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
   for (size_t i = 0; i < N; ++i) {
     add_value_to_each(begin(tables[i]), end(tables[i]), (N - i - 1) * message_length);
   }
-  auto global_minimal_code_length = min_value_of_all_tables<decltype(tables)::const_iterator, DoubleT>(tables.cbegin(), tables.cend());
+  auto global_minimal_code_length = min_value_of_all_tables<typename decltype(tables)::const_iterator, DoubleT>(tables.cbegin(), tables.cend());
   for (auto &table : tables) {
     add_value_to_each(begin(table), end(table), -global_minimal_code_length);
     to_code_probabilities(begin(table), end(table));
