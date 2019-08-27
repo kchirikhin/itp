@@ -783,8 +783,3 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   EXPECT_NEAR(forecast("zlib_rp", 4).point, expected_forecast[4], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 5).point, expected_forecast[5], 1e-5);
 }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
