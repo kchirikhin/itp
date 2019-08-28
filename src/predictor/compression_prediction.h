@@ -8,29 +8,32 @@
 #include <algorithm>
 
 namespace itp {
+
+// Extend(history).With(AllPossibleTrajectoriesOfLength(5));
+
 template <typename T>
-class Codes_lengths_computer {
+class CodeLengthsComputer {
  public:
   using Trajectories = std::vector<Continuation<Symbol>>;
 
-  virtual ~Codes_lengths_computer() = default;
+  virtual ~CodeLengthsComputer() = default;
 
   virtual ContinuationsDistribution<T>
-  append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
-                                     size_t alphabet, size_t length_of_continuation,
-                                     const Names &compressors_to_compute,
-                                     const Trajectories &possible_continuations) const;
+  AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
+                                 size_t alphabet, size_t length_of_continuation,
+                                 const Names &compressors_to_compute,
+                                 const Trajectories &possible_continuations) const;
   virtual ContinuationsDistribution<T>
-  append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history, size_t alphabet,
-                                     size_t length_of_continuation,
-                                     const Names &compressors_to_compute) const;
+  AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history, size_t alphabet,
+                                 size_t length_of_continuation,
+                                 const Names &compressors_to_compute) const;
 
  private:
-  static constexpr size_t BITS_IN_BYTE = 8;
+  static constexpr size_t kBitsInByte = 8;
 };
 
 template <typename T>
-using Codes_lengths_computer_ptr = std::shared_ptr<Codes_lengths_computer<T>>;
+using CodeLengthsComputerPtr = std::shared_ptr<CodeLengthsComputer<T>>;
 
 template <typename Orig_type, typename New_type>
 class Compression_based_predictor : public Distribution_predictor<Orig_type, New_type> {
@@ -59,7 +62,7 @@ template <typename DoubleT>
 class Multialphabet_distribution_predictor : public Compression_based_predictor<DoubleT, DoubleT> {
  public:
   Multialphabet_distribution_predictor() = delete;
-  Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<DoubleT> codes_lengths_computer,
+  Multialphabet_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer,
                                        SamplerPtr<DoubleT> sampler, size_t max_q, size_t difference = 0);
 
   ContinuationsDistribution<DoubleT>
@@ -67,7 +70,7 @@ class Multialphabet_distribution_predictor : public Compression_based_predictor<
                             const Group &compressors) const override;
   
  private:
-  Codes_lengths_computer_ptr<DoubleT> codes_lengths_computer;
+  CodeLengthsComputerPtr<DoubleT> codes_lengths_computer;
   SamplerPtr<DoubleT> sampler;
   size_t log2_max_partition_cardinality;
   Weights_generator_ptr partitions_weights_gen;
@@ -77,7 +80,7 @@ template <typename Orig_type, typename New_type>
 class Single_alphabet_distribution_predictor : public Compression_based_predictor<Orig_type, New_type> {
  public:
   Single_alphabet_distribution_predictor() = delete;
-  explicit Single_alphabet_distribution_predictor(Codes_lengths_computer_ptr<Orig_type>, size_t=0);
+  explicit Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<Orig_type>, size_t=0);
  protected:
   ContinuationsDistribution<Orig_type>
   obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &, size_t,
@@ -86,14 +89,14 @@ class Single_alphabet_distribution_predictor : public Compression_based_predicto
   sample(const Preprocessed_tseries<Orig_type,New_type> &) const = 0;
 
  private:
-  Codes_lengths_computer_ptr<Orig_type> codes_lengths_computer;
+  CodeLengthsComputerPtr<Orig_type> codes_lengths_computer;
 };
 
 template <typename DoubleT>
 class Real_distribution_predictor : public Single_alphabet_distribution_predictor<DoubleT, DoubleT> {
  public:
   Real_distribution_predictor() = delete;
-  Real_distribution_predictor(Codes_lengths_computer_ptr<DoubleT> codes_lengths_computer,
+  Real_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer,
                               SamplerPtr<DoubleT> sampler, size_t partition_cardinality,
                               size_t difference = 0);
  protected:
@@ -108,7 +111,7 @@ template <typename SymbolT>
 class Discrete_distribution_predictor : public Single_alphabet_distribution_predictor<SymbolT, SymbolT> {
  public:
   Discrete_distribution_predictor() = delete;
-  Discrete_distribution_predictor(Codes_lengths_computer_ptr<SymbolT> codes_lengths_computer,
+  Discrete_distribution_predictor(CodeLengthsComputerPtr<SymbolT> codes_lengths_computer,
                                   SamplerPtr<SymbolT> sampler, size_t difference=0);
 
  protected:
@@ -129,7 +132,7 @@ using Real_distribution_predictor_ptr = std::shared_ptr<Real_distribution_predic
 
 template <typename T>
 ContinuationsDistribution<T>
-Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
                                                               size_t alphabet,
                                                               size_t length_of_continuation,
                                                               const Names &compressors_to_compute,
@@ -150,7 +153,7 @@ Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSer
     for (size_t j = 0; j < result.factors_size(); ++j) {
       result(continuation, compressors_to_compute[j]) =
           Compressors_pool::get_instance()(compressors_to_compute[j], buffer.get(),
-                                           history.size()+length_of_continuation)*BITS_IN_BYTE;
+                                           history.size()+length_of_continuation) * kBitsInByte;
     }
   }
 
@@ -159,7 +162,7 @@ Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSer
 
 template <typename T>
 ContinuationsDistribution<T>
-Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSeries<Symbol> &history,
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
                                                               size_t alphabet,
                                                               size_t length_of_continuation,
                                                               const Names &compressors_to_compute) const {
@@ -170,7 +173,7 @@ Codes_lengths_computer<T>::append_each_trajectory_and_compute(const PlainTimeSer
     possible_continuations.push_back(continuation++);
   }
 
-  return append_each_trajectory_and_compute(history, alphabet, length_of_continuation,
+  return AppendEachTrajectoryAndCompute(history, alphabet, length_of_continuation,
                                             compressors_to_compute, possible_continuations);
 }
 
@@ -189,7 +192,7 @@ Compression_based_predictor<Orig_type, New_type>::predict(Preprocessed_tseries<O
 }
 
 template <typename DoubleT>
-Multialphabet_distribution_predictor<DoubleT>::Multialphabet_distribution_predictor(Codes_lengths_computer_ptr<DoubleT> codes_lengths_computer, SamplerPtr<DoubleT> sampler, size_t max_q, size_t difference_order)
+Multialphabet_distribution_predictor<DoubleT>::Multialphabet_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer, SamplerPtr<DoubleT> sampler, size_t max_q, size_t difference_order)
     : Compression_based_predictor<DoubleT, DoubleT> {difference_order},
   codes_lengths_computer { codes_lengths_computer }, sampler { sampler },
   partitions_weights_gen { std::make_shared<Countable_weights_generator>() } {
@@ -209,7 +212,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
   for (size_t i = 0; i < N; ++i) {
     alphabets[i] = static_cast<size_t>(pow(2, i+1));
     auto sampled_ts = sampler->Transform(history, alphabets[i]);
-    tables[i] = codes_lengths_computer->append_each_trajectory_and_compute(sampled_ts.to_plain_tseries(),
+    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_ts.to_plain_tseries(),
                                                                            static_cast<size_t>(pow(2, i + 1)),
                                                                            horizont, archivers);
     tables[i].copy_preprocessing_info_from(sampled_ts);
@@ -232,7 +235,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
 }
 
 template <typename DoubleT>
-Real_distribution_predictor<DoubleT>::Real_distribution_predictor(Codes_lengths_computer_ptr<DoubleT> codes_lengths_computer, SamplerPtr<DoubleT> sampler, size_t partition_cardinality, size_t difference_order)
+Real_distribution_predictor<DoubleT>::Real_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer, SamplerPtr<DoubleT> sampler, size_t partition_cardinality, size_t difference_order)
     : Single_alphabet_distribution_predictor<DoubleT, DoubleT> {codes_lengths_computer, difference_order}, sampler { sampler }, partition_cardinality { partition_cardinality } {
   // DO NOTHING
 }
@@ -245,7 +248,7 @@ Real_distribution_predictor<DoubleT>::sample(const Preprocessed_tseries<DoubleT,
 }
 
 template <typename SymbolT>
-Discrete_distribution_predictor<SymbolT>::Discrete_distribution_predictor(Codes_lengths_computer_ptr<SymbolT> codes_lengths_computer, SamplerPtr<SymbolT> sampler, size_t difference_order)
+Discrete_distribution_predictor<SymbolT>::Discrete_distribution_predictor(CodeLengthsComputerPtr<SymbolT> codes_lengths_computer, SamplerPtr<SymbolT> sampler, size_t difference_order)
     : Single_alphabet_distribution_predictor<SymbolT, SymbolT> { codes_lengths_computer, difference_order }, sampler { sampler } {
   // DO NOTHING
 }
@@ -260,8 +263,8 @@ template <typename Orig_type, typename New_type>
 ContinuationsDistribution<Orig_type>
 Single_alphabet_distribution_predictor<Orig_type, New_type>::obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history, size_t horizont, const Names &compressors) const {
   auto sampled_tseries = sample(history);
-  auto table = codes_lengths_computer->append_each_trajectory_and_compute(sampled_tseries.to_plain_tseries(),
-                                                                          sampled_tseries.get_sampling_alphabet(), horizont, compressors);
+  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_tseries.to_plain_tseries(),
+                                                                      sampled_tseries.get_sampling_alphabet(), horizont, compressors);
   auto min = *std::min_element(begin(table), end(table));
   add_value_to_each(begin(table), end(table), -min);
   to_code_probabilities(begin(table), end(table));
@@ -293,7 +296,7 @@ size_t Compression_based_predictor<Orig_type, New_type>::get_difference_order() 
 }
 
 template <typename Orig_type, typename New_type>
-Single_alphabet_distribution_predictor<Orig_type, New_type>::Single_alphabet_distribution_predictor(Codes_lengths_computer_ptr<Orig_type> codes_lengths_computer, size_t)
+Single_alphabet_distribution_predictor<Orig_type, New_type>::Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<Orig_type> codes_lengths_computer, size_t)
     : codes_lengths_computer {codes_lengths_computer} {
   // DO NOTHING
 }

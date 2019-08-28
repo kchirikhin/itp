@@ -20,7 +20,7 @@ std::string trim_line(const std::string &line, const std::function<int(int)> &is
     return line.substr(first_non_empty, last_non_empty - first_non_empty + 1);
 }
 
-itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> Forecasting_algorithm_discrete::make_predictor(itp::Codes_lengths_computer_ptr<itp::Symbol> computer,
+itp::Pointwise_predictor_ptr<itp::Symbol, itp::Symbol> Forecasting_algorithm_discrete::make_predictor(itp::CodeLengthsComputerPtr<itp::Symbol> computer,
                                                                                                       itp::SamplerPtr<itp::Symbol> sampler, size_t difference) const {
   auto dpredictor = std::make_shared<itp::Discrete_distribution_predictor<itp::Symbol>>(computer, sampler,
                                                                              difference);
@@ -31,14 +31,14 @@ void Forecasting_algorithm_real::set_quants_count(size_t n) {
     quants_count = n;
 }
 
-itp::Pointwise_predictor_ptr<itp::Double, itp::Double> Forecasting_algorithm_real::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer,
+itp::Pointwise_predictor_ptr<itp::Double, itp::Double> Forecasting_algorithm_real::make_predictor(itp::CodeLengthsComputerPtr<itp::Double> computer,
                                                                                                   itp::SamplerPtr<itp::Double> sampler, size_t difference) const {
   auto dpredictor = std::make_shared<itp::Real_distribution_predictor<itp::Double>>(computer, sampler, quants_count, difference);
     return std::make_shared<itp::Basic_pointwise_predictor<itp::Double, itp::Double>>(dpredictor);
 }
 
 itp::Pointwise_predictor_ptr<itp::Double, itp::Double>
-Forecasting_algorithm_multialphabet::make_predictor(itp::Codes_lengths_computer_ptr<itp::Double> computer, itp::SamplerPtr<itp::Double> sampler, size_t difference) const {
+Forecasting_algorithm_multialphabet::make_predictor(itp::CodeLengthsComputerPtr<itp::Double> computer, itp::SamplerPtr<itp::Double> sampler, size_t difference) const {
   auto dpredictor = std::make_shared<itp::Multialphabet_distribution_predictor<itp::Double>>(computer, sampler,
                                                                              quants_count,
                                                                              difference);
