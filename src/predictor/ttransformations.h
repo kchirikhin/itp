@@ -22,13 +22,15 @@ class Countable_weights_generator : public Weights_generator {
 
 using Weights_generator_ptr = std::shared_ptr<Weights_generator>;
 
+VectorDouble operator * (const VectorDouble &lhs, Double rhs);
+
 template <typename T>
-Double mean(const SymbolsDistributions<T> &d,
-            const typename SymbolsDistributions<T>::Factor_type &compressor) {
-  Double sum {0};
+T mean(const SymbolsDistributions<T> &d,
+       const typename SymbolsDistributions<T>::Factor_type &compressor) {
+  T sum {0};
   Sampler<T> sampler;
   for (auto interval_no : d.get_index()) {
-    sum += static_cast<Double>(d(interval_no, compressor) * sampler.InverseTransform(interval_no, d));
+    sum += sampler.InverseTransform(interval_no, d) * d(interval_no, compressor);
   }
 
   return sum;
@@ -92,8 +94,7 @@ inline void to_code_probabilities(Forward_iterator first, Forward_iterator last)
 
 template <typename T>
 void form_group_forecasts(ContinuationsDistribution<T> &code_probabilities,
-                          const std::vector<Names> &compressors_groups,
-                          Weights_generator_ptr weights_generator)  {
+                          const std::vector<Names> &compressors_groups, Weights_generator_ptr weights_generator) {
   for (const auto &group : compressors_groups) {
     if (group.size() > 1) {
       auto group_composite_name = concatenate(group);

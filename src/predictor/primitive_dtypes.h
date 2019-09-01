@@ -23,8 +23,19 @@ using HighPrecDouble = bignums::Big_double<12, 24>;
 //using HighPrecDouble = long double;
 
 using Double = double;
-using VectorDouble = std::valarray<Double>;
-    
+//using VectorDouble = std::valarray<Double>;
+
+class VectorDouble : public std::valarray<double> {
+ public:
+  using std::valarray<double>::valarray;
+  
+  VectorDouble(const VectorSymbol &vs) {
+    resize(vs.size());
+    for (size_t i = 0; i < size(); ++i) {
+      operator[](i) = vs[i];
+    }
+  }
+};
 
 template <typename T>
 using PlainTimeSeries = std::vector<T>;

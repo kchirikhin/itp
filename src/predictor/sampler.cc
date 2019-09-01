@@ -67,8 +67,8 @@ Double Sampler<Double>::InverseTransform(Symbol s, const Preproc_info<Double> &i
   return GeneralizedInverseTransform(s, info);
 }
 
-Preprocessed_tseries<Symbol, Symbol>
-Sampler<Symbol>::Transform(const Preprocessed_tseries<Symbol, Symbol> &points) {
+Preprocessed_tseries<Double, Symbol>
+Sampler<Symbol>::Transform(const Preprocessed_tseries<Double, Symbol> &points) {
   if (points.empty()) {
     return {};
   }
@@ -81,12 +81,12 @@ Sampler<Symbol>::Transform(const Preprocessed_tseries<Symbol, Symbol> &points) {
   std::transform(points.cbegin(), points.cend(), begin(normalized_points),
                  std::bind(std::minus<Symbol>(), _1, min_point));
   assert(*std::min_element(begin(normalized_points), end(normalized_points)) == 0);
-  std::vector<Symbol> desample_table(max_point - min_point + 1);
+  std::vector<Double> desample_table(max_point - min_point + 1);
   for (size_t i = 0; i < desample_table.size(); ++i) {
     desample_table[i] = i + min_point;
   }
 
-  Preprocessed_tseries<Symbol, Symbol> to_return(normalized_points);
+  Preprocessed_tseries<Double, Symbol> to_return(normalized_points);
   to_return.copy_preprocessing_info_from(points);
   to_return.set_desample_table(desample_table);
   to_return.set_sampling_alphabet(max_point - min_point + 1);
@@ -94,7 +94,7 @@ Sampler<Symbol>::Transform(const Preprocessed_tseries<Symbol, Symbol> &points) {
   return to_return;
 }
 
-Symbol Sampler<Symbol>::InverseTransform(Symbol s, const Preproc_info<Symbol> &info) {
+Double Sampler<Symbol>::InverseTransform(Symbol s, const Preproc_info<Double> &info) {
   return GeneralizedInverseTransform(s, info);
 }
 
@@ -192,6 +192,48 @@ VectorDouble Sampler<VectorDouble>::InverseTransform(Symbol s, const Preproc_inf
   }
   
   return to_return;
+}
+
+Preprocessed_tseries<VectorDouble, Symbol>
+Sampler<VectorSymbol>::Transform(const Preprocessed_tseries<VectorDouble, VectorSymbol> &points) {
+  /*if (points.empty()) {
+    return {};
+    }*/
+
+  /*using namespace std::placeholders;
+
+  auto min_points = pointwise_min_elements(points.cbegin(), points.cend());
+  assert(min_points.size() == points[0].size());
+  
+  auto max_points = pointwise_max_elements(points.cbegin(), points.cend());
+  assert(max_points.size() == points[0].size());
+  
+  PlainTimeSeries<VectorSymbol> normalized_points(points.size());
+  std::transform(points.cbegin(), points.cend(), begin(normalized_points),
+                 std::bind(std::minus<VectorSymbol>(), _1, min_points));
+
+  std::vector<VectorDouble> desample_table(max_points - min_points + 1);
+  for (size_t i = 0; i < desample_table.size(); ++i) {
+    desample_table[i] = i + min_point;
+  }
+
+  Preprocessed_tseries<Double, Symbol> to_return(normalized_points);
+  to_return.copy_preprocessing_info_from(points);
+  to_return.set_desample_table(desample_table);
+  to_return.set_sampling_alphabet(max_point - min_point + 1);
+
+  return to_return;*/
+
+  throw NotImplementedError("Transform for VectorSymbol is not implemented");
+  
+  return {};
+}
+
+VectorDouble
+Sampler<VectorSymbol>::InverseTransform(Symbol, const Preproc_info<VectorDouble> &) {
+  throw NotImplementedError("InverseTransform for VectorSymbol is not implemented");
+  
+  return {};
 }
 
 void CheckBase(size_t base) {

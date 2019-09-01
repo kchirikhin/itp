@@ -31,8 +31,8 @@ class Sampler<Double> {
 template <>
 class Sampler<Symbol> {
  public:
-  Preprocessed_tseries<Symbol, Symbol> Transform(const Preprocessed_tseries<Symbol, Symbol> &);
-  Symbol InverseTransform(Symbol, const Preproc_info<Symbol> &);
+  Preprocessed_tseries<Double, Symbol> Transform(const Preprocessed_tseries<Double, Symbol> &);
+  Double InverseTransform(Symbol, const Preproc_info<Double> &);
 };
 
 template <>
@@ -44,6 +44,13 @@ class Sampler<VectorDouble> {
 
  private:
   double indent_ = 0.1;
+};
+
+template <>
+class Sampler<VectorSymbol> {
+ public:
+  Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorSymbol> &);
+  VectorDouble InverseTransform(Symbol, const Preproc_info<VectorDouble> &);
 };
 
 template <typename T>

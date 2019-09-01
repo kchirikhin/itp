@@ -111,8 +111,7 @@ template <typename T>
 void itp::Preproc_info<T>::copy_preprocessing_info_from(const Preproc_info<T> &src) {
   last_values = src.last_values;
   alphabet = src.alphabet;
-
-  desample_table = src.desample_table;
+  desample_table = src.desample_table;  
   desample_indent = src.desample_indent;
   sampled = src.sampled;
 }

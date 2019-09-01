@@ -9,8 +9,6 @@
 
 namespace itp {
 
-// Extend(history).With(AllPossibleTrajectoriesOfLength(5));
-
 template <typename T>
 class CodeLengthsComputer {
  public:
@@ -23,6 +21,7 @@ class CodeLengthsComputer {
                                  size_t alphabet, size_t length_of_continuation,
                                  const Names &compressors_to_compute,
                                  const Trajectories &possible_continuations) const;
+  
   virtual ContinuationsDistribution<T>
   AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history, size_t alphabet,
                                  size_t length_of_continuation,
@@ -35,22 +34,22 @@ class CodeLengthsComputer {
 template <typename T>
 using CodeLengthsComputerPtr = std::shared_ptr<CodeLengthsComputer<T>>;
 
-template <typename Orig_type, typename New_type>
-class Compression_based_predictor : public Distribution_predictor<Orig_type, New_type> {
+template <typename OrigType, typename NewType>
+class CompressionBasedPredictor : public Distribution_predictor<OrigType, NewType> {
  public:
-  explicit Compression_based_predictor(size_t difference_order=0);
-  explicit Compression_based_predictor(Weights_generator_ptr weights_generator,
-                                       size_t difference_order = 0);
+  explicit CompressionBasedPredictor(size_t difference_order = 0);
+  explicit CompressionBasedPredictor(Weights_generator_ptr weights_generator,
+                                     size_t difference_order = 0);
 
-  ContinuationsDistribution<Orig_type> predict(Preprocessed_tseries<Orig_type, New_type> history, size_t horizont,
-                                               const std::vector<Names> &compressors) const override final;
+  ContinuationsDistribution<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
+                                              const std::vector<Names> &compressors) const override final;
 
   void set_difference_order(size_t n);
   size_t get_difference_order() const;
 
  protected:
-  virtual ContinuationsDistribution<Orig_type>
-  obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history, size_t horizont,
+  virtual ContinuationsDistribution<OrigType>
+  obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont,
                             const Names &compressors) const = 0;
 
  private:
@@ -59,7 +58,7 @@ class Compression_based_predictor : public Distribution_predictor<Orig_type, New
 };
 
 template <typename DoubleT>
-class Multialphabet_distribution_predictor : public Compression_based_predictor<DoubleT, DoubleT> {
+class Multialphabet_distribution_predictor : public CompressionBasedPredictor<DoubleT, DoubleT> {
  public:
   Multialphabet_distribution_predictor() = delete;
   Multialphabet_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer,
@@ -76,20 +75,20 @@ class Multialphabet_distribution_predictor : public Compression_based_predictor<
   Weights_generator_ptr partitions_weights_gen;
 };
 
-template <typename Orig_type, typename New_type>
-class Single_alphabet_distribution_predictor : public Compression_based_predictor<Orig_type, New_type> {
+template <typename OrigType, typename NewType>
+class Single_alphabet_distribution_predictor : public CompressionBasedPredictor<OrigType, NewType> {
  public:
   Single_alphabet_distribution_predictor() = delete;
-  explicit Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<Orig_type>, size_t=0);
+  explicit Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<OrigType>, size_t = 0);
  protected:
-  ContinuationsDistribution<Orig_type>
-  obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &, size_t,
+  ContinuationsDistribution<OrigType>
+  obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &, size_t,
                             const Names &) const override final;
-  virtual Preprocessed_tseries<Orig_type, Symbol>
-  sample(const Preprocessed_tseries<Orig_type,New_type> &) const = 0;
+  virtual Preprocessed_tseries<OrigType, Symbol>
+  sample(const Preprocessed_tseries<OrigType,NewType> &) const = 0;
 
  private:
-  CodeLengthsComputerPtr<Orig_type> codes_lengths_computer;
+  CodeLengthsComputerPtr<OrigType> codes_lengths_computer;
 };
 
 template <typename DoubleT>
@@ -107,22 +106,22 @@ class Real_distribution_predictor : public Single_alphabet_distribution_predicto
   size_t partition_cardinality;
 };
 
-template <typename SymbolT>
-class Discrete_distribution_predictor : public Single_alphabet_distribution_predictor<SymbolT, SymbolT> {
+template <typename DoubleT, typename SymbolT>
+class Discrete_distribution_predictor : public Single_alphabet_distribution_predictor<DoubleT, SymbolT> {
  public:
   Discrete_distribution_predictor() = delete;
-  Discrete_distribution_predictor(CodeLengthsComputerPtr<SymbolT> codes_lengths_computer,
-                                  SamplerPtr<SymbolT> sampler, size_t difference=0);
+  Discrete_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer,
+                                  SamplerPtr<SymbolT> sampler, size_t difference = 0);
 
  protected:
-  Preprocessed_tseries<SymbolT, Symbol> sample(const Preprocessed_tseries<SymbolT, SymbolT> &history) const override;
+  Preprocessed_tseries<DoubleT, Symbol> sample(const Preprocessed_tseries<DoubleT, SymbolT> &history) const override;
 
  private:
   SamplerPtr<SymbolT> sampler;
 };
 
-/*template <typename Orig_type, typename New_type>
-using Distribution_predictor_ptr = std::shared_ptr<Distribution_predictor<Orig_type, New_type>>;
+/*template <typename OrigType, typename NewType>
+using Distribution_predictor_ptr = std::shared_ptr<Distribution_predictor<OrigType, NewType>>;
 
 template <typename SymbolT>
 using Discrete_distribution_predictor_ptr = std::shared_ptr<Discrete_distribution_predictor<SymbolT>>;
@@ -133,10 +132,9 @@ using Real_distribution_predictor_ptr = std::shared_ptr<Real_distribution_predic
 template <typename T>
 ContinuationsDistribution<T>
 CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
-                                                              size_t alphabet,
-                                                              size_t length_of_continuation,
-                                                              const Names &compressors_to_compute,
-                                                              const Trajectories &possible_continuations) const {
+                                                       size_t alphabet, size_t length_of_continuation,
+                                                       const Names &compressors_to_compute,
+                                                       const Trajectories &possible_continuations) const {
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
@@ -163,9 +161,8 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
 template <typename T>
 ContinuationsDistribution<T>
 CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
-                                                              size_t alphabet,
-                                                              size_t length_of_continuation,
-                                                              const Names &compressors_to_compute) const {
+                                                       size_t alphabet, size_t length_of_continuation,
+                                                       const Names &compressors_to_compute) const {
   assert(0 < alphabet);
   std::vector<Continuation<Symbol>> possible_continuations;
   Continuation<Symbol> continuation(alphabet, length_of_continuation);
@@ -177,11 +174,11 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
                                             compressors_to_compute, possible_continuations);
 }
 
-template <typename Orig_type, typename New_type>
-ContinuationsDistribution<Orig_type>
-Compression_based_predictor<Orig_type, New_type>::predict(Preprocessed_tseries<Orig_type, New_type> history,
-                                                          size_t horizont,
-                                                          const std::vector<Names> &compressors) const  {
+template <typename OrigType, typename NewType>
+ContinuationsDistribution<OrigType>
+CompressionBasedPredictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> history,
+                                                      size_t horizont,
+                                                      const std::vector<Names> &compressors) const  {
   auto differentized_history = diff_n(history, difference_order);
   auto distinct_single_compressors = find_all_distinct_names(compressors);
   auto code_probabilities_result =
@@ -193,13 +190,13 @@ Compression_based_predictor<Orig_type, New_type>::predict(Preprocessed_tseries<O
 
 template <typename DoubleT>
 Multialphabet_distribution_predictor<DoubleT>::Multialphabet_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer, SamplerPtr<DoubleT> sampler, size_t max_q, size_t difference_order)
-    : Compression_based_predictor<DoubleT, DoubleT> {difference_order},
+    : CompressionBasedPredictor<DoubleT, DoubleT> {difference_order},
   codes_lengths_computer { codes_lengths_computer }, sampler { sampler },
   partitions_weights_gen { std::make_shared<Countable_weights_generator>() } {
     assert(codes_lengths_computer != nullptr);
     assert(sampler != nullptr);
     assert(max_q != 0);
-    assert(is_power_of_two(max_q));
+    assert(IsPowerOfTwo(max_q));
     log2_max_partition_cardinality = log2(max_q);
   }
 
@@ -222,7 +219,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
   for (size_t i = 0; i < N; ++i) {
     add_value_to_each(begin(tables[i]), end(tables[i]), (N - i - 1) * message_length);
   }
-  auto global_minimal_code_length = min_value_of_all_tables<typename decltype(tables)::const_iterator, DoubleT>(tables.cbegin(), tables.cend());
+  auto global_minimal_code_length = min_value_of_all_tables<typename decltype(tables)::const_iterator, HighPrecDouble>(tables.cbegin(), tables.cend());
   for (auto &table : tables) {
     add_value_to_each(begin(table), end(table), -global_minimal_code_length);
     to_code_probabilities(begin(table), end(table));
@@ -247,24 +244,25 @@ Real_distribution_predictor<DoubleT>::sample(const Preprocessed_tseries<DoubleT,
   return sampling_result;
 }
 
-template <typename SymbolT>
-Discrete_distribution_predictor<SymbolT>::Discrete_distribution_predictor(CodeLengthsComputerPtr<SymbolT> codes_lengths_computer, SamplerPtr<SymbolT> sampler, size_t difference_order)
-    : Single_alphabet_distribution_predictor<SymbolT, SymbolT> { codes_lengths_computer, difference_order }, sampler { sampler } {
+template <typename DoubleT, typename SymbolT>
+Discrete_distribution_predictor<DoubleT, SymbolT>::Discrete_distribution_predictor(CodeLengthsComputerPtr<DoubleT> codes_lengths_computer, SamplerPtr<SymbolT> sampler, size_t difference_order)
+    : Single_alphabet_distribution_predictor<DoubleT, SymbolT> { codes_lengths_computer, difference_order }, sampler { sampler } {
   // DO NOTHING
 }
 
-template <typename SymbolT>
-Preprocessed_tseries<SymbolT, Symbol>
-Discrete_distribution_predictor<SymbolT>::sample(const Preprocessed_tseries<SymbolT, SymbolT> &history) const {
+template <typename DoubleT, typename SymbolT>
+Preprocessed_tseries<DoubleT, Symbol>
+Discrete_distribution_predictor<DoubleT, SymbolT>::sample(const Preprocessed_tseries<DoubleT, SymbolT> &history) const {
   return sampler->Transform(history);
 }
 
-template <typename Orig_type, typename New_type>
-ContinuationsDistribution<Orig_type>
-Single_alphabet_distribution_predictor<Orig_type, New_type>::obtain_code_probabilities(const Preprocessed_tseries<Orig_type, New_type> &history, size_t horizont, const Names &compressors) const {
+template <typename OrigType, typename NewType>
+ContinuationsDistribution<OrigType>
+Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const Names &compressors) const {
   auto sampled_tseries = sample(history);
   auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_tseries.to_plain_tseries(),
-                                                                      sampled_tseries.get_sampling_alphabet(), horizont, compressors);
+                                                                      sampled_tseries.get_sampling_alphabet(),
+                                                                      horizont, compressors);
   auto min = *std::min_element(begin(table), end(table));
   add_value_to_each(begin(table), end(table), -min);
   to_code_probabilities(begin(table), end(table));
@@ -273,30 +271,31 @@ Single_alphabet_distribution_predictor<Orig_type, New_type>::obtain_code_probabi
   return table;
 }
 
-template <typename Orig_type, typename New_type>
-Compression_based_predictor<Orig_type, New_type>::Compression_based_predictor(size_t difference_order)
-    : Compression_based_predictor<Orig_type, New_type> { std::make_shared<Weights_generator>(), difference_order } {
+template <typename OrigType, typename NewType>
+CompressionBasedPredictor<OrigType, NewType>::CompressionBasedPredictor(size_t difference_order)
+    : CompressionBasedPredictor<OrigType, NewType> { std::make_shared<Weights_generator>(), difference_order } {
   // DO NOTHING
 }
 
-template <typename Orig_type, typename New_type>
-Compression_based_predictor<Orig_type, New_type>::Compression_based_predictor(Weights_generator_ptr weights_generator, size_t difference_order)
+template <typename OrigType, typename NewType>
+CompressionBasedPredictor<OrigType, NewType>::CompressionBasedPredictor(Weights_generator_ptr weights_generator,
+                                                                        size_t difference_order)
     : weights_generator {weights_generator}, difference_order {difference_order} {
   // DO NOTHING
 }
 
-template <typename Orig_type, typename New_type>
-void Compression_based_predictor<Orig_type, New_type>::set_difference_order(size_t n) {
+template <typename OrigType, typename NewType>
+void CompressionBasedPredictor<OrigType, NewType>::set_difference_order(size_t n) {
   difference_order = n;
 }
 
-template <typename Orig_type, typename New_type>
-size_t Compression_based_predictor<Orig_type, New_type>::get_difference_order() const {
+template <typename OrigType, typename NewType>
+size_t CompressionBasedPredictor<OrigType, NewType>::get_difference_order() const {
   return difference_order;
 }
 
-template <typename Orig_type, typename New_type>
-Single_alphabet_distribution_predictor<Orig_type, New_type>::Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<Orig_type> codes_lengths_computer, size_t)
+template <typename OrigType, typename NewType>
+Single_alphabet_distribution_predictor<OrigType, NewType>::Single_alphabet_distribution_predictor(CodeLengthsComputerPtr<OrigType> codes_lengths_computer, size_t)
     : codes_lengths_computer {codes_lengths_computer} {
   // DO NOTHING
 }

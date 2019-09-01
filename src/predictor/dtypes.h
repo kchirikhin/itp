@@ -12,7 +12,7 @@ using ContinuationsDistribution = Table_with_preproc_info<Continuation<Symbol>,
                                                           std::string, HighPrecDouble, T>;
 
 template <typename T>
-using Forecast = Table_with_preproc_info<std::string, size_t, Forecast_point<Double>, T>;
+using Forecast = Table_with_preproc_info<std::string, size_t, Forecast_point<T>, T>;
 
 template <typename T>
 using SymbolsDistributions = Table_with_preproc_info<Symbol, std::string, HighPrecDouble, T>;

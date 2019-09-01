@@ -691,7 +691,7 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
   auto dpredictor = std::make_shared<Real_distribution_predictor<Double>> (computer, sampler, partition_cardinality);
   dpredictor->set_difference_order(0);
   Basic_pointwise_predictor<Double, Double> ppredictor{dpredictor};
-  auto forecast = ppredictor.predict(ts, horizont, compressors);
+  auto forecast = ppredictor.Predict(ts, horizont, compressors);
 
   EXPECT_NEAR(forecast("zlib", 0).point, 1.8615389823, 1e-5);
   EXPECT_NEAR(forecast("zlib", 1).point, 1.8730772603, 1e-5);
@@ -705,13 +705,13 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
 
 TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect) {
   std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
-  auto computer = std::make_shared<CodeLengthsComputer<Symbol>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
   auto sampler = std::make_shared<Sampler<Symbol>>();
   size_t horizont = 2u;
   std::vector<Names> compressors {{"zlib", "rp"}};
-  auto dpredictor = std::make_shared<Discrete_distribution_predictor<Symbol>>(computer, sampler);
-  Basic_pointwise_predictor<Symbol, Symbol> ppredictor {dpredictor};
-  Forecast<Symbol> forecast = ppredictor.predict(ts, horizont, compressors);
+  auto dpredictor = std::make_shared<Discrete_distribution_predictor<Double, Symbol>>(computer, sampler);
+  Basic_pointwise_predictor<Double, Symbol> ppredictor {dpredictor};
+  Forecast<Double> forecast = ppredictor.Predict(ts, horizont, compressors);
   std::vector<double> expected_forecast{1.0264274976, 1.0151519618};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -728,7 +728,7 @@ TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_
                                                                                    max_partition_cardinality);
   dpredictor->set_difference_order(0);
   Basic_pointwise_predictor<Double, Double> ppredictor {dpredictor};
-  Forecast<Double> forecast = ppredictor.predict(ts, horizont, compressors);
+  Forecast<Double> forecast = ppredictor.Predict(ts, horizont, compressors);
   std::vector<double> expected_forecast {3.0934987622, 3.0934080567};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -748,7 +748,7 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
   size_t sparse = 2;
   auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
   Sparse_predictor<Double, Double> sparse_predictor {ppredictor, sparse};
-  Forecast<Double> forecast = sparse_predictor.predict(ts, horizont, compressors);
+  Forecast<Double> forecast = sparse_predictor.Predict(ts, horizont, compressors);
   std::vector<double> expected_forecast {3.7364683941, 3.8542121847, 3.0934080567, 2.75};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -772,7 +772,7 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
   size_t sparse = 2;
   Sparse_predictor<Double, Double> sparse_predictor{ppredictor, sparse};
-  Forecast<Double> forecast = sparse_predictor.predict(ts, horizont, compressors);
+  Forecast<Double> forecast = sparse_predictor.Predict(ts, horizont, compressors);
 
   PlainTimeSeries<Double> expected_forecast {5427.0124308808, 5917.0363290153,
         6407.0594768841, 6262.0988838384, 6165.6275143097, 6999.809906989};

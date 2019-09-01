@@ -1,5 +1,5 @@
-#ifndef PREDICTOR_DFRAME_H
-#define PREDICTOR_DFRAME_H
+#ifndef ITP_DFRAME_H_INCLUDED_
+#define ITP_DFRAME_H_INCLUDED_
 
 #include <vector>
 #include <string>
@@ -25,11 +25,11 @@ public:
 
   reference operator*() const;
 
-  Data_frame_iterator & operator++();
-  Data_frame_iterator & operator++(int);
+  Data_frame_iterator& operator++();
+  Data_frame_iterator& operator++(int);
 
-  Data_frame_iterator & operator--();
-  Data_frame_iterator & operator--(int);
+  Data_frame_iterator& operator--();
+  Data_frame_iterator& operator--(int);
 
   bool operator==(const Data_frame_iterator &) const;
   bool operator!=(const Data_frame_iterator &) const;
@@ -390,4 +390,4 @@ typename Data_frame<Index, Factor, Value>::const_iterator Data_frame<Index, Fact
   return const_iterator{&data, index_size(), 0};
 }
 
-#endif //PREDICTOR_DFRAME_H
+#endif // ITP_DFRAME_H_INCLUDED_

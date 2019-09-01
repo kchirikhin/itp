@@ -63,7 +63,7 @@ TEST_F(SamplerForIntegersTest, InverseTransformForNonNegativeIntegersWorks) {
   auto transformed_series = sampler_.Transform(test_series);
   ASSERT_EQ(transformed_series.size(), test_series.size());
   for (size_t i = 0; i < transformed_series.size(); ++i) {
-    EXPECT_EQ(sampler_.InverseTransform(transformed_series[i], transformed_series), test_series[i]);
+    EXPECT_DOUBLE_EQ(sampler_.InverseTransform(transformed_series[i], transformed_series), test_series[i]);
   }
 }
 
@@ -119,6 +119,19 @@ TEST_F(SamplerForVectorDoublesTest, InverseTransformationWorks) {
 TEST_F(SamplerForVectorDoublesTest, ThrowsIfInputNumberIsOutOfRange) {
   auto sampled_ts = sampler_.Transform({{0.4, 1.4}, {1.2, 1.6}, {0.6, 1.4}, {1.8, 1.8}}, kCountOfIntervalsToSplit);
   EXPECT_THROW(sampler_.InverseTransform(4, sampled_ts), RangeError);
+}
+
+class SamplerForVectorSymbolsTest : public Test {
+ protected:
+  Sampler<VectorSymbol> sampler_;
+};
+
+TEST_F(SamplerForVectorSymbolsTest, DISABLED_ReturnsEmptySeriesIfInputSeriesIsEmpty) {
+  EXPECT_THAT(sampler_.Transform({}), IsEmpty());
+}
+
+TEST_F(SamplerForVectorSymbolsTest, DISABLED_TransformsASeriesWithSoleValue) {
+  EXPECT_THAT(sampler_.Transform({{1, 2}}), ElementsAre(0, 0));
 }
 
 TEST(PointwiseMinElementsTest, ReturnsEmptyVectorOnEmptyInput) {
