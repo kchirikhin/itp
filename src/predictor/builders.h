@@ -147,8 +147,8 @@ make_forecast_multialphabet(const std::vector<double> &history,
                             const itp::Names &compressors_groups, size_t horizont,
                             size_t difference, size_t max_quants_count, int sparse);
 
-std::map<std::string, std::vector<itp::VectorDouble>>
-make_forecast_multialphabet_vec(const std::vector<itp::VectorDouble> &history,
+std::map<std::string, std::vector<std::vector<double>>>
+make_forecast_multialphabet_vec(const std::vector<std::vector<double>> &history,
                                 const itp::Names &compressors_groups, size_t horizont,
                                 size_t difference, size_t max_quants_count, int sparse);
 
@@ -196,5 +196,8 @@ Forecasting_algorithm_multialphabet<DoubleT>::make_predictor(itp::CodeLengthsCom
                                                                                          difference);
   return std::make_shared<itp::Basic_pointwise_predictor<DoubleT, DoubleT>>(dpredictor);
 }
+
+std::vector<itp::VectorDouble> Convert(const std::vector<std::vector<double>> &series);
+std::vector<std::vector<double>> Convert(const std::vector<itp::VectorDouble> &res);
 
 #endif // ITP_BUILDERS_H_INCLUDED_

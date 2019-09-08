@@ -161,7 +161,7 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 
   to_return.set_desample_table(desample_table);
   to_return.set_desample_indent(indent_);
-  to_return.set_sampling_alphabet(N);
+  to_return.set_sampling_alphabet(pow(N, kCountOfSeries));
 
   return to_return;
 }
@@ -171,9 +171,10 @@ inline auto NumberOfDigits(const VectorSymbol &num) {
 }
 
 VectorDouble Sampler<VectorDouble>::InverseTransform(Symbol s, const Preproc_info<VectorDouble> &info) {
-  auto decomposed_number = ConvertDecToNumber(s, info.get_sampling_alphabet());
   const auto &kConversionTable = info.get_desample_table();
   const auto kNumberOfSeries = kConversionTable.size();
+  const auto kSingeSeriesAlphabet = static_cast<size_t>(log(info.get_sampling_alphabet()) / log(kNumberOfSeries));
+  auto decomposed_number = ConvertDecToNumber(s, kSingeSeriesAlphabet);
 
   if (NumberOfDigits(decomposed_number) > kNumberOfSeries) {
     throw RangeError("Inverse conversion error: passed number has more digits than the number of time series");
