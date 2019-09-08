@@ -24,10 +24,15 @@ using Weights_generator_ptr = std::shared_ptr<Weights_generator>;
 
 VectorDouble operator * (const VectorDouble &lhs, Double rhs);
 
+template <typename T> T ZeroInitialized(const SymbolsDistributions<T> &d);
+template <> Symbol ZeroInitialized<Symbol>(const SymbolsDistributions<Symbol> &);
+template <> Double ZeroInitialized<Double>(const SymbolsDistributions<Double> &);
+template <> VectorSymbol ZeroInitialized<VectorSymbol>(const SymbolsDistributions<VectorSymbol> &d);
+template <> VectorDouble ZeroInitialized<VectorDouble>(const SymbolsDistributions<VectorDouble> &d);
+
 template <typename T>
-T mean(const SymbolsDistributions<T> &d,
-       const typename SymbolsDistributions<T>::Factor_type &compressor) {
-  T sum {0};
+T mean(const SymbolsDistributions<T> &d, const typename SymbolsDistributions<T>::Factor_type &compressor) {
+  auto sum = ZeroInitialized<T>(d);
   Sampler<T> sampler;
   for (auto interval_no : d.get_index()) {
     sum += sampler.InverseTransform(interval_no, d) * d(interval_no, compressor);
@@ -141,7 +146,7 @@ ContinuationsDistribution<T> merge(const std::vector<ContinuationsDistribution<T
                    return maximal_alphabet / item;
                  });
 
-  ContinuationsDistribution<T> result(tables[tables.size()-1]);
+  ContinuationsDistribution<T> result(tables[tables.size() - 1]);
   for (const auto &continuation : result.get_index()) {
     for (const auto &compressor : result.get_factors()) {
       result(continuation, compressor) = .0;

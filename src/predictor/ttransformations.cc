@@ -26,4 +26,26 @@ std::vector<Double> Countable_weights_generator::generate(size_t n) const {
 
   return result;
 }
+
+template <>
+Symbol ZeroInitialized<Symbol>(const SymbolsDistributions<Symbol> &) {
+  return 0;
+}
+
+template <>
+Double ZeroInitialized<Double>(const SymbolsDistributions<Double> &) {
+  return 0.;
+}
+
+template <>
+VectorSymbol ZeroInitialized<VectorSymbol>(const SymbolsDistributions<VectorSymbol> &d) {
+  const auto kCountOfSeries = d.get_desample_table().size();
+  return VectorSymbol(kCountOfSeries);
+}
+
+template <>
+VectorDouble ZeroInitialized<VectorDouble>(const SymbolsDistributions<VectorDouble> &d) {
+  const auto kCountOfSeries = d.get_desample_table().size();
+  return VectorDouble(kCountOfSeries);
+}
 } // itp

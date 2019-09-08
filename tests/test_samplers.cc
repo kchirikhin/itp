@@ -1,7 +1,7 @@
 #include <sampler.h>
 
 #include <algorithm>
-#include "itp_exceptions.h"
+#include <itp_exceptions.h>
 #include <tseries.h>
 
 #include <gmock/gmock.h>
@@ -87,33 +87,12 @@ TEST_F(SamplerForVectorDoublesTest, QuantizesTwoSeriesWithPositiveValues) {
               ElementsAre(0, 3, 0, 3));
 }
 
-template <typename T>
-void ExpectValarrayEmpty(const std::valarray<T> &va) {
-  EXPECT_EQ(va.size(), 0);
-}
-
-template <typename T>
-void ExpectValarrayEq(const std::valarray<T> &lhs, const std::valarray<T> &rhs) {
-  EXPECT_EQ(lhs.size(), rhs.size());
-  for (size_t i = 0; i < lhs.size(); ++i) {
-    EXPECT_EQ(lhs[i], rhs[i]);
-  }
-}
-
-template <>
-void ExpectValarrayEq(const std::valarray<Double> &lhs, const std::valarray<Double> &rhs) {
-  EXPECT_EQ(lhs.size(), rhs.size());
-  for (size_t i = 0; i < lhs.size(); ++i) {
-    EXPECT_DOUBLE_EQ(lhs[i], rhs[i]);
-  }
-}
-
 TEST_F(SamplerForVectorDoublesTest, InverseTransformationWorks) {
   auto sampled_ts = sampler_.Transform({{0.4, 1.4}, {1.2, 1.6}, {0.6, 1.4}, {1.8, 1.8}}, kCountOfIntervalsToSplit);
-  ExpectValarrayEq(sampler_.InverseTransform(0, sampled_ts), {0.68, 1.48});
-  ExpectValarrayEq(sampler_.InverseTransform(1, sampled_ts), {1.52, 1.48});
-  ExpectValarrayEq(sampler_.InverseTransform(2, sampled_ts), {0.68, 1.72});
-  ExpectValarrayEq(sampler_.InverseTransform(3, sampled_ts), {1.52, 1.72});
+  ExpectDoubleContainersEq(sampler_.InverseTransform(0, sampled_ts), VectorDouble{0.68, 1.48});
+  ExpectDoubleContainersEq(sampler_.InverseTransform(1, sampled_ts), VectorDouble{1.52, 1.48});
+  ExpectDoubleContainersEq(sampler_.InverseTransform(2, sampled_ts), VectorDouble{0.68, 1.72});
+  ExpectDoubleContainersEq(sampler_.InverseTransform(3, sampled_ts), VectorDouble{1.52, 1.72});
 }
 
 TEST_F(SamplerForVectorDoublesTest, ThrowsIfInputNumberIsOutOfRange) {
@@ -136,17 +115,17 @@ TEST_F(SamplerForVectorSymbolsTest, DISABLED_TransformsASeriesWithSoleValue) {
 
 TEST(PointwiseMinElementsTest, ReturnsEmptyVectorOnEmptyInput) {
   std::vector<VectorSymbol> empty_vec {{}};
-  ExpectValarrayEmpty(pointwise_min_elements(std::begin(empty_vec), std::end(empty_vec)));
+  ExpectContainerEmpty(pointwise_min_elements(std::begin(empty_vec), std::end(empty_vec)));
 }
 
 TEST(PointwiseMinElementsTest, CorrectlyWorksOnValidData) {
   std::vector<VectorSymbol> vec {{4, 2}, {1, 3}};
-  ExpectValarrayEq(pointwise_min_elements(std::begin(vec), std::end(vec)), {1, 2});
+  ExpectContainersEq(pointwise_min_elements(std::begin(vec), std::end(vec)), std::vector<Symbol>{1, 2});
 }
 
 TEST(PointwiseMaxElementsTest, CorrectlyWorksOnValidData) {
   std::vector<VectorSymbol> vec {{4, 2}, {1, 3}};
-  ExpectValarrayEq(pointwise_max_elements(std::begin(vec), std::end(vec)), {4, 3});
+  ExpectContainersEq(pointwise_max_elements(std::begin(vec), std::end(vec)), std::vector<Symbol>{4, 3});
 }
 
 TEST(ConvertNumberToDecTest, ThrowsOnEmptyInput) {
@@ -176,8 +155,8 @@ TEST(ConvertNumberToDecTest, ConvertsNumbersWithMoreThanOneDigit) {
 }
 
 TEST(ConvertDecToNumberTest, ConvertsZeroToVectorWithASoleZeroForAnyBase) {
-  ExpectValarrayEq(ConvertDecToNumber(0, 2), {0});
-  ExpectValarrayEq(ConvertDecToNumber(0, 5), {0});
+  ExpectContainersEq(ConvertDecToNumber(0, 2), VectorSymbol{0});
+  ExpectContainersEq(ConvertDecToNumber(0, 5), VectorSymbol{0});
 }
 
 TEST(ConvertDecToNumberTest, ThrowsOnInvalidBase) {
@@ -186,6 +165,6 @@ TEST(ConvertDecToNumberTest, ThrowsOnInvalidBase) {
 }
 
 TEST(ConvertDecToNumberTest, ConvertsNumbersWithValidBase) {
-  ExpectValarrayEq(ConvertDecToNumber(2, 2), {0, 1});
-  ExpectValarrayEq(ConvertDecToNumber(15, 3), {0, 2, 1});
+  ExpectContainersEq(ConvertDecToNumber(2, 2), VectorSymbol{0, 1});
+  ExpectContainersEq(ConvertDecToNumber(15, 3), VectorSymbol{0, 2, 1});
 }

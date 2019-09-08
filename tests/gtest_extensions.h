@@ -11,17 +11,29 @@ namespace itp {
 
 template <typename Container1, typename Container2>
 void ExpectDoubleContainersEq(const Container1 &container1, const Container2 &container2) {
-  static_assert(std::is_floating_point<typename Container1::value_type>::value,
-                "Container1 must contain floating-point numbers");
-  static_assert(std::is_floating_point<typename Container2::value_type>::value,
-                "Container2 must contain floating-point numbers"); 
   ASSERT_EQ(container1.size(), container2.size());
 
-  auto p = container1.begin();
-  auto q = container2.begin();
-  while (p != container1.end()) {
+  auto p = begin(container1);
+  auto q = begin(container2);
+  while (p != end(container1)) {
     EXPECT_DOUBLE_EQ(*p++, *q++);
   }
+}
+
+template <typename Container1, typename Container2>
+void ExpectContainersEq(const Container1 &container1, const Container2 &container2) {
+  ASSERT_EQ(container1.size(), container2.size());
+
+  auto p = begin(container1);
+  auto q = begin(container2);
+  while (p != end(container1)) {
+    EXPECT_EQ(*p++, *q++);
+  }
+}
+
+template <typename Container>
+void ExpectContainerEmpty(const Container &container) {
+  EXPECT_EQ(container.size(), 0);
 }
 } // itp
 

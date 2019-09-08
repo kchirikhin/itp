@@ -99,7 +99,8 @@ class Real_distribution_predictor : public Single_alphabet_distribution_predicto
                               SamplerPtr<DoubleT> sampler, size_t partition_cardinality,
                               size_t difference = 0);
  protected:
-  Preprocessed_tseries<DoubleT, Symbol> sample(const Preprocessed_tseries<DoubleT, DoubleT> &history) const override;
+  Preprocessed_tseries<DoubleT, Symbol>
+  sample(const Preprocessed_tseries<DoubleT, DoubleT> &history) const override;
   
  private:
   SamplerPtr<DoubleT> sampler;
@@ -120,15 +121,6 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
   SamplerPtr<SymbolT> sampler;
 };
 
-/*template <typename OrigType, typename NewType>
-using Distribution_predictor_ptr = std::shared_ptr<Distribution_predictor<OrigType, NewType>>;
-
-template <typename SymbolT>
-using Discrete_distribution_predictor_ptr = std::shared_ptr<Discrete_distribution_predictor<SymbolT>>;
-
-template <typename DoubleT>
-using Real_distribution_predictor_ptr = std::shared_ptr<Real_distribution_predictor<DoubleT>>;*/
-
 template <typename T>
 ContinuationsDistribution<T>
 CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
@@ -138,7 +130,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
-  Compressors_pool::get_instance().init_compressors_for_ts(0, alphabet-1, length_of_continuation);
+  Compressors_pool::get_instance().init_compressors_for_ts(0, alphabet - 1, length_of_continuation);
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                       std::begin(compressors_to_compute), std::end(compressors_to_compute));
@@ -146,12 +138,12 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
   std::unique_ptr<Symbol[]> buffer(new Symbol[full_series_length]);
   std::copy(history.cbegin(), history.cend(), buffer.get());
   for (const auto &continuation : possible_continuations) {
-    std::copy(continuation.cbegin(), continuation.cend(), buffer.get()+history.size());
+    std::copy(continuation.cbegin(), continuation.cend(), buffer.get() + history.size());
 
     for (size_t j = 0; j < result.factors_size(); ++j) {
       result(continuation, compressors_to_compute[j]) =
           Compressors_pool::get_instance()(compressors_to_compute[j], buffer.get(),
-                                           history.size()+length_of_continuation) * kBitsInByte;
+                                           history.size() + length_of_continuation) * kBitsInByte;
     }
   }
 
@@ -207,11 +199,13 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
   std::vector<ContinuationsDistribution<DoubleT>> tables(N);
   std::vector<size_t> alphabets(N);
   for (size_t i = 0; i < N; ++i) {
-    alphabets[i] = static_cast<size_t>(pow(2, i+1));
-    auto sampled_ts = sampler->Transform(history, alphabets[i]);
+    auto sampled_ts = sampler->Transform(history, static_cast<size_t>(pow(2, i+1)));
+
+    // In the vector case it will differ from 2^(i+1)!
+    alphabets[i] = sampled_ts.get_sampling_alphabet();
     tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_ts.to_plain_tseries(),
-                                                                           static_cast<size_t>(pow(2, i + 1)),
-                                                                           horizont, archivers);
+                                                                       sampled_ts.get_sampling_alphabet(),
+                                                                       horizont, archivers);
     tables[i].copy_preprocessing_info_from(sampled_ts);
   }
 

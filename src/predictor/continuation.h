@@ -90,7 +90,8 @@ itp::Continuation<T>::Continuation(size_t alphabet, size_t size, T init_symbol)
 {
   alphabet_size = alphabet;
   if (alphabet_size <= init_symbol) {
-    throw std::range_error(_S("In Continuation's constructor: init symbol out of the alphabet: ") + std::to_string(init_symbol) + _S(" and ") + std::to_string(alphabet_size) + _S("."));
+    throw std::range_error("In Continuation's constructor: init symbol out of the alphabet: "_s +
+                           std::to_string(init_symbol) + " and " + std::to_string(alphabet_size) + ".");
   }
 }
 
@@ -232,7 +233,8 @@ template <typename T>
 void itp::Continuation<T>::push_back(const T &item)
 {
   if (item >= alphabet_size) {
-    throw std::range_error("In Continuation::push_back: item '" + std::to_string(item) + _S("' is greater than alphabet size ") + std::to_string(alphabet_size) + _S("."));
+    throw std::range_error("In Continuation::push_back: item '"_s + std::to_string(item) +
+                           "' is greater than alphabet size " + std::to_string(alphabet_size) + ".");
   }
 
   continuation.push_back(item);

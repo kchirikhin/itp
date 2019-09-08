@@ -11,7 +11,7 @@
 #include <valarray>
 #include <vector>
 
-#define _S(text) std::string(text)
+// #define _S(text) std::string(text)
 
 namespace itp {
 
@@ -37,11 +37,39 @@ class VectorDouble : public std::valarray<double> {
   }
 };
 
+inline std::ostream& operator << (std::ostream &ost, const VectorSymbol &vs) {
+  ost << '{';
+  for (size_t i = 0; i < vs.size() - 1; ++i) {
+    ost << vs[i] << ", ";
+  }
+  if (vs.size() > 0) {
+    ost << vs[vs.size() - 1];
+  }
+  
+  return ost << '}';
+}
+
+inline std::ostream& operator << (std::ostream &ost, const VectorDouble &vd) {
+  ost << '{';
+  for (size_t i = 0; i < vd.size() - 1; ++i) {
+    ost << vd[i] << ", ";
+  }
+  if (vd.size() > 0) {
+    ost << vd[vd.size() - 1];
+  }
+  
+  return ost << '}';
+}
+
 template <typename T>
 using PlainTimeSeries = std::vector<T>;
     
 using Group = std::vector<std::string>;
 using Names = std::vector<std::string>;
+
+inline std::string operator "" _s(const char *str, size_t size) {
+  return std::string(str, size);
+}
 } // of itp
 
 #endif // ITP_PRIMITIVE_DTYPES_H_INCLUDED_
