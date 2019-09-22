@@ -12,7 +12,6 @@
 
 // Interface of the library.
 namespace itp {
-//std::pair<Symbol, Symbol> find_confidence_interval(const SymbolsDistributions &, double);
 
 template <typename T>
 std::ostream& operator << (std::ostream &ost, const ContinuationsDistribution<T> &table);

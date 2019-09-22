@@ -3,7 +3,7 @@
  * @author Konstantin <user10101@user10101-Satellite-L855>
  * @date   Fri Jun  8 21:46:27 2018
  *
- * @brief  Implementatin of Python binding.
+ * @brief  Implementation of Python binding.
  *
  *
  */
@@ -30,4 +30,8 @@ PYBIND11_MODULE(predictor, m) {
     m.def("make_forecast_discrete", &make_forecast_discrete, "Make forecast for time series",
           py::arg("time_series"), py::arg("groups"), py::arg("h") = 1, py::arg("difference") = 0,
           py::arg("sparse") = -1);
+    m.def("make_forecast_multialphabet_vec", &make_forecast_multialphabet_vec,
+          "Make forecast with multiple partitions for real-valued vector time series",
+          py::arg("time_series"), py::arg("groups"), py::arg("h") = 1, py::arg("difference") = 0,
+          py::arg("max_quants_count") = 8, py::arg("sparse") = -1);
 }
