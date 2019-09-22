@@ -147,6 +147,8 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
     }
   }
 
+  std::cout << result;
+
   return result;
 }
 

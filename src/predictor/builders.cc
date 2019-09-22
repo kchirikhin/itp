@@ -104,8 +104,7 @@ std::vector<std::vector<double>> Convert(const std::vector<itp::VectorDouble> &r
     if (res[point_num].size() != kNumberOfSeries) {
       throw itp::DifferentHistoryLengthsError("The number of series for element with number "
                                               + std::to_string(point_num)
-                                              + " differs from the number of the first series");
-    }
+                                              + " differs from the number of the first series");}
     
     for (size_t series_num = 0; series_num < kNumberOfSeries; ++series_num) {
       to_return[series_num][point_num] = res[point_num][series_num];
