@@ -808,3 +808,26 @@ TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData) {
   EXPECT_EQ(forecast("zlib_rp", 0).point.size(), 2);
   EXPECT_EQ(forecast("zlib_rp", 1).point.size(), 2);
 }
+
+TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExceeds256) {
+  PlainTimeSeries<itp::VectorDouble> ts {
+    {17374, 11910}, {19421, 15659}, {20582, 18295}, {21182, 16411}, {20227, 12566}, {20779, 12079}, {22390, 13845},
+    {25608, 14750}, {25197, 15769}, {25302, 15186}, {25043, 13256}, {26899, 14352}, {26803, 14429}, {25600, 15473},
+    {24569, 15871}, {23005, 13237}, {20863, 13034}, {21298, 13085}
+  };
+
+  auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>();
+  auto sampler = std::make_shared<Sampler<VectorDouble>>();
+  size_t horizont = 2;
+  std::vector<Names> compressors {{"zlib", "rp"}};
+  size_t max_quants_count = 64;
+  auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<VectorDouble>>(computer, sampler,
+                                                                                         max_quants_count);
+
+  dpredictor->set_difference_order(1);
+  auto ppredictor = std::make_shared<Basic_pointwise_predictor<VectorDouble, VectorDouble>>(dpredictor);
+  size_t sparse = 2;
+  Sparse_predictor<VectorDouble, VectorDouble> sparse_predictor{ppredictor, sparse};
+
+  EXPECT_THROW(sparse_predictor.Predict(ts, horizont, compressors), IntervalsCountError);
+}

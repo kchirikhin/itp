@@ -1,8 +1,9 @@
 #ifndef ITP_PREDICTOR_H_INCLUDED_
 #define ITP_PREDICTOR_H_INCLUDED_
 
-#include "sampler.h"
 #include "dtypes.h"
+#include "itp_exceptions.h"
+#include "sampler.h"
 #include "ttransformations.h"
 
 #include <iterator>

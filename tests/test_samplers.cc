@@ -100,6 +100,13 @@ TEST_F(SamplerForVectorDoublesTest, ThrowsIfInputNumberIsOutOfRange) {
   EXPECT_THROW(sampler_.InverseTransform(4, sampled_ts), RangeError);
 }
 
+TEST_F(SamplerForVectorDoublesTest, ThrowsIfSizeOfAlphabetExceeds256) {
+  // count_of_series^count_of_intervals intervals after transformation!
+  const size_t kLargeIntervalsCount = 64;
+  EXPECT_THROW(sampler_.Transform({{0.4, 1.4}, {1.2, 1.6}, {0.6, 1.4}, {1.8, 1.8}}, kLargeIntervalsCount),
+               IntervalsCountError);
+}
+
 class SamplerForVectorSymbolsTest : public Test {
  protected:
   Sampler<VectorSymbol> sampler_;
@@ -168,3 +175,4 @@ TEST(ConvertDecToNumberTest, ConvertsNumbersWithValidBase) {
   ExpectContainersEq(ConvertDecToNumber(2, 2), VectorSymbol{0, 1});
   ExpectContainersEq(ConvertDecToNumber(15, 3), VectorSymbol{0, 2, 1});
 }
+

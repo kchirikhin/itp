@@ -9,6 +9,7 @@
 #include <sstream>
 
 namespace itp {
+
 std::pair<Symbol, Symbol> find_confidence_interval(const SymbolsDistributions &d,
                                                    double confidence_probability) {
   return std::make_pair(0, 0);

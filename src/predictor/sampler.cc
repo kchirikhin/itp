@@ -128,6 +128,14 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
     return {};
   }
 
+  const auto kCountOfSeries = points[0].size();
+  const size_t kNewAlphabetSize = pow(N, kCountOfSeries);
+
+  const auto kNumbersInByte = 256u;
+  if (kNumbersInByte <= kNewAlphabetSize) {
+    throw IntervalsCountError("Symbols of the alphabet after transformation cannot be represented with 1 byte");
+  }
+
   auto mins = pointwise_min_elements(points.cbegin(), points.cend());
   assert(mins.size() == points[0].size());
   
@@ -151,7 +159,6 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
   }
   to_return.copy_preprocessing_info_from(points);
 
-  const auto kCountOfSeries = points[0].size();
   std::vector<VectorDouble> desample_table(kCountOfSeries, VectorDouble(N));
   for (size_t i = 0; i < kCountOfSeries; ++i) {
     for (size_t j = 0; j < N; ++j) {
@@ -161,7 +168,7 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 
   to_return.set_desample_table(desample_table);
   to_return.set_desample_indent(indent_);
-  to_return.set_sampling_alphabet(pow(N, kCountOfSeries));
+  to_return.set_sampling_alphabet(kNewAlphabetSize);
 
   return to_return;
 }
