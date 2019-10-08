@@ -84,6 +84,7 @@ def add_seasonality_to_forecast(forecast, season, frequency):
          
 def smooth_m3c(ts):
     """Simple smoothing of the time series: t_i = (2*t_{i} + t_{i-1} + t_{i-2})/4."""
+
     assert(len(ts) > 1)
     assert(isinstance(ts, pd.Series))
 
@@ -99,6 +100,7 @@ def smooth_none(ts):
 
 def smooth_sunspots(ts):
     """Simple smoothing of the time series: t_i = (2*t_{i} + t_{i-1} + t_{i-2})/4."""
+
     assert(len(ts) > 1)
     assert(isinstance(ts, pd.Series))
 
