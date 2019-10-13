@@ -15,8 +15,9 @@ class DifferentLengthsError(TimeSeriesError):
 class TimeSeries:
   """Represents a single time series with real or integer elements"""
   
-  def __init__(self, data=[], dtype=int):
-    self._data = data
+  def __init__(self, data=[], frequency=1, dtype=int):
+    self._data = np.array(data)
+    self._frequency = frequency
     self._dtype = dtype
 
 
@@ -30,36 +31,43 @@ class TimeSeries:
     return self._data[key]
 
 
+  def __setitem__(self, key, value):
+    if isinstance(key, slice):
+      if key.start < 0 or len(self._data) < key.stop:
+        raise IndexError(f"Key {key} is out of range [0:{len(self._data)}]")
+    
+    self._data[key] = value
+
+
   def __eq__(self, other):
-    return self._data == other._data
+    return np.array_equal(self._data, other._data)
+
+
+  def nseries(self):
+    return 1
+
+
+  def series(self, index):
+    if index != 0 and index != -1:
+      raise IndexError(f"Series index {index} is out of range [0:0]")
+
+    return self
+  
+
+  def __repr__(self):
+    return str(self._data)
 
 
   def to_list(self):
-    return self._data
+    return list(self._data)
 
 
   def dtype(self):
     return self._dtype
 
 
-# class VectorSlice:
-#   """Enables elementwise operations on multivariate time series"""
-
-#   def __init__(self, time_series, index):
-#     self._time_series = time_series
-#     self._index = index
-
-
-#   def __len__(self):
-#     return self._time_series.nseries()
-
-
-#   def __add__(self, other):
-#     if len(self) != len(other):
-#       raise DifferentLengthsError("Trying to add vector time series slices of different length")
-
-#     for i in range(len(self)):
-#       self._time_series[index]
+  def frequency():
+    return self._frequency
   
 
 class MultivariateTimeSeries(TimeSeries):
@@ -108,6 +116,10 @@ class MultivariateTimeSeries(TimeSeries):
 
   def nseries(self):
     return len(self._data)
+
+
+  def series(self, index):
+    return TimeSeries(self._data[index])
   
 
   def _make_slice(self, i):
@@ -176,6 +188,28 @@ class TimeSeriesTest(unittest.TestCase):
     ts = TimeSeries([10, 20])
     self.assertRaises(IndexError, ts.__getitem__, 2)
 
+
+  def test_allows_to_set_elem_value(self):
+    ts = TimeSeries([10, 20])
+    ts[1] = 30
+    self.assertEqual(ts, TimeSeries([10, 30]))
+
+
+  def test_allows_assignment_to_slices(self):
+    ts = TimeSeries([10, 20, 30, 40])
+    ts[1:3] = [50, 60]
+    self.assertEqual(ts, TimeSeries([10, 50, 60, 40]))
+
+
+  def test_raises_during_assignment_if_index_is_out_of_range(self):
+    ts = TimeSeries([10, 20])
+    self.assertRaises(IndexError, ts.__setitem__, 2, 20)
+
+
+  def test_raises_during_assignment_if_slice_is_out_of_range(self):
+    ts = TimeSeries([10, 20])
+    self.assertRaises(IndexError, ts.__setitem__, slice(1, 3), [40, 50])
+
         
   def test_time_series_are_comparable(self):
     ts1 = TimeSeries([1, 2])
@@ -199,21 +233,27 @@ class TimeSeriesTest(unittest.TestCase):
     self.assertEqual(ts.dtype(), int)
 
 
-# class TestVectorSlice(unittest.TestCase):
-#   def setUp(self):
-#     self._ts1 = MultivariateTimeSeries([[1, 2, 3], [4, 5, 6]])
-#     self._ts2 = MultivariateTimeSeries([[10, 20, 30], [40, 50, 60]])
-    
-    
-#   def test_returns_correct_len(self):
-#     sl = VectorSlice(self._ts1, 0)
-#     self.assertEqual(len(sl), 2)
+  def test_nseries_returns_one(self):
+    ts = TimeSeries([1, 2, 3], int)
+    self.assertEqual(ts.nseries(), 1)
 
 
-#   def test_add_works_elementwise(self):
-#     self.assertEqual(VectorSlice(self._ts1, 0) + VectorSlice(self._ts1, 1), [5, 7])
-    
+  def test_series_with_index_zero_is_self(self):
+    ts = TimeSeries([1, 2, 3], int)
+    self.assertEqual(ts.series(0), ts)
 
+
+  def test_series_with_index_minus_one_is_self(self):
+    ts = TimeSeries([1, 2, 3], int)
+    self.assertEqual(ts.series(-1), ts)
+
+
+  def test_series_raises_if_not_zero_and_minus_one_is_passed(self):
+    ts = TimeSeries([1, 2, 3], int)
+    self.assertRaises(IndexError, ts.series, 1)
+    self.assertRaises(IndexError, ts.series, -2)
+
+    
 class TestMultivariateTimeSeries(unittest.TestCase):
   def setUp(self):
     self._test_ts = MultivariateTimeSeries([[1, 2, 3], [4, 5, 6]])
@@ -259,6 +299,18 @@ class TestMultivariateTimeSeries(unittest.TestCase):
 
   def test_nseries_returns_number_of_series(self):
     self.assertEqual(self._test_ts.nseries(), 2)
+
+
+  def test_series_works_for_correct_numbers(self):
+    self.assertEqual(self._test_ts.series(0), TimeSeries([1, 2, 3]))
+    self.assertEqual(self._test_ts.series(1), TimeSeries([4, 5, 6]))
+    self.assertEqual(self._test_ts.series(1), self._test_ts.series(-1))
+    self.assertEqual(self._test_ts.series(0), self._test_ts.series(-2))
+
+
+  def test_series_raises_if_index_is_out_of_range(self):
+    self.assertRaises(IndexError, self._test_ts.series, 2)
+    self.assertRaises(IndexError, self._test_ts.series, -3)
 
 
   def test_allows_assignment_to_one_dimensional_slices(self):
