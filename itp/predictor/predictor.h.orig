@@ -1,0 +1,276 @@
+#ifndef PREDICTOR_PREDICTOR_H
+#define PREDICTOR_PREDICTOR_H
+
+#include "continuation.h"
+#include "dframe.h"
+#include "sampler.h"
+
+#include <iostream>
+#include <memory>
+#include <cmath>
+
+// Interface of the library.
+namespace itp {
+  using Continuations_distribution = Data_frame<Continuation<Symbol_t>, std::string, Double_t>;
+  using Forecast =  Data_frame<std::string, size_t, Forecast_point<Double_t>>;
+  using Symbols_distributions = Data_frame<Symbol_t, std::string, Double_t>;
+
+  std::pair<Symbol_t, Symbol_t> find_confidence_interval(const Symbols_distributions &, double);
+
+  Double_t mean(const Symbols_distributions &,
+                const Symbols_distributions::Factor_type &, Sampler_ptr,
+                const Desample_info &);
+  std::ostream &operator<<(std::ostream &ost, const Continuations_distribution &table);
+  
+  Names split_concatenated_names(std::string concatenated_names,
+                                 char separator = '_');
+
+  /**
+   * Splits vector of strings, in which each string consists of compressors's names
+   * separated by the separator character,
+   * to a vector of vectors with compressors names.
+   *
+   * @param concatenated_names Vector of concatenated compressor's names.
+   * @param separator Names in concatenated_names should be separated by that
+   * character.
+   *
+   * @return Vector of vectors of names, splitted by the separator.
+   */
+  std::vector<Names> split_concatenated_names(const std::vector<std::string>
+                                              &concatenated_names,
+                                              char separator = '_');
+
+  /**
+   * Concatenates vector of names to a single name using separator.
+   *
+   * @param compressors Vector of compressor's names.
+   * @param separator Separator for names in a single string.
+   *
+   * @return Concatenated name.
+   */
+  std::string concatenate(const Names &compressors, char separator = '_');
+
+  /**
+   * Find all distinct compressor's name in the vector of vectors of names.
+   *
+   * @param compressors Vector of vector of names.
+   *
+   * @return Vector of unique names.
+   */
+  Names find_all_distinct_names(const std::vector<Names> &compressors);
+
+  inline bool is_power_of_two(std::size_t n) {
+    return (n > 0 && ((n & (n - 1)) == 0));
+  }
+
+  template <typename T>
+  struct Diff_result;
+
+  /**
+   * Memento pattern implementation. Contains information necessary to
+   * integrate differentized time series.
+   *
+   */
+  template <typename T>
+  class Integration_info {
+  public:
+    Integration_info() = default;
+  private:
+    Integration_info(size_t difference, const std::vector<T> &last_values)
+      : difference{difference}, last_values{last_values} {}
+
+    size_t difference;
+    std::vector<T> last_values;
+
+    template <typename U>
+    friend Diff_result<U> diff_n(Time_series<U> x, size_t n);
+
+    template <typename U>
+    friend void integrate(Forecast &forecast, const Integration_info<U> &info);
+  };
+
+  template <typename T>
+  struct Diff_result {
+    Time_series<T> time_series;
+    Integration_info<T> integration_info;
+  };
+
+  /**
+   * Takes n-th difference of the specified time series.
+   *
+   * @param x Time series to differentization.
+   * @param n Differentize the time series n times.
+   *
+   * @return Differentized time series.
+   */
+  template <typename T>
+  Diff_result<T> diff_n(Time_series<T> x, size_t n) {
+    std::vector<T> last_values;
+    for (size_t i = 1; i <= n; ++i) {
+      last_values.push_back(x[x.size()-i]);
+      for (size_t j = 0; j < x.size() - i; ++j) {
+        x[j] = x[j+1] - x[j];
+      }
+    }
+    x.erase(end(x)-n, end(x));
+
+    assert(last_values.size() == n);
+
+    Integration_info<T> info{n, last_values};
+    return Diff_result<T>{x, info};
+  }
+
+  template <typename T>
+  void integrate(Forecast &forecast, const Integration_info<T> &info) {
+    assert(info.last_values.size() == info.difference);
+
+    size_t index = info.last_values.size();
+    for (size_t i = 1; i <= info.difference; ++i) {
+      --index;
+      for (const auto &compressor : forecast.get_index()) {
+        forecast(compressor, 0).point += info.last_values[index];
+        forecast(compressor, 0).left_border += info.last_values[index];
+        forecast(compressor, 0).right_border += info.last_values[index];
+        for (size_t j = 1; j < forecast.factors_size(); ++j) {
+          forecast(compressor, j).point += forecast(compressor, j - 1).point;
+          forecast(compressor, j).left_border +=
+            forecast(compressor, j - 1).left_border;
+          forecast(compressor, j).right_border +=
+            forecast(compressor, j - 1).right_border;
+        }
+      }
+    }
+  }
+
+  class Weights_generator {
+  public:
+    virtual ~Weights_generator() = default;
+
+    virtual std::vector<Double_t> generate(size_t n) const;
+  };
+
+  class Countable_weights_generator : public Weights_generator {
+  public:
+    virtual std::vector<Double_t> generate(size_t n) const;
+  };
+
+  using Weights_generator_ptr = std::shared_ptr<Weights_generator>;
+
+  template <typename T>
+  struct Distr_with_rec_info {
+    Continuations_distribution distribution;
+    Sampler_ptr applied_sampler;
+    Desample_info desample_info;
+    Integration_info<T> integration_info;
+  };
+  
+  template <typename T>
+  class Distribution_predictor {
+    static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
+  public:
+    virtual ~Distribution_predictor() = default;
+
+    virtual Distr_with_rec_info<T>
+    predict(const Time_series<T> &ts, size_t horizont,
+            const std::vector<Names> &compressors) const = 0;
+  };
+
+  template <typename T>
+  using Distribution_predictor_ptr = std::shared_ptr<Distribution_predictor<T>>;
+  
+  template <typename T>
+  class Pointwise_predictor {
+    static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
+  public:
+    virtual ~Pointwise_predictor() = default;
+
+    virtual Forecast predict(const Time_series<T> &ts, size_t horizont,
+                             const std::vector<Names> &compressors) const = 0;
+  };
+
+  template <typename T> using Pointwise_predictor_ptr = std::shared_ptr<Pointwise_predictor<T>>;
+
+  template <typename T>
+  class Basic_pointwise_predictor : public Pointwise_predictor<T> {
+  public:
+    Basic_pointwise_predictor(Distribution_predictor_ptr<T> distribution_predictor);
+    Forecast predict(const Time_series<T> &ts, size_t horizont,
+                     const std::vector<Names> &compressors) const override;
+  private:
+    Distribution_predictor_ptr<T> distribution_predictor;
+  };
+
+  /**
+   * Decorator pattern implementation.
+   *
+   */
+  template <typename T>
+  class Sparse_predictor : public Pointwise_predictor<T> {
+  public:
+    Sparse_predictor(Pointwise_predictor_ptr<T> pointwise_predictor, size_t sparse);
+
+    Forecast predict(const Time_series<T> &history, size_t horizont,
+                     const std::vector<Names> &compressors) const override final;
+  private:
+    Pointwise_predictor_ptr<T> pointwise_predictor;
+    size_t sparse;
+  };
+
+  template <typename T>
+  Forecast Sparse_predictor<T>::predict(const Time_series<T> &history, size_t horizont,
+                                        const std::vector<Names> &compressors) const {
+    std::vector<Forecast> results(sparse);
+    size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse));
+    for (size_t i = 0; i < sparse; ++i) {
+      Time_series<T> sparse_ts_data;
+      for (size_t j = i; j < history.size(); j += sparse) {
+        sparse_ts_data.push_back(history[j]);
+      }
+      results[i] = pointwise_predictor->predict(sparse_ts_data, sparsed_horizont, compressors);
+    }
+
+    Forecast full_first_steps = pointwise_predictor->predict(history, sparsed_horizont, compressors);
+    Forecast result;
+    for (size_t i = 0; i < sparsed_horizont; ++i) {
+      for (const auto &compressor : full_first_steps.get_index()) {
+        result(compressor, i) = full_first_steps(compressor, i);
+      }
+    }
+
+    for (size_t i = 0; i < sparsed_horizont; ++i) {
+      for (size_t j = 0; j < sparse; ++j) {
+        if ((i*sparse+j >= sparsed_horizont) && (i*sparse+j < horizont)) {
+          for (const auto compressor : full_first_steps.get_index()) {
+            result(compressor, i*sparse+j) = results[j](compressor, i);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  template <typename T>
+  Basic_pointwise_predictor<T>::Basic_pointwise_predictor(Distribution_predictor_ptr<T> distribution_predictor)
+    : distribution_predictor {distribution_predictor} {}
+
+  template <typename T>
+  Forecast Basic_pointwise_predictor<T>::predict(const Time_series<T> &ts, size_t horizont,
+                                                 const std::vector<Names> &compressors) const {
+    auto distribution = distribution_predictor->predict(ts, horizont, compressors);
+    auto forecasts = to_pointwise_forecasts(distribution.distribution,
+                                            horizont,
+                                            distribution.applied_sampler,
+                                            distribution.desample_info);
+    integrate(forecasts, distribution.integration_info);
+    return forecasts;
+  }
+
+  template <typename T>
+  Sparse_predictor<T>::Sparse_predictor(Pointwise_predictor_ptr<T> pointwise_predictor,
+                                        size_t sparse)
+    : pointwise_predictor {pointwise_predictor}, sparse {sparse} {
+      assert(pointwise_predictor != nullptr);
+    }
+}
+
+#endif //PREDICTOR_PREDICTOR_H

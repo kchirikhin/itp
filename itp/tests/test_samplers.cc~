@@ -1,0 +1,46 @@
+#include <sampler.h>
+
+#include <algorithm>
+#include "itp_exceptions.h"
+#include <tseries.h>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include "gtest_extensions.h"
+
+using namespace itp;
+using namespace testing;
+
+class SamplerForDoublesTest : public Test {
+ protected:
+  static constexpr size_t kCountOfIntervalsToSplit = 2;
+
+  exp::Sampler<Double> sampler_;
+};
+
+TEST_F(SamplerForDoublesTest, QuantizesEmptyRealValuedSeries) {
+  EXPECT_THAT(sampler_.Transform({}, kCountOfIntervalsToSplit), IsEmpty());
+}
+
+TEST_F(SamplerForDoublesTest, ThrowsOnASeriesWithSingleValue) {
+  EXPECT_THROW(sampler_.Transform({1.}, kCountOfIntervalsToSplit), SeriesTooShortError);
+}
+
+TEST_F(SamplerForDoublesTest, QuantizesASeriesWithNegativeValues) {
+  EXPECT_THAT(sampler_.Transform({0.1, -0.5, 5, -1, 7.5}, kCountOfIntervalsToSplit), ElementsAre(0, 0, 1, 0, 1));
+}
+
+TEST_F(SamplerForDoublesTest, CorrectlyDequantizesASeries) {
+  std::vector<Double> expected_series { 0.7, 0.7, 5.8, 0.7, 5.8 };
+
+  auto transformed_series = sampler_.Transform({0.1, -0.5, 5, -1, 7.5}, kCountOfIntervalsToSplit);
+  ASSERT_EQ(transformed_series.size(), expected_series.size());
+  for (size_t i = 0; i < transformed_series.size(); ++i) {
+    EXPECT_DOUBLE_EQ(sampler_.InverseTransform(transformed_series[i], transformed_series), expected_series[i]);
+  }
+}
+
+class SamplerForIntegersTest : public Test {
+ protected:
+  exp::Sampler<Symbol> sampler_;
+};

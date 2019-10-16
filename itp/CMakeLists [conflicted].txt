@@ -1,0 +1,79 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(itp LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(SOURCE_DIR src/predictor)
+
+# Include directory with the headers developed in the scope of that project.
+include_directories(${SOURCE_DIR})
+
+# All source files developed in the scope of that project.
+set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
+  ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
+  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/builders.cc ${SOURCE_DIR}/compression_prediction.cc
+  ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc)
+file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h")
+
+# Include third-party library for high-precision floating-point arithmetic.
+include_directories(lib/ttmath)
+
+# Include third-party library for parsing command-line arguments.
+include_directories(lib/tclap)
+
+file(GLOB EXTERNAL_HEADERS "lib/ttmath/*.h" "lib/tclap/*.h")
+
+# Include third-party headers and static libraries of compression algorithms.
+include_directories(lib/ppmd lib/rp lib/lcacomp lib/zstd lib/bzip2)
+
+# Because zlib generates a header.
+include_directories(./lib/zlib)
+include_directories(${PROJECT_BINARY_DIR}/lib/zlib)
+
+# Add the implementations of the compression algorithms.
+add_subdirectory(lib/bzip2)
+add_subdirectory(lib/lcacomp)
+add_subdirectory(lib/ppmd)
+add_subdirectory(lib/rp)
+add_subdirectory(lib/zlib)
+add_subdirectory(lib/zstd)
+set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd)
+
+# Build the Python binding.
+add_subdirectory(lib/pybind11)
+include_directories(lib/pybind11)
+pybind11_add_module(predictor ${SOURCE_DIR}/pyexport.cc ${PREDICTOR_SOURCES}
+  ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
+
+target_compile_options(predictor PUBLIC -fPIC -Wall -pedantic)
+target_link_libraries(predictor PRIVATE ${COMPRESSION_LIBRARIES})
+
+set(CTEST_OUTPUT_ON_FAILURE ON)
+
+enable_testing()
+
+# find_package(Threads REQUIRED)
+add_subdirectory(lib/googletest)
+set(GTEST_INCLUDE_DIR "lib/googletest/googletest/include")
+set(GTEST_LIB gtest_main gtest)
+set(GMOCK_INCLUDE_DIR "lib/googletest/googlemock/include")
+set(GMOCK_LIB gmock_main gmock)
+include_directories(${GTEST_INCLUDE_DIR})
+include_directories(${GMOCK_INCLUDE_DIR})
+
+set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_builders.cc tests/test_tseries.cc)
+add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
+  ${EXTERNAL_HEADERS})
+target_link_libraries(pred_test rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME pred_test COMMAND pred_test)
+
+set(BIGNUMS_TESTS tests/test_bignums.cc)
+add_executable(bignums_test ${BIGNUMS_TESTS} src/predictor/bignums.h)
+target_link_libraries(bignums_test ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME bignums_test COMMAND bignums_test)
+
+set(AUTOMATON_TESTS tests/test_automaton.cc src/predictor/automaton.cc src/predictor/sdfa.cc src/predictor/head.cc)
+add_executable(automaton_test ${AUTOMATON_TESTS} src/predictor/automaton.h src/predictor/sdfa.h
+  src/predictor/head.h)
+target_link_libraries(automaton_test ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME automaton_test COMMAND automaton_test)

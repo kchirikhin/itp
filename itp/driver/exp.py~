@@ -1,0 +1,60 @@
+class TimeSeries:
+  def __init__(self, data=[]):
+    self._data = data
+
+
+  def __len__(self):
+      return len(self._data)
+
+
+  def __getitem__(self, key):
+      if isinstance(key, slice):
+          return TimeSeries(self._data[key])
+      return self._data[key]
+
+
+  def __eq__(self, other):
+      return self._data == other._data
+
+
+  def to_list(self):
+    return self._data
+
+
+class ForecastingTask:
+    def __init__(self, identifier, ts, h, sparse):
+        self._identifier = identifier
+        self._ts = ts
+        self._h = h
+        self._sparse = sparse
+
+        _validate()
+
+
+    def time_series(self):
+        return self._ts
+
+
+    def horizont(self):
+        return self._h
+
+
+    def sparse(self):
+        return self._sparse
+
+
+    def _validate(self):
+        pass
+
+
+class ForecastingTaskPackage:
+    def __init__(self):
+        self._tasks = []
+
+        
+    def add(task):
+        self._tasks.append(task)
+
+
+    def __len__(self):
+        return len(_tasks)
