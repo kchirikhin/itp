@@ -89,7 +89,7 @@ class ForecastingResult:
   def __repr__(self):
     to_return = ""
     for compressor, forecast in self._forecasts.items():
-      to_return.append(f"{compressor}: {forecast}")
+      to_return += f"{compressor}: {forecast}\n"
 
     return to_return
   
