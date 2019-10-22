@@ -13,6 +13,11 @@ class SeriesTooShortError(ExecutorError):
   pass
 
 
+class DifferentLengthsError(ExecutorError):
+  """Should be raised if the required condition that all time series must be of the same lengths is violated"""
+  pass
+
+
 class ForecastingTask:
   """A time series with all information required to compute the forecast"""
 
@@ -176,13 +181,13 @@ class SmoothingExecutor(Executor):
       
       new_ts = ts[0:(len(ts) - 2)]
       for i in range(2, len(ts)):
-        new_ts[i-2] = ts.dtype()((2 * ts[i] + ts[i-1] + ts[i-2])/4)
+        new_ts[i-2] = (2 * ts[i] + ts[i-1] + ts[i-2]) / 4
 
       new_task = ForecastingTask(new_ts, task.compressors(), task.horizont(), task.difference(),
                                  task.max_quants_count(), task.sparse())
       new_package.append(new_task)
       
-    self._base_executor.execute(new_package, itp_predictors)
+    return self._base_executor.execute(new_package, itp_predictors)
 
 
 # class DecomposingExecutor(Executor):
