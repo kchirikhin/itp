@@ -15,7 +15,7 @@ class TimeSeries:
   """Represents a single time series with real or integer elements"""
   
   def __init__(self, data=[], frequency=1, dtype=int):
-    self._data = np.array(data)
+    self._data = np.array(data, dtype)
     self._frequency = frequency
     self._dtype = dtype
 
@@ -32,14 +32,22 @@ class TimeSeries:
 
   def __setitem__(self, key, value):
     if isinstance(key, slice):
-      if key.start < 0 or len(self._data) < key.stop:
+      if (key.start is not None and key.start < 0) or (key.stop is not None and len(self._data) < key.stop):
         raise IndexError(f"Key {key} is out of range [0:{len(self._data)}]")
     
     self._data[key] = value
 
 
   def __eq__(self, other):
-    return np.array_equal(self._data, other._data)
+    return np.array_equal(self._data, other._data) and (self._frequency == other._frequency) and (self._dtype == other._dtype)
+
+
+  def __pow__(self, other):
+    to_return = self.generate_zeroes_array(len(self))
+    for i in range(len(self)):
+      to_return[i] = self[i] ** other
+
+    return to_return
 
 
   def nseries(self):
@@ -54,7 +62,7 @@ class TimeSeries:
   
 
   def __repr__(self):
-    return str(self._data)
+    return '{' + str(self._data) + ', frequency=' + str(self._frequency) + ', dtype=' + str(self._dtype) + '}'
 
 
   def to_list(self):
@@ -67,23 +75,32 @@ class TimeSeries:
 
   def frequency(self):
     return self._frequency
+
+
+  def generate_zeroes_array(self, n, frequency=None, dtype=None):
+    if frequency is None:
+      frequency = self._frequency
+    if dtype is None:
+      dtype = self._dtype
+      
+    return TimeSeries([0] * n, frequency, dtype)
   
 
 class MultivariateTimeSeries(TimeSeries):
   """Represents a group of time series that should be treated as a single series"""
   
   def __init__(self, data=[], frequency=1, dtype=int):
-    self._data = np.array(data)
-    self._frequency = frequency
-    self._dtype = dtype
-    
     if len(data) == 0:
       self._size = 0
     else:
       self._size = len(data[0])
-      for ts in self._data:
+      for ts in data:
         if len(ts) != self._size:
           raise DifferentLengthsError("Time series of different lengths were passed")
+        
+    self._data = np.array(data, dtype=dtype)
+    self._frequency = frequency
+    self._dtype = dtype
     
 
   def __len__(self):
@@ -92,7 +109,7 @@ class MultivariateTimeSeries(TimeSeries):
 
   def __getitem__(self, key):
     if isinstance(key, slice):
-      if key.start < 0 or self._size < key.stop:
+      if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
         raise IndexError(f"Key {key} is out of range [0:{self._size}]")
       
       return MultivariateTimeSeries(self._data[:,key], self._frequency, self._dtype)
@@ -103,7 +120,7 @@ class MultivariateTimeSeries(TimeSeries):
 
   def __setitem__(self, key, value):
     if isinstance(key, slice):
-      if key.start < 0 or self._size < key.stop:
+      if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
         raise IndexError(f"Key {key} is out of range [0:{self._size}]")
       
     for i in range(self.nseries()):
@@ -111,7 +128,7 @@ class MultivariateTimeSeries(TimeSeries):
 
 
   def __eq__(self, other):
-    return np.array_equal(self._data, other._data)
+    return np.array_equal(self._data, other._data) and (self._frequency == other._frequency) and (self._dtype == other._dtype)
 
 
   def nseries(self):
@@ -120,6 +137,15 @@ class MultivariateTimeSeries(TimeSeries):
 
   def series(self, index):
     return TimeSeries(self._data[index])
+
+
+  def generate_zeroes_array(self, n, frequency=None, dtype=None):
+    if frequency is None:
+      frequency = self._frequency
+    if dtype is None:
+      dtype = self._dtype
+      
+    return MultivariateTimeSeries([[0 for x in range(n)] for y in range(self.nseries())], frequency, dtype)
   
 
   def _make_slice(self, i):
