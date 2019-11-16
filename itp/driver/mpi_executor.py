@@ -24,12 +24,7 @@ class MpiExecutor(Executor):
         chunk_end = len(package)
 
     results = self._base_executor.execute(package[chunk_begin:chunk_end])
-    common_results = self._comm.gather(results, root=0)
+    common_results = self._comm.allgather(results)
+    common_results = list(it.chain.from_iterable(common_results))
 
-    if rank == 0:
-      common_results = list(it.chain.from_iterable(common_results))
-      return common_results
-
-    return None
-
-
+    return common_results

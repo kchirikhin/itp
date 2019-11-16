@@ -1,7 +1,7 @@
 """Модуль для прогнозирования уже известных значений временного ряда по его префиксам. Используется для оценки
 точности и построения доверительных интервалов"""
 
-from itp.driver.executor import ForecastingTask, ForecastingResult
+from itp.driver.executor import ForecastingTask, ForecastingResult, Executor
 from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
 
 import math
@@ -12,7 +12,21 @@ class ExperimentError(Exception):
 
 
 class ExperimentRunner:
-    
+    def __init__(self, executor=Executor()):
+        self._executor = executor
+
+
+    def run(self, task, history_share=0.5):
+        package = self._form_experiment_package(task, history_share)
+        observed = self._form_observed_values(task, history_share)
+
+        results = self._executor.execute(package)
+        mean_errors = self._compute_mean_errors(results, observed)
+        standard_deviations = self._compute_standard_deviations(results, observed)
+        
+        return [mean_errors, standard_deviations]
+
+
     def _form_experiment_package(self, task, history_share=0.5):
         if task.horizont() == 1:
             raise NotImplementedError("horizont must be greater than one")

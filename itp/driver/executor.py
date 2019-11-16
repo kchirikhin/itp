@@ -151,10 +151,8 @@ class Executor:
 
 
   def _convert(self, result, horizont):
-    print(f"Horizont: {horizont}")
     to_return = ForecastingResult(horizont)
     for compressor, forecast in result.items():
-      print(f"len(forecast): {len(forecast)}, forecast: {forecast}")
       if isinstance(forecast[0], list):
         to_return.add_compressor(compressor, MultivariateTimeSeries(forecast))
       else:

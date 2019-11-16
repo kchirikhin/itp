@@ -13,7 +13,7 @@ class TestExperimentRunner(unittest.TestCase):
         self._compressors = ['zlib']
         self._horizont = 2
         self._difference = 0
-        self._max_quants_count = 8
+        self._max_quants_count = 4
         self._sparse = 1
         
     
@@ -67,6 +67,16 @@ class TestExperimentRunner(unittest.TestCase):
         self.assertEqual(len(values), 2)
         self.assertEqual(values[0], time_series[3:5])
         self.assertEqual(values[1], time_series[4:6])
+
+
+    def test_returns_both_mean_errors_and_standard_deviation(self):
+        time_series = MultivariateTimeSeries([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]])
+        task = ForecastingTask(time_series, self._compressors, self._horizont, self._difference,
+                                self._max_quants_count, self._sparse)
+        errors,deviations = self._runner.run(task)
+
+        self.assertEqual(len(errors['zlib']), self._horizont)
+        self.assertEqual(len(deviations['zlib']), self._horizont)
 
         
 class TestStatsOnSingleSeries(unittest.TestCase):
@@ -122,7 +132,7 @@ class TestStatsOnMultivariateSeries(unittest.TestCase):
     def test_correctly_computes_standard_deviations_for_multivariate_ts(self):
         standard_deviations = self._runner._compute_standard_deviations(self._results, self._observed)
         np.testing.assert_allclose(standard_deviations['zlib'], MultivariateTimeSeries([[np.std([0.5, 0.2]), np.std([1.0, 0.2])], [np.std([0.5, 0.2]), np.std([0.1, 0.3])]], dtype=float))
-        #np.testing.assert_allclose(standard_deviations['ppmd'], TimeSeries([np.std([0.3, 0.1]), np.std([0.1, 0.1])], dtype=float))
+        np.testing.assert_allclose(standard_deviations['ppmd'], MultivariateTimeSeries([[np.std([0.3, 0.1]), np.std([0.1, 0.1])], [np.std([0.2, 0]), np.std([0.1, 0.1])]], dtype=float))
 
 
 class TestStandardDeviationComputation(unittest.TestCase):
