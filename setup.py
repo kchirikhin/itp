@@ -66,7 +66,7 @@ setup(
     long_description='',
     packages=find_packages(),
     package_data={'': ['tests/*.dat']},
-    install_requires=['numpy', 'pandas', 'rpy2', 'mpi4py', 'msgpack'],
+    install_requires=['numpy', 'pandas', 'rpy2', 'mpi4py', 'PrettyTable'],
     ext_modules=[CMakeExtension('predictor', './itp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
