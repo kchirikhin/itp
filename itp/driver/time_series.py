@@ -33,7 +33,7 @@ class TimeSeries:
   def __setitem__(self, key, value):
     if isinstance(key, slice):
       if (key.start is not None and key.start < 0) or (key.stop is not None and len(self._data) < key.stop):
-        raise IndexError(f"Key {key} is out of range [0:{len(self._data)}]")
+        raise IndexError("Key " + str(key) + " is out of range [0:" + str(len(self._data)) + "]")
     
     self._data[key] = value
 
@@ -56,7 +56,7 @@ class TimeSeries:
 
   def series(self, index):
     if index != 0 and index != -1:
-      raise IndexError(f"Series index {index} is out of range [0:0]")
+      raise IndexError("Series index " + str(index) + " is out of range [0:0]")
 
     return self
   
@@ -110,7 +110,7 @@ class MultivariateTimeSeries(TimeSeries):
   def __getitem__(self, key):
     if isinstance(key, slice):
       if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
-        raise IndexError(f"Key {key} is out of range [0:{self._size}]")
+        raise IndexError("Key " + str(key) + " is out of range [0:" + str(self._size) + "]")
       
       return MultivariateTimeSeries(self._data[:,key], self._frequency, self._dtype)
       
@@ -121,7 +121,7 @@ class MultivariateTimeSeries(TimeSeries):
   def __setitem__(self, key, value):
     if isinstance(key, slice):
       if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
-        raise IndexError(f"Key {key} is out of range [0:{self._size}]")
+        raise IndexError("Key " + str(key) + " is out of range [0:" + str(self._size) + "]")
       
     for i in range(self.nseries()):
       self._data[i, key] = value[i]
@@ -155,5 +155,4 @@ class MultivariateTimeSeries(TimeSeries):
   
   def _validate_key(self, key):
     if key >= self._size:
-      raise IndexError(f"Key {key} is out of range [0:{self._size}]")
-
+      raise IndexError("Key " + str(key) + " is out of range [0:" + str(self._size) + "]")

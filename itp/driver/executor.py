@@ -59,7 +59,7 @@ class ForecastingTask:
 
 
   def __repr__(self):
-    return f'Time series: {self._time_series}\nCompressors: {self._compressors}\nHorizont: {self._horizont}\nDifference: {self._difference}\nMax quants count: {self._max_quants_count}\nSparse: {self._sparse}'
+    return "Time series: " + str(self._time_series) + "\nCompressors: " + str(self._compressors) + "\nHorizont: " + str(self._horizont) + "\nDifference: " + str(self._difference) + "\nMax quants count: " + str(self._max_quants_count) + "\nSparse: " + str(self._sparse)
 
 
 class ForecastingResult:
@@ -94,7 +94,7 @@ class ForecastingResult:
   def __repr__(self):
     to_return = ""
     for compressor, forecast in self._forecasts.items():
-      to_return += f"{compressor}: {forecast}\n"
+      to_return += str(compressor) + ": " + str(forecast) + "\n"
 
     return to_return
   
@@ -175,7 +175,7 @@ class SmoothingExecutor(Executor):
     for task in package:
       ts = task.time_series()
       if len(ts) < self._minimal_ts_len:
-        raise SeriesTooShortError(f"Time series must contain at least {self._minimal_ts_len} elems to be smoothed")
+        raise SeriesTooShortError("Time series must contain at least " + str(self._minimal_ts_len) + " elems to be smoothed")
       
       new_ts = ts[0:(len(ts) - 2)]
       for i in range(2, len(ts)):

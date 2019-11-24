@@ -2,10 +2,13 @@ from itp.driver.experiment import *
 from itp.driver.executor import *
 from itp.driver.time_series import TimeSeries
 from itp.driver.time_series import MultivariateTimeSeries
+import itp.driver.experiment as experiment
 
 import numpy as np
 import unittest
-
+from unittest.mock import ANY
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 class TestExperimentRunner(unittest.TestCase):
     def setUp(self):
@@ -136,48 +139,76 @@ class TestStatsOnMultivariateSeries(unittest.TestCase):
 
 
 class TestStandardDeviationComputation(unittest.TestCase):
-    def test_mean_correctly_works_on_single_series(self):
-        series = [1.5, 2.3, 2.5, 5.6]
-        self.assertAlmostEqual(ExperimentRunner._mean(TimeSeries(series, dtype=float)), np.mean(series))
-
-
-    def test_mean_correctly_works_on_multivariate_series(self):
-        series = [[1.5, 2.3, 2.5, 5.6], [1, 2, 3, 4]]
-        np.testing.assert_allclose(ExperimentRunner._mean(MultivariateTimeSeries(series, dtype=float)), [np.mean(series[0]), np.mean(series[1])])
-
-
     def test_abs_works_on_single_series(self):
         series = [1, 0, -1]
-        self.assertEqual(ExperimentRunner._abs(TimeSeries(series)), TimeSeries([1, 0, 1]))
+        self.assertEqual(experiment.ts_abs(TimeSeries(series)), TimeSeries([1, 0, 1]))
 
 
     def test_abs_works_on_multivariate_series(self):
         series = MultivariateTimeSeries([[1.5, -2.3, -2.5, 5.6], [-1, -2, 3, 4]], dtype=float)
-        np.testing.assert_allclose(ExperimentRunner._abs(series), MultivariateTimeSeries([[1.5, 2.3, 2.5, 5.6], [1, 2, 3, 4]], dtype=float))
+        np.testing.assert_allclose(experiment.ts_abs(series), MultivariateTimeSeries([[1.5, 2.3, 2.5, 5.6], [1, 2, 3, 4]], dtype=float))
+
+
+    def test_mean_correctly_works_on_single_series(self):
+        series = [1.5, 2.3, 2.5, 5.6]
+        self.assertAlmostEqual(experiment.ts_mean(TimeSeries(series, dtype=float)), np.mean(series))
+
+
+    def test_mean_correctly_works_on_multivariate_series(self):
+        series = [[1.5, 2.3, 2.5, 5.6], [1, 2, 3, 4]]
+        np.testing.assert_allclose(experiment.ts_mean(MultivariateTimeSeries(series, dtype=float)), [np.mean(series[0]), np.mean(series[1])])
 
 
     def test_sqrt_works_on_single_series(self):
         series = TimeSeries([1, 4, 9])
-        self.assertEqual(ExperimentRunner._sqrt(series), TimeSeries([1, 2, 3]))
+        self.assertEqual(experiment.ts_sqrt(series), TimeSeries([1, 2, 3]))
 
 
     def test_sqrt_works_on_multivariate_series(self):
         series = MultivariateTimeSeries([[1, 4, 9], [16, 25, 36]])
-        np.testing.assert_allclose(ExperimentRunner._sqrt(series), MultivariateTimeSeries([[1, 2, 3], [4, 5, 6]]))
+        np.testing.assert_allclose(experiment.ts_sqrt(series), MultivariateTimeSeries([[1, 2, 3], [4, 5, 6]]))
 
         
     def test_correctly_computes_sd_for_single_series(self):
         series = [1.5, 2.3, 2.5, 5.6]
         ts = TimeSeries(series, dtype=float)
         
-        self.assertAlmostEqual(ExperimentRunner._standard_deviation(ts), np.std(series))
+        self.assertAlmostEqual(experiment.ts_standard_deviation(ts), np.std(series))
 
 
     def test_correctly_computes_sd_for_multivariate_series(self):
         series = [[1.5, 2.3, 2.5, 5.6], [3.4, 5.3, 2.3, -6.7]]
         ts = MultivariateTimeSeries(series, dtype=float)
 
-        np.testing.assert_allclose(ExperimentRunner._standard_deviation(ts), [np.std(series[0]), np.std(series[1])])
+        np.testing.assert_allclose(experiment.ts_standard_deviation(ts), [np.std(series[0]), np.std(series[1])])
+
+
+class TestIntervalPredictor(unittest.TestCase):
+    def test_returns_forecast_from_executor(self):
+        series = [[1.5, 2.3, 2.5, 5.6], [3.4, 5.3, 2.3, -6.7]]
+        ts = MultivariateTimeSeries(series, dtype=float)
+
+        fake_forecast = ForecastingResult(horizont=3)
+        fake_forecast.add_compressor('zlib', MultivariateTimeSeries([[1, 2, 3], [4, 5.0, 6]], dtype=float))
+        mock_executor = Executor()
+        mock_executor.execute = MagicMock(return_value=fake_forecast)
+        
+        fake_errors = ForecastingResult(horizont=3)
+        fake_errors.add_compressor('zlib', MultivariateTimeSeries([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=float))
+
+        fake_deviations = ForecastingResult(horizont=3)
+        fake_deviations.add_compressor('zlib', MultivariateTimeSeries([[1.1, 1.2, 1.3], [1.4, 1.5, 1.6]], dtype=float))
+
+        mock_experiment_runner = MagicMock()
+        mock_experiment_runner.Run = MagicMock(return_value=(fake_errors,fake_deviations))
+
+        predictor = IntervalPredictor(mock_executor, mock_experiment_runner)
+        forecast,errors,upper_bounds,lower_bounds = predictor.run(ForecastingTask(ts, ['zlib'], 3, 0, 8, 1))
+        
+        np.testing.assert_array_equal(forecast['zlib'], fake_forecast['zlib'])
+        np.testing.assert_allclose(errors['zlib'], MultivariateTimeSeries([[0.1/2.975, 0.2/2.975, 0.3/2.975], [0.4/1.075, 0.5/1.075, 0.6/1.075]], dtype=float))
+        np.testing.assert_allclose(upper_bounds['zlib'], MultivariateTimeSeries([[[1+1.1], [2+1.2], [3+1.3]], [[4+1.4], [5+1.5], [6+1.6]]], dtype=float))
+        np.testing.assert_allclose(lower_bounds['zlib'], MultivariateTimeSeries([[[1-1.1], [2-1.2], [3-1.3]], [[4-1.4], [5-1.5], [6-1.6]]], dtype=float))
 
 
 if __name__ == '__main__':

@@ -11,6 +11,43 @@ class ExperimentError(Exception):
     pass
 
 
+def ts_mean(series):
+    if len(series) == 0:
+        raise ValueError
+        
+    result = series[0]
+    for i in range(1, len(series)):
+        result += series[i]
+            
+    return result / len(series)
+
+
+def ts_abs(series):
+    to_return = series.generate_zeroes_array(len(series))
+    for i in range(len(series)):
+        to_return[i] = np.abs(series[i])
+
+    return to_return
+
+
+def ts_sqrt(series):
+    to_return = series.generate_zeroes_array(len(series))
+    for i in range(len(series)):
+        to_return[i] = np.sqrt(series[i])
+
+    return to_return
+
+
+def ts_standard_deviation(series):
+    mean = ts_mean(series)
+    sum_ = (np.abs(series[0] - mean) ** 2)
+    for i in range(1, len(series)):
+        sum_ = sum_ + (np.abs(series[i] - mean) ** 2)
+
+    sum_ /= len(series)
+    return np.sqrt(sum_)
+
+
 class ExperimentRunner:
     def __init__(self, executor=Executor()):
         self._executor = executor
@@ -95,44 +132,39 @@ class ExperimentRunner:
                         raise ExperimentError("results with different horizonts were passed")
 
                     errors_ts[j] = abs(results[j][compressor][i] - observed[j][i])
-                standard_deviations[i] = ExperimentRunner._standard_deviation(errors_ts)
+                standard_deviations[i] = ts_standard_deviation(errors_ts)
             to_return.add_compressor(compressor, standard_deviations)
 
         return to_return
 
 
-    def _mean(series):
-        if len(series) == 0:
-            raise ValueError
-        
-        result = series[0]
-        for i in range(1, len(series)):
-            result += series[i]
-            
-        return result / len(series)
+class IntervalPredictor:
+    def __init__(self, executor=Executor(), experiment_runner=None):
+        self._executor = executor
+        self._experiment_runner = experiment_runner
+
+        if self._experiment_runner is None:
+            self._experiment_runner = ExperimentRunner(self._executor)
 
 
-    def _abs(series):
-        to_return = series.generate_zeroes_array(len(series))
-        for i in range(len(series)):
-            to_return[i] = np.abs(series[i])
+    def run(self, task):
+        forecast = self._executor.execute([task])[0]
+        errors,deviations = self._experiment_runner.run(task)
+        for compressor in errors.compressors():
+            ts_mean_value = ts_mean(task.time_series())
+            for i in range(len(errors[compressor])):
+                errors[compressor][i] = errors[compressor][i] / ts_mean_value
 
-        return to_return
+        assert forecast.compressors() == deviations.compressors()
+        horizont = len(forecast[compressor])
+        upper_bounds = ForecastingResult(horizont)
+        lower_bounds = ForecastingResult(horizont)
+        for compressor in forecast.compressors():
+            assert len(forecast[compressor]) == len(deviations[compressor])
+            upper_bounds.add_compressor(compressor, forecast[compressor].generate_zeroes_array(horizont))
+            lower_bounds.add_compressor(compressor, forecast[compressor].generate_zeroes_array(horizont))
+            for i in range(len(forecast[compressor])):
+                upper_bounds[compressor][i] = forecast[compressor][i] + deviations[compressor][i]
+                lower_bounds[compressor][i] = forecast[compressor][i] - deviations[compressor][i]
 
-
-    def _sqrt(series):
-        to_return = series.generate_zeroes_array(len(series))
-        for i in range(len(series)):
-            to_return[i] = np.sqrt(series[i])
-
-        return to_return
-
-
-    def _standard_deviation(series):
-        mean = ExperimentRunner._mean(series)
-        sum_ = (np.abs(series[0] - mean) ** 2)
-        for i in range(1, len(series)):
-            sum_ = sum_ + (np.abs(series[i] - mean) ** 2)
-
-        sum_ /= len(series)
-        return np.sqrt(sum_)
+        return forecast,errors,upper_bounds,lower_bounds
