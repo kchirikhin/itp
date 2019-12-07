@@ -6,6 +6,7 @@ from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
 
 import math
 import numpy as np
+from collections import namedtuple
 
 class ExperimentError(Exception):
     pass
@@ -138,6 +139,21 @@ class ExperimentRunner:
         return to_return
 
 
+
+""" class IntervalPrediction:
+    def __init__(self, forecast, relative_errors, lower_bounds, upper_bounds):
+        self.forecast = forecast
+        self.relative_errors = relative_errors
+        self.lower_bounds = lower_bounds
+        self.upper_bounds = upper_bounds
+
+
+    def __str__(self):
+        to_return = "-"*20 + "\n"
+ """        
+
+IntervalPrediction = namedtuple('IntervalPrediction', 'history forecast relative_errors lower_bounds upper_bounds')
+
 class IntervalPredictor:
     def __init__(self, executor=Executor(), experiment_runner=None):
         self._executor = executor
@@ -167,4 +183,4 @@ class IntervalPredictor:
                 upper_bounds[compressor][i] = forecast[compressor][i] + deviations[compressor][i]
                 lower_bounds[compressor][i] = forecast[compressor][i] - deviations[compressor][i]
 
-        return forecast,errors,upper_bounds,lower_bounds
+        return IntervalPrediction(task.time_series(), forecast, errors, lower_bounds, upper_bounds)

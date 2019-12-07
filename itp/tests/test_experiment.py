@@ -191,7 +191,7 @@ class TestIntervalPredictor(unittest.TestCase):
         fake_forecast = ForecastingResult(horizont=3)
         fake_forecast.add_compressor('zlib', MultivariateTimeSeries([[1, 2, 3], [4, 5.0, 6]], dtype=float))
         mock_executor = Executor()
-        mock_executor.execute = MagicMock(return_value=fake_forecast)
+        mock_executor.execute = MagicMock(return_value=[fake_forecast])
         
         fake_errors = ForecastingResult(horizont=3)
         fake_errors.add_compressor('zlib', MultivariateTimeSeries([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=float))
@@ -200,15 +200,16 @@ class TestIntervalPredictor(unittest.TestCase):
         fake_deviations.add_compressor('zlib', MultivariateTimeSeries([[1.1, 1.2, 1.3], [1.4, 1.5, 1.6]], dtype=float))
 
         mock_experiment_runner = MagicMock()
-        mock_experiment_runner.Run = MagicMock(return_value=(fake_errors,fake_deviations))
+        mock_experiment_runner.run = MagicMock(return_value=(fake_errors,fake_deviations))
 
         predictor = IntervalPredictor(mock_executor, mock_experiment_runner)
-        forecast,errors,upper_bounds,lower_bounds = predictor.run(ForecastingTask(ts, ['zlib'], 3, 0, 8, 1))
+        result = predictor.run(ForecastingTask(ts, ['zlib'], 3, 0, 8, 1))
         
-        np.testing.assert_array_equal(forecast['zlib'], fake_forecast['zlib'])
-        np.testing.assert_allclose(errors['zlib'], MultivariateTimeSeries([[0.1/2.975, 0.2/2.975, 0.3/2.975], [0.4/1.075, 0.5/1.075, 0.6/1.075]], dtype=float))
-        np.testing.assert_allclose(upper_bounds['zlib'], MultivariateTimeSeries([[[1+1.1], [2+1.2], [3+1.3]], [[4+1.4], [5+1.5], [6+1.6]]], dtype=float))
-        np.testing.assert_allclose(lower_bounds['zlib'], MultivariateTimeSeries([[[1-1.1], [2-1.2], [3-1.3]], [[4-1.4], [5-1.5], [6-1.6]]], dtype=float))
+        self.assertEqual(result.history, ts)
+        np.testing.assert_array_equal(result.forecast['zlib'], fake_forecast['zlib'])
+        np.testing.assert_allclose(result.relative_errors['zlib'], MultivariateTimeSeries([[0.1/2.975, 0.2/2.975, 0.3/2.975], [0.4/1.075, 0.5/1.075, 0.6/1.075]], dtype=float))
+        np.testing.assert_allclose(result.upper_bounds['zlib'], MultivariateTimeSeries([[[1+1.1], [2+1.2], [3+1.3]], [[4+1.4], [5+1.5], [6+1.6]]], dtype=float))
+        np.testing.assert_allclose(result.lower_bounds['zlib'], MultivariateTimeSeries([[[1-1.1], [2-1.2], [3-1.3]], [[4-1.4], [5-1.5], [6-1.6]]], dtype=float))
 
 
 if __name__ == '__main__':
