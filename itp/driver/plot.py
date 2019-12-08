@@ -25,6 +25,8 @@ class MonthsGenerator:
     _ind_to_month = {0: 'Январь', 1: 'Февраль', 2: 'Март', 3: 'Апрель', 4: 'Май', 5: 'Июнь',
                      6: 'Июль', 7: 'Август', 8: 'Сентябрь', 9: 'Октябрь', 10: 'Ноябрь', 11: 'Декабрь'}
 
+    """Start month can be specefied as month number (starting with zero), or as a month's name in Russian"""
+
     def __init__(self, start_month=0, start_year=1):
         if type(start_month) is str:
             self._current_month = MonthsGenerator._month_to_ind[start_month]
@@ -34,7 +36,8 @@ class MonthsGenerator:
         self._current_year = start_year
 
     def next(self):
-        to_return = MonthsGenerator._ind_to_month[self._current_month] + ' ' + str(self._current_year)
+        to_return = MonthsGenerator._ind_to_month[self._current_month] + ' ' + str(
+            self._current_year)
         self._current_month += 1
         if self._current_month == 12:
             self._current_month = 0
@@ -54,25 +57,23 @@ class Plot:
         self._ylabel = ''
         self._xtics_generator = YearsGenerator()
 
-
     def xlabel(self, new_xlabel):
         self._xlabel = new_xlabel
-
 
     def ylabel(self, new_ylabel):
         self._ylabel = new_ylabel
 
-
     def xtics_generator(self, new_xtics_generator):
         self._xtics_generator = new_xtics_generator
 
-
     def plot(self, filename=''):
-        x_axis_len = len(self._forecasting_result.history) + len(self._forecasting_result.forecast[self._compressor])
-        plt.plot(self._forecasting_result.history.series(self._series_number), 'b')
-        plt.plot(np.arange(len(self._forecasting_result.history), x_axis_len), self._forecasting_result.forecast[self._compressor].series(self._series_number), 'r')
-        plt.plot([len(self._forecasting_result.history)-1, len(self._forecasting_result.history)],
-                 [self._forecasting_result.history.series(self._series_number)[-1], self._forecasting_result.forecast[self._compressor].series(self._series_number)[0]], 'r')
+        history = self._forecasting_result.history.series(self._series_number)
+        forecast = self._forecasting_result.forecast[self._compressor].series(self._series_number)
+        x_axis_len = len(history) + len(forecast)
+       
+        plt.plot(history, 'b')
+        plt.plot(np.arange(len(history), x_axis_len), forecast, 'r')
+        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], 'r')
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
