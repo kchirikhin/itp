@@ -5,5 +5,5 @@ test:
   stage: test
   script:
   - apt-get update -qy
-  - apt-get install -y python3-dev python3-setuptools cmake libmpich-dev
+  - apt-get install -y python3-dev python3-setuptools cmake r-base libmpich-dev
   - python3 setup.py test
