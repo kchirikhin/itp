@@ -1,7 +1,7 @@
 """ Contains unit tests for the driver module. """
 
 import unittest
-import driver
+import itp.driver.driver as driver
 import numpy as np
 import pandas as pd
 import predictor as p

@@ -2,7 +2,7 @@
 
 import unittest
 from unittest import mock
-import driver as d
+import itp.driver.driver as d
 import numpy as np
 import predictor as p
 import pandas as pd
@@ -32,7 +32,7 @@ class TestMakeForecast(unittest.TestCase):
         self.discrete_time_series = pd.Series([1, 5, 2, 5, 3, 3, 4, 4, 5])
         
     @mock.patch('predictor.make_forecast_multialphabet')
-    @mock.patch('driver.driver.decompose')
+    @mock.patch('itp.driver.driver.decompose')
     def test_mock_without_season(self, mocked_decompose, mocked_make_forecast):
         mocked_decompose.return_value = self.basic_decomposition
         mocked_make_forecast.return_value = self.basic_forecast
@@ -61,7 +61,7 @@ class TestMakeForecast(unittest.TestCase):
 
 
     @mock.patch('predictor.make_forecast_multialphabet')
-    @mock.patch('driver.driver.decompose')
+    @mock.patch('itp.driver.driver.decompose')
     def test_mock_with_season(self, mocked_decompose, mocked_make_forecast):
         mocked_decompose.return_value = self.basic_decomposition
         mocked_make_forecast.return_value = self.basic_forecast
@@ -178,7 +178,7 @@ class FileReadingTest(unittest.TestCase):
 
 class TestParallelization(unittest.TestCase):
 
-    @mock.patch('driver.driver.forecast_chunk', return_value=[{'zlib': [1,2,3,4], 'rp': [3,4,5,6]}])
+    @mock.patch('itp.driver.driver.forecast_chunk', return_value=[{'zlib': [1,2,3,4], 'rp': [3,4,5,6]}])
     def test_chunks_splitting(self, mocked_forecast_chunk):
         comm_mock = mock.Mock()
         comm_mock.Get_size.return_value = 2

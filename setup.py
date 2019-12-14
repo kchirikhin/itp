@@ -77,5 +77,4 @@ setup(
     ext_modules=[CMakeExtension('predictor', './itp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
-    test_suite='setup.my_test_suite',
 )
