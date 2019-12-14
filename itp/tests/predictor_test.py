@@ -86,7 +86,7 @@ class TestPredictor(unittest.TestCase):
         forecast = p.make_forecast_discrete(ts.tolist(), groups=["zlib_rp_automation"], h=2,
                                             difference=0)
         np.testing.assert_array_almost_equal(np.array(forecast["zlib_rp_automation"]),
-                                             np.array([1.2632137488, 1.2575759809]))
+                                             np.array([1.0264274976, 1.0151519618]))
             
     def test_m3c_year(self):
         ts = np.array([940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15, 2342.52, 2602.45,
