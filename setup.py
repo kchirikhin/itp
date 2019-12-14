@@ -4,10 +4,17 @@ import sys
 import sysconfig
 import platform
 import subprocess
+import unittest
 
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+
+
+def my_test_suite():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('itp/tests', pattern='test_*.py')
+    return test_suite
 
 
 class CMakeExtension(Extension):
@@ -70,5 +77,5 @@ setup(
     ext_modules=[CMakeExtension('predictor', './itp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
-    test_suite='tests',
+    test_suite='setup.my_test_suite',
 )

@@ -5,3 +5,4 @@ __pycache__
 \#*
 predictor.egg-info
 *(conflicted)*
+.eggs
