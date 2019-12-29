@@ -10,20 +10,24 @@
 using namespace itp;
 using namespace testing;
 
-TEST(IncrementTest, main) {
+TEST(IncrementTest, main)
+{
   std::vector<Symbol> vec(4);
   std::fill(begin(vec), end(vec), 0);
-  std::vector<std::vector<Symbol>> expected_values = {
+  std::vector<std::vector<Symbol>> expected_values =
+  {
     {1, 0, 0, 0}, {2, 0, 0, 0}, {0, 1, 0, 0}, {1, 1, 0, 0},
     {2, 1, 0, 0}, {0, 2, 0, 0}, {1, 2, 0, 0}, {2, 2, 0, 0}
   };
   
-  for (size_t i = 0; i < expected_values.size(); ++i) {
+  for (size_t i = 0; i < expected_values.size(); ++i)
+  {
     increment(vec, 0, 3);
     EXPECT_THAT(vec, ElementsAreArray(expected_values[i]));
   }
 
-  for (size_t i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i)
+  {
     increment(vec, 0, 3);
   }
   EXPECT_THAT(vec, ElementsAre(0, 1, 1, 0));
@@ -32,7 +36,8 @@ TEST(IncrementTest, main) {
   EXPECT_THROW(increment(vec, 3, 1), std::invalid_argument);
 
   std::fill(begin(vec), end(vec), 0);
-  for (size_t i = 0; i < 80; ++i) {
+  for (size_t i = 0; i < 80; ++i)
+  {
     increment(vec, 0, 3);
   }
   EXPECT_THAT(vec, ElementsAre(2, 2, 2, 2));
@@ -42,20 +47,23 @@ TEST(IncrementTest, main) {
 
   std::vector<Symbol> vec1(1);
   vec[0] = 0;
-  for (size_t i = 0; i < 256; ++i) {
+  for (size_t i = 0; i < 256; ++i)
+  {
     EXPECT_EQ(vec1[0], i);
     increment(vec1, 0, 256);
   }
 }
 
-TEST(WeightsGeneratorTest, GenerateOnlyOneWeight_generate_Works) {
+TEST(WeightsGeneratorTest, GenerateOnlyOneWeight_generate_Works)
+{
   Weights_generator_ptr generator = std::make_shared<Weights_generator>();
   auto result = generator->generate(1);
   EXPECT_EQ(result.size(), 1);
   EXPECT_DOUBLE_EQ(result[0], 1.);
 }
 
-TEST(WeightsGeneratorTest, GenerateSeveralWeights_generate_Works) {
+TEST(WeightsGeneratorTest, GenerateSeveralWeights_generate_Works)
+{
   Weights_generator_ptr generator = std::make_shared<Weights_generator>();
   auto result = generator->generate(2);
   EXPECT_DOUBLE_EQ(result[0], .5);
@@ -69,36 +77,43 @@ TEST(WeightsGeneratorTest, GenerateSeveralWeights_generate_Works) {
   EXPECT_DOUBLE_EQ(result[4], .2);
 }
 
-TEST(DifferentizerTest, RealTimeSeriesZeroDifference_diff_Works) {
+TEST(DifferentizerTest, RealTimeSeriesZeroDifference_diff_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 0);
   EXPECT_EQ(df.size(), v.size());
-  for (size_t i = 0; i < v.size(); ++i) {
+  for (size_t i = 0; i < v.size(); ++i)
+  {
     EXPECT_NEAR(v[i], df[i], 1e-5);
   }
 }
 
-TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifference_diff_Works) {
+TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifference_diff_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   PlainTimeSeries<Double> v_expected = {1.2, 1.1, -4.8, 3.2, -2.1, 2.3, 4.3, -2.8};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 1);
   EXPECT_EQ(df.size(), v_expected.size());
-  for (size_t i = 0; i < v_expected.size(); ++i) {
+  for (size_t i = 0; i < v_expected.size(); ++i)
+  {
     EXPECT_NEAR(v_expected[i], df[i], 1e-5);
   }
 }
 
-TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifference_diff_Works) {
+TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifference_diff_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   PlainTimeSeries<Double> vv_expected = {-0.1, -5.9, 8.0, -5.3, 4.4, 2.0, -7.1};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 2);
   EXPECT_EQ(df.size(), vv_expected.size());
-  for (size_t i = 0; i < vv_expected.size(); ++i) {
+  for (size_t i = 0; i < vv_expected.size(); ++i)
+  {
     EXPECT_NEAR(vv_expected[i], df[i], 1e-5);
   }
 }
 
-TEST(DifferentizerTest, RealTimeSeriesZeroDifferentiated_integrate_Works) {
+TEST(DifferentizerTest, RealTimeSeriesZeroDifferentiated_integrate_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 0);
   std::string compressor1 = "zlib";
@@ -116,7 +131,8 @@ TEST(DifferentizerTest, RealTimeSeriesZeroDifferentiated_integrate_Works) {
   EXPECT_DOUBLE_EQ(fake_forecast(compressor2, 1).point, 4.0);
 }
 
-TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifferentiated_integrate_Works) {
+TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifferentiated_integrate_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 1);
   std::string compressor1 = "zlib";
@@ -136,7 +152,8 @@ TEST(DifferentizerTest, RealTimeSeriesTime_SeriesDifferentiated_integrate_Works)
   EXPECT_DOUBLE_EQ(fake_forecast(compressor2, 1).point, 11.9);
 }
 
-TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifferentiated_integrate_Works) {
+TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifferentiated_integrate_Works)
+{
   PlainTimeSeries<Double> v = {2.5, 3.7, 4.8, 0, 3.2, 1.1, 3.4, 7.7, 4.9};
   auto df = diff_n(Preprocessed_tseries<Double, Double>(v), 2);
   std::string compressor1 = "zlib";
@@ -157,7 +174,8 @@ TEST(DifferentizerTest, RealTimeSeriesIntegration_InfoDifferentiated_integrate_W
   EXPECT_DOUBLE_EQ(fake_forecast(compressor2, 1).point, 9.3);
 }
 
-TEST(DataFrameTest, Constructors) {
+TEST(DataFrameTest, Constructors)
+{
   std::vector<std::string> compressors{"gzip", "bzip2", "rp"};
   Data_frame<std::string, int, double> df(begin(compressors), end(compressors));
   EXPECT_EQ(df.get_index(), compressors);
@@ -175,13 +193,17 @@ TEST(DataFrameTest, Constructors) {
   Data_frame<Continuation<Symbol>, int, double> df2(Continuations_generator<Symbol>(4, 2), 16.);
   EXPECT_EQ(df2.index_size(), 16);
 
-  Data_frame<int, int, int> df4{{1, 2, 3, 10},
-    {3, 4, 2, 1}};
+  Data_frame<int, int, int> df4
+  {
+  	{1, 2, 3, 10},
+    {3, 4, 2, 1}
+  };
   EXPECT_EQ(df4.get_index(), std::vector<int>({1, 2, 3, 10}));
   EXPECT_EQ(df4.get_factors(), std::vector<int>({3, 4, 2, 1}));
 }
 
-TEST(DataFrameTest, Indexing) {
+TEST(DataFrameTest, Indexing)
+{
   Data_frame<std::string, int, double> df({"gzip", "bzip2"}, {3, 1, 2});
   ASSERT_EQ(df.index_size(), 2);
   ASSERT_EQ(df.factors_size(), 3);
@@ -193,7 +215,8 @@ TEST(DataFrameTest, Indexing) {
   EXPECT_EQ(df.get_factors(), std::vector<int>({3, 1, 2}));
 }
 
-TEST(DataFrameTest, Join) {
+TEST(DataFrameTest, Join)
+{
   Data_frame<std::string, int, double> df;
 
   df.add_factor(1);
@@ -214,26 +237,31 @@ TEST(DataFrameTest, Join) {
   EXPECT_EQ(df.get_factors(), std::vector<int>({1, 2, 3}));
 }
 
-TEST(DataFrameIteratorTest, main) {
+TEST(DataFrameIteratorTest, main)
+{
   Data_frame<std::string, int, int> df;
   df("gzip", 0) = 0;
   df("gzip", 1) = 1;
   df("bip2", 0) = 2;
   df("bip2", 1) = 3;
   size_t i = 0;
-  for (auto iter = df.begin(); iter != df.end(); ++iter, ++i) {
+  for (auto iter = df.begin(); iter != df.end(); ++iter, ++i)
+  {
     EXPECT_EQ(*iter, i);
   }
 
   i = 0;
-  for (const auto &value : df) {
+  for (const auto &value : df)
+  {
     EXPECT_EQ(value, i++);
   }
 }
 
-TEST(ContinuationTest, main) {
+TEST(ContinuationTest, main)
+{
   Continuation<Symbol> c(2, 4);
-  for (size_t i = 0; i < c.size(); ++i) {
+  for (size_t i = 0; i < c.size(); ++i)
+  {
     EXPECT_EQ(c[i], 0);
   }
   EXPECT_EQ(c.size(), 4);
@@ -261,7 +289,8 @@ TEST(ContinuationTest, main) {
   EXPECT_EQ(c1, c1);
   EXPECT_EQ(c, c);
 
-  for (size_t i = 2; i < pow(c.get_alphabet_size(), c.size()); ++i) {
+  for (size_t i = 2; i < pow(c.get_alphabet_size(), c.size()); ++i)
+  {
     EXPECT_FALSE(c.overflow());
     ++c;
   }
@@ -270,18 +299,21 @@ TEST(ContinuationTest, main) {
   Continuation<Symbol> c2 = {1, 2, 3, 4};
   EXPECT_EQ(c2.size(), 4);
   EXPECT_EQ(c2.get_alphabet_size(), 5);
-  for (size_t i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i)
+  {
     EXPECT_EQ(c2[i], i + 1);
   }
 
   Continuation<Symbol> c3(256, 1);
-  for (size_t i = 0; i < 256; ++i) {
+  for (size_t i = 0; i < 256; ++i)
+  {
     EXPECT_EQ(c3++, Continuation<Symbol>({static_cast<unsigned char>(i)}));
   }
 }
 
 TEST(CodesLengthsComputerTest,
-     ComputeLengthsForAllContinuations_AppendEachTrajectoryAndCompute_ComputedCorrectly) {
+     ComputeLengthsForAllContinuations_AppendEachTrajectoryAndCompute_ComputedCorrectly)
+{
   PlainTimeSeries<Symbol> history {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
   size_t alphabet {2};
   size_t length_of_continuation {3};
@@ -327,7 +359,8 @@ TEST(CodesLengthsComputerTest,
   EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 104.);
 }
 
-TEST(CompressorsPoolTest, compression) {
+TEST(CompressorsPoolTest, compression)
+{
   unsigned char ts[] {0, 1, 1, 0, 1, 3, 0, 0, 0};
   size_t expected_size = 18;
   size_t obtained_size = Compressors_pool::get_instance()("zstd", ts, sizeof(ts));
@@ -346,9 +379,11 @@ TEST(CompressorsPoolTest, compression) {
   EXPECT_EQ(obtained_size, expected_size);
 }
 
-class TablesConvertersTest : public ::testing::Test {
+class TablesConvertersTest : public ::testing::Test
+{
  protected:
-  TablesConvertersTest() {
+  TablesConvertersTest()
+  {
     Continuation<Symbol> c(2, 3);
     test_table(c, compressor1) = 2;
     test_table(c++, compressor2) = 3;
@@ -373,7 +408,8 @@ class TablesConvertersTest : public ::testing::Test {
   ContinuationsDistribution<Symbol> test_table;
 };
 
-TEST_F(TablesConvertersTest, TableWithCodeLengthsIsGiven_to_code_probabilities_ConvertedCorrectly) {
+TEST_F(TablesConvertersTest, TableWithCodeLengthsIsGiven_to_code_probabilities_ConvertedCorrectly)
+{
   Continuation<Symbol> c1(2, 3);
   to_code_probabilities(begin(test_table), end(test_table));
   EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1, compressor1)), pow(2, -2));
@@ -394,7 +430,8 @@ TEST_F(TablesConvertersTest, TableWithCodeLengthsIsGiven_to_code_probabilities_C
   EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c1++, compressor2)), pow(2, -3));
 }
 
-TEST_F(TablesConvertersTest, TableWithCodeProbabilitiesIsGiven_to_probabilities_ConvertedCorrectly) {
+TEST_F(TablesConvertersTest, TableWithCodeProbabilitiesIsGiven_to_probabilities_ConvertedCorrectly)
+{
   Continuation<Symbol> c1(2, 3);
   to_code_probabilities(begin(test_table), end(test_table));
   auto result = to_probabilities(std::move(test_table));
@@ -417,7 +454,8 @@ TEST_F(TablesConvertersTest, TableWithCodeProbabilitiesIsGiven_to_probabilities_
   EXPECT_DOUBLE_EQ(static_cast<Double>(result(c1++, compressor2)), pow(2, -3) / 1.328125);
 }
 
-TEST_F(TablesConvertersTest, TableWithProbabilitiesIsGiven_cumulated_for_step_SummedUpCorrectly) {
+TEST_F(TablesConvertersTest, TableWithProbabilitiesIsGiven_cumulated_for_step_SummedUpCorrectly)
+{
   to_code_probabilities(begin(test_table), end(test_table));
   auto probabilities_table = to_probabilities(test_table);
   auto t1 = cumulated_for_step(probabilities_table, 0);
@@ -443,7 +481,8 @@ TEST_F(TablesConvertersTest, TableWithProbabilitiesIsGiven_cumulated_for_step_Su
   EXPECT_DOUBLE_EQ(static_cast<Double>(t1(1, compressor2)), (1 - (2 * pow(2, -3) + pow(2, -1) + pow(2, -2)) / 1.328125));
 }
 
-TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_weights_ProbabilitiesCombinedCorrectly) {
+TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_weights_ProbabilitiesCombinedCorrectly)
+{
   to_code_probabilities(begin(test_table), end(test_table));
   Weights_generator_ptr generator = std::make_shared<Weights_generator>();
   form_group_forecasts(test_table, std::vector<Names>{{compressor1, compressor2}}, generator);
@@ -463,7 +502,8 @@ TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_
   EXPECT_DOUBLE_EQ(static_cast<Double>(test_table(c++, compressor)), (pow(2, -2) + pow(2, -3)) / 2);
 }
 
-TEST(MergeTest, main) {
+TEST(MergeTest, main)
+{
   std::vector<std::string> compressors = {"gzip", "bzip2"};
 
   ContinuationsDistribution<Symbol> table1(Continuations_generator<Symbol>(2, 2), 4);
@@ -523,7 +563,8 @@ TEST(MergeTest, main) {
   table2(c++, "bzip2") = 2.6;
 
   size_t i = 0;
-  for (const auto &continuation : table3.get_index()) {
+  for (const auto &continuation : table3.get_index())
+  {
     table3(continuation, "gzip") = i;
     table3(continuation, "bzip2") = (i + 1);
     ++i;
@@ -581,7 +622,8 @@ TEST(MergeTest, main) {
   EXPECT_NE(std::find(begin(vec), end(vec), Continuation<Symbol>({0, 0})), end(vec));
   }*/
 
-TEST(CompressionMethodsTest, main) {
+TEST(CompressionMethodsTest, main)
+{
   std::vector<Symbol> time_series1 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4};
   std::vector<Symbol> time_series2 = {0, 1, 2, 3, 0, 1, 2, 1, 3, 0, 3, 4, 5, 3, 2, 0, 1, 2, 3, 4, 10, 10, 129, 200,
                                       198, 232, 190, 42, 12, 23, 43, 54, 54, 32};
@@ -626,8 +668,9 @@ TEST(CompressionMethodsTest, main) {
   //BOOST_CHECK(c1 < c4); // bug
 }
 
-class CustomCompressionMehtodsTest : public ::testing::Test {
- protected:
+class CustomCompressionMehtodsTest : public ::testing::Test
+{
+protected:
   CustomCompressionMehtodsTest()
       : ts1{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, ts2{1, 2, 3, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6},
         ts3{1, 2, 3, 4, 5, 2, 1, 2, 3, 4, 2, 3, 129, 230, 2, 3, 1, 2, 3, 4, 2, 3, 4} {
@@ -639,28 +682,32 @@ class CustomCompressionMehtodsTest : public ::testing::Test {
   unsigned char ts3[23];
 };
 
-TEST_F(CustomCompressionMehtodsTest, RePair) {
+TEST_F(CustomCompressionMehtodsTest, RePair)
+{
   // The sequences were compressed manually by the original Re-Pair program.
   EXPECT_EQ(Compressors_pool::get_instance()("rp", ts1, 12), 9);
   EXPECT_EQ(Compressors_pool::get_instance()("rp", ts2, 15), 17);
   EXPECT_EQ(Compressors_pool::get_instance()("rp", ts3, 23), 25);
 }
 
-TEST_F(CustomCompressionMehtodsTest, Ppmd) {
+TEST_F(CustomCompressionMehtodsTest, Ppmd)
+{
   // The sequences were compressed manually by the original ppmd program.
   EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts1, 12), 10);
   EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts2, 15), 17);
   EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts3, 23), 21);
 }
 
-TEST_F(CustomCompressionMehtodsTest, Lcacomp) {
+TEST_F(CustomCompressionMehtodsTest, Lcacomp)
+{
   // The sequences were compressed manually by the original ppmd program.
   EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts1, 12), 16);
   EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts2, 15), 28);
   EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts3, 23), 32);
 }
 
-TEST_F(CustomCompressionMehtodsTest, Zstd) {
+TEST_F(CustomCompressionMehtodsTest, Zstd)
+{
   // The sequences were compressed manually by the original ppmd program.
   EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts1, 12), 16);
   EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts2, 15), 24);
@@ -675,13 +722,15 @@ TEST_F(CustomCompressionMehtodsTest, Bzip2)
   EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts3, 23), 50);
 }
 
-TEST_F(CustomCompressionMehtodsTest, OneByOne) {
+TEST_F(CustomCompressionMehtodsTest, OneByOne)
+{
   EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts1, 12), 37);
   EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts1, 12), 16);
   EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts3, 23), 32);
 }
 
-TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect) {
+TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect)
+{
   PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
   auto computer = std::make_shared<CodeLengthsComputer<Double>>();
   auto sampler = std::make_shared<Sampler<Double>>();
@@ -703,7 +752,8 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
   EXPECT_NEAR(forecast("zlib_rp", 1).point, 1.8727279427, 1e-5);
 }
 
-TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect) {
+TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect)
+{
   std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
   auto computer = std::make_shared<CodeLengthsComputer<Double>>();
   auto sampler = std::make_shared<Sampler<Symbol>>();
@@ -717,7 +767,8 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecas
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
 }
 
-TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect) {
+TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect)
+{
   std::vector<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
   auto computer = std::make_shared<CodeLengthsComputer<Double>>();
   auto sampler = std::make_shared<Sampler<Double>>();
@@ -734,7 +785,8 @@ TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
 }
 
-TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_PredictionIsCorrect) {
+TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_PredictionIsCorrect)
+{
   std::vector<Double> ts{3.4, 2.5, 0.1, 0.5, 3.9, 4.0, 4.8, 2.8, 1.5, 1.3, 1.8, 2.1,
         2, 3.5, 4.9, 5.0, 5.1, 4.5, 2.1};
   auto computer = std::make_shared<CodeLengthsComputer<Double>>();
@@ -756,7 +808,8 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
   EXPECT_NEAR(forecast("zlib_rp", 3).point, expected_forecast[3], 1e-5);
 }
 
-TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect) {
+TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect)
+{
   PlainTimeSeries<Double> ts {940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15,
         2342.52, 2602.45, 2927.87, 3103.96, 3360.27, 3807.63, 4387.88, 4936.99};
 
@@ -784,8 +837,10 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   EXPECT_NEAR(forecast("zlib_rp", 5).point, expected_forecast[5], 1e-5);
 }
 
-TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData) {
-  PlainTimeSeries<itp::VectorDouble> ts {
+TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData)
+{
+  PlainTimeSeries<itp::VectorDouble> ts
+  {
     {17374, 11910}, {19421, 15659}, {20582, 18295}, {21182, 16411}, {20227, 12566}, {20779, 12079}, {22390, 13845},
     {25608, 14750}, {25197, 15769}, {25302, 15186}, {25043, 13256}, {26899, 14352}, {26803, 14429}, {25600, 15473},
     {24569, 15871}, {23005, 13237}, {20863, 13034}, {21298, 13085}
@@ -809,8 +864,10 @@ TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData) {
   EXPECT_EQ(forecast("zlib_rp", 1).point.size(), 2);
 }
 
-TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExceeds256) {
-  PlainTimeSeries<itp::VectorDouble> ts {
+TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExceeds256)
+{
+  PlainTimeSeries<itp::VectorDouble> ts
+  {
     {17374, 11910}, {19421, 15659}, {20582, 18295}, {21182, 16411}, {20227, 12566}, {20779, 12079}, {22390, 13845},
     {25608, 14750}, {25197, 15769}, {25302, 15186}, {25043, 13256}, {26899, 14352}, {26803, 14429}, {25600, 15473},
     {24569, 15871}, {23005, 13237}, {20863, 13034}, {21298, 13085}

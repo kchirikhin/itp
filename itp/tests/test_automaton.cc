@@ -8,11 +8,14 @@
 #include <string_view>
 #include <vector>
 
-namespace itp {
+namespace itp
+{
 
-struct HeadPosition {
-  HeadPosition(std::string_view _name, long _position)
-      : name(_name), position(_position) {
+struct HeadPosition
+{
+  HeadPosition(std::string name, long position)
+      : name{std::move(name)}, position{position}
+  {
     // DO NOTHING
   }
         
@@ -20,25 +23,27 @@ struct HeadPosition {
   long position;
 };
 
-bool operator == (const HeadPosition &lhs, const HeadPosition &rhs) {
+bool operator == (const HeadPosition &lhs, const HeadPosition &rhs)
+{
   return (lhs.name == rhs.name) && (lhs.position == rhs.position);
 }
 
-std::ostream& operator << (std::ostream &ost, const HeadPosition &head) {
-  ost << head.name << ' ' << head.position;
-  return ost;
+std::ostream& operator << (std::ostream &ost, const HeadPosition &head)
+{
+  return ost << head.name << ' ' << head.position;
 }
     
-class AutomatonForTesting : public itp::Sensing_DFA {
- public:
-  AutomatonForTesting(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol);
+class AutomatonForTesting : public itp::Sensing_DFA
+{
+public:
+  AutomatonForTesting(const Symbol alphabet_min_symbol, const Symbol alphabet_max_symbol);
         
   std::vector<HeadPosition> get_head_history() const;
   std::vector<Symbol> get_guess_history() const;
         
  protected:
   void OnMoveHead(const Head &head_to_move) override;
-  void OnGuess(Symbol guessed_symbol) override;
+  void OnGuess(const Symbol guessed_symbol) override;
         
  private:
   std::vector<HeadPosition> head_history_;
@@ -46,38 +51,46 @@ class AutomatonForTesting : public itp::Sensing_DFA {
 };
 } // of itp
 
-itp::AutomatonForTesting::AutomatonForTesting(Symbol alphabet_min_symbol,
-                                              Symbol alphabet_max_symbol)
-    : Sensing_DFA {alphabet_min_symbol, alphabet_max_symbol, 0} {
+itp::AutomatonForTesting::AutomatonForTesting(const Symbol alphabet_min_symbol,
+                                              const Symbol alphabet_max_symbol)
+    : Sensing_DFA{alphabet_min_symbol, alphabet_max_symbol, 0}
+{
   // DO NOTHING
 }
 
-std::vector<itp::HeadPosition> itp::AutomatonForTesting::get_head_history() const {
+std::vector<itp::HeadPosition> itp::AutomatonForTesting::get_head_history() const
+{
   return head_history_;
 }
 
-std::vector<itp::Symbol> itp::AutomatonForTesting::get_guess_history() const {
+std::vector<itp::Symbol> itp::AutomatonForTesting::get_guess_history() const
+{
   return guess_history_;
 }
 
-void itp::AutomatonForTesting::OnMoveHead(const Head &head_to_move) {
-  head_history_.emplace_back(head_to_move.name(), (long)head_to_move);
+void itp::AutomatonForTesting::OnMoveHead(const Head &head_to_move)
+{
+  head_history_.emplace_back(head_to_move.name(), static_cast<long>(head_to_move));
 }
 
-void itp::AutomatonForTesting::OnGuess(Symbol guessed_symbol) {
+void itp::AutomatonForTesting::OnGuess(const Symbol guessed_symbol)
+{
   guess_history_.push_back(guessed_symbol);
 }
 
-class WordPredictionTest {
- public:
+class WordPredictionTest
+{
+public:
   explicit WordPredictionTest(const itp::PlainTimeSeries<itp::Symbol> &test_word,
-                              itp::Symbol min_alphabet_sym = 0, itp::Symbol max_alphabet_sym = 1)
-      : automaton_(min_alphabet_sym, max_alphabet_sym) {
+                              const itp::Symbol min_alphabet_sym = 0, const itp::Symbol max_alphabet_sym = 1)
+      : automaton_{min_alphabet_sym, max_alphabet_sym}
+  {
     evaluated_probability_ = automaton_.EvalProbability(test_word);
   }
 
   template <typename... Probability>
-  void AssertProbabilityIsProductOf(Probability... probabilities) const {
+  void AssertProbabilityIsProductOf(Probability... probabilities) const
+  {
     itp::HighPrecDouble set_of_probabilities[] = { static_cast<itp::HighPrecDouble>(probabilities)... };
     itp::HighPrecDouble expected_probability =
         std::accumulate(std::begin(set_of_probabilities), std::end(set_of_probabilities), 1.,
@@ -86,25 +99,28 @@ class WordPredictionTest {
                      static_cast<itp::Double>(expected_probability));
   }
 
-  void AssertHistoryOfHeadsMovementsIs(const std::vector<itp::HeadPosition> &expected_history_of_movements) {
+  void AssertHistoryOfHeadsMovementsIs(const std::vector<itp::HeadPosition> &expected_history_of_movements)
+  {
     auto actual_history_of_movements = automaton_.get_head_history();
     EXPECT_THAT(actual_history_of_movements, testing::ContainerEq(expected_history_of_movements));
   }
 
   template <typename... Guess>
-  void AssertHistoryOfGussesIs(Guess... expected_guesses) {
+  void AssertHistoryOfGussesIs(Guess... expected_guesses)
+  {
     itp::Symbol expected_history_of_guesses[] = { static_cast<itp::Symbol>(expected_guesses)... };
     auto actual_history_of_guesses = automaton_.get_guess_history();
     EXPECT_THAT(actual_history_of_guesses, testing::ElementsAreArray(expected_history_of_guesses));
   }
 
- private:
+private:
   itp::AutomatonForTesting automaton_;
   itp::HighPrecDouble evaluated_probability_;
 };
 
-TEST(SdfaTest, PredictWordOfLength2) {
-  itp::PlainTimeSeries<itp::Symbol> testing_ts {0, 1};  
+TEST(SdfaTest, PredictWordOfLength2)
+{
+  itp::PlainTimeSeries<itp::Symbol> testing_ts{0, 1};
   WordPredictionTest test(testing_ts);
 
   test.AssertProbabilityIsProductOf(0.5, 0.25);
@@ -112,8 +128,9 @@ TEST(SdfaTest, PredictWordOfLength2) {
   test.AssertHistoryOfGussesIs(0, 0);
 }
 
-TEST(SdfaTest, PredictWordOfLength5) {
-  itp::PlainTimeSeries<itp::Symbol> testing_ts {0, 1, 0, 0, 1};  
+TEST(SdfaTest, PredictWordOfLength5)
+{
+  itp::PlainTimeSeries<itp::Symbol> testing_ts{0, 1, 0, 0, 1};
   WordPredictionTest test(testing_ts);
 
   test.AssertProbabilityIsProductOf(0.5, 0.25, 0.5, 0.625, 0.3);
@@ -125,8 +142,9 @@ TEST(SdfaTest, PredictWordOfLength5) {
   test.AssertHistoryOfGussesIs(0, 0, 0, 0, 0);
 }
 
-TEST(SdfaTest, PredictWordOfLength10) {
-  itp::PlainTimeSeries<itp::Symbol> testing_ts {0, 1, 0, 0, 1, 0, 0, 0, 1, 0};  
+TEST(SdfaTest, PredictWordOfLength10)
+{
+  itp::PlainTimeSeries<itp::Symbol> testing_ts{0, 1, 0, 0, 1, 0, 0, 0, 1, 0};
   WordPredictionTest test(testing_ts);
 
   test.AssertProbabilityIsProductOf(0.5, 0.25, 0.5, 0.625, 0.3, 3.5/6, 4.5/7, 5.5/8, 2.5/9, 0.65);
@@ -139,7 +157,8 @@ TEST(SdfaTest, PredictWordOfLength10) {
   test.AssertHistoryOfGussesIs(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(SdfaTest, PredictWordOfLength20) {
+TEST(SdfaTest, PredictWordOfLength20)
+{
   itp::PlainTimeSeries<itp::Symbol> testing_ts {0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
         0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
   WordPredictionTest test(testing_ts);
