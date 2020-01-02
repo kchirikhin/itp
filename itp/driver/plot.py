@@ -1,8 +1,5 @@
-from itp.driver.experiment import IntervalPrediction
-
 import matplotlib.pyplot as plt
 import numpy as np
-from collections import namedtuple
 
 
 class YearsGenerator:
@@ -77,11 +74,13 @@ class Plot:
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
-        plt.xticks(np.arange(x_axis_len), [self._xtics_generator.next(
-        ) for x in range(x_axis_len)], rotation='vertical')
+        plt.xticks(np.arange(x_axis_len), [self._xtics_generator.next() for _ in range(x_axis_len)],
+                   rotation='vertical')
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
         plt.fill_between(np.arange(len(self._forecasting_result.history), x_axis_len),
-                         self._forecasting_result.lower_bounds[self._compressor].series(self._series_number), self._forecasting_result.upper_bounds[self._compressor].series(self._series_number), color='k', alpha=.2)
+                         self._forecasting_result.lower_bounds[self._compressor].series(self._series_number),
+                         self._forecasting_result.upper_bounds[self._compressor].series(self._series_number),
+                         color='k', alpha=.2)
         plt.tight_layout()
 
         if not filename:

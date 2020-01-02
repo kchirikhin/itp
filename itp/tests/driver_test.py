@@ -8,8 +8,9 @@ import predictor as p
 import pandas as pd
 import os
 
+
 class TestSeasonalDecomposition(unittest.TestCase):
-    """Test Seasonal Decomposition Fucntion, wich in turn calls R STL function"""
+    """Test Seasonal Decomposition Function, which in turn calls R STL function"""
     
     def test_correct_data(self):
         """Basic ordinary data test"""
@@ -25,7 +26,7 @@ class TestSeasonalDecomposition(unittest.TestCase):
 
 class TestMakeForecast(unittest.TestCase):
     def setUp(self):
-        self.basic_forecast = {'zlib': [1.,2.,3.,4.], 'rp': [3.,4.,5.,6.]}
+        self.basic_forecast = {'zlib': [1., 2., 3., 4.], 'rp': [3., 4., 5., 6.]}
         self.basic_decomposition = (pd.Series([10, 15, 20, 25, 30, 35, 40, 45, 50]),
                                     pd.Series([0, 1, 2, 3, 0, 1, 2, 3, 0]))
         self.time_series = pd.Series([1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0])
@@ -36,7 +37,7 @@ class TestMakeForecast(unittest.TestCase):
     def test_mock_without_season(self, mocked_decompose, mocked_make_forecast):
         mocked_decompose.return_value = self.basic_decomposition
         mocked_make_forecast.return_value = self.basic_forecast
-        expected_result = pd.DataFrame({'zlib': [1.,2.,3.,4.], 'rp': [3.,4.,5.,6.]})
+        expected_result = pd.DataFrame({'zlib': [1., 2., 3., 4.], 'rp': [3., 4., 5., 6.]})
         
         res = d.forecast_with_preprocessing(ts=self.time_series, h=4, frequency=None,
                                             groups=['zlib', 'rp'], sparse=-1, quants_count=4,
@@ -178,12 +179,12 @@ class FileReadingTest(unittest.TestCase):
 
 class TestParallelization(unittest.TestCase):
 
-    @mock.patch('itp.driver.driver.forecast_chunk', return_value=[{'zlib': [1,2,3,4], 'rp': [3,4,5,6]}])
+    @mock.patch('itp.driver.driver.forecast_chunk', return_value=[{'zlib': [1, 2, 3, 4], 'rp': [3, 4, 5, 6]}])
     def test_chunks_splitting(self, mocked_forecast_chunk):
         comm_mock = mock.Mock()
         comm_mock.Get_size.return_value = 2
         comm_mock.Get_rank.return_value = 1
-        ts_data = pd.DataFrame({'1': [1,2,3], '2': [3,4,5], '3': [4,5,6]})
+        ts_data = pd.DataFrame({'1': [1, 2, 3], '2': [3, 4, 5], '3': [4, 5, 6]})
         groups = ['zlib', 'rp']
         self.assertIsNone(d.forecast_ts_array_mpi(comm_mock, ts_data, groups, -1, 4, 1,
                                                 d.smooth_none, p.make_forecast_multialphabet))
@@ -235,10 +236,10 @@ class TestDiscreteCase(unittest.TestCase):
     @mock.patch('predictor.make_forecast_discrete')
     def test_basic_forecast_from_file(self, mocked_make_forecast):
         comm = MockComm()
-        mocked_make_forecast.return_value = {'zlib': [1,2], 'ppmd': [3,4], 'rp': [5,6],
+        mocked_make_forecast.return_value = {'zlib': [1, 2], 'ppmd': [3, 4], 'rp': [5, 6],
                                              'zlib_ppmd_rp': [7,8]}
         d.forecast_discrete_from_file(comm, 'kindex_ts.dat',
-                                      ['zlib', 'ppmd','rp', 'zlib_ppmd_rp'], sparse=-1, quants_count=16,
+                                      ['zlib', 'ppmd', 'rp', 'zlib_ppmd_rp'], sparse=-1, quants_count=16,
                                       difference=0, smooth_func=d.smooth_none)
         mocked_make_forecast.assert_called_with([2,1,1,1,1,1,2,2,3,1,1,2,2,2,3,4,5], difference=0,
                                                 groups=['zlib', 'ppmd', 'rp', 'zlib_ppmd_rp'],
