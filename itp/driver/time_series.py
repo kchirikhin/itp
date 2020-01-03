@@ -16,11 +16,10 @@ class TimeSeries:
 
     def __init__(self, data=None, frequency=1, dtype=int):
         if data is None:
-            self._data = list()
+            self._data = np.array(list(), dtype)
         else:
-            self._data = data
+            self._data = np.array(data, dtype)
 
-        self._data = np.array(data, dtype)
         self._frequency = frequency
         self._dtype = dtype
 
@@ -84,14 +83,15 @@ class MultivariateTimeSeries(TimeSeries):
     """Represents a group of time series that should be treated as a single series"""
 
     def __init__(self, data=None, frequency=1, dtype=int):
-        super().__init__(data, frequency, dtype)
-        if len(data) == 0:
+        try:
+            super().__init__(data, frequency, dtype)
+        except ValueError:
+            raise DifferentLengthsError("Time series of different lengths were passed")
+
+        if len(self._data) == 0:
             self._size = 0
         else:
-            self._size = len(data[0])
-            for ts in data:
-                if len(ts) != self._size:
-                    raise DifferentLengthsError("Time series of different lengths were passed")
+            self._size = len(self._data[0])
 
     def __len__(self):
         return self._size
