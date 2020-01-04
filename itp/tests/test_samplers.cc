@@ -95,6 +95,11 @@ TEST_F(SamplerForVectorDoublesTest, InverseTransformationWorks) {
   ExpectDoubleContainersEq(sampler_.InverseTransform(3, sampled_ts), VectorDouble{1.52, 1.72});
 }
 
+TEST_F(SamplerForVectorDoublesTest, InverseTransformationWorksWithMoreThanTwoSubintervals) {
+	auto sampled_ts = sampler_.Transform({{0.4, 1.4}, {1.2, 1.6}, {0.6, 1.4}, {1.8, 1.8}}, 8);
+	ExpectDoubleContainersEq(sampler_.InverseTransform(0, sampled_ts), VectorDouble{0.365, 1.39});
+}
+
 TEST_F(SamplerForVectorDoublesTest, ThrowsIfInputNumberIsOutOfRange) {
   auto sampled_ts = sampler_.Transform({{0.4, 1.4}, {1.2, 1.6}, {0.6, 1.4}, {1.8, 1.8}}, kCountOfIntervalsToSplit);
   EXPECT_THROW(sampler_.InverseTransform(4, sampled_ts), RangeError);
