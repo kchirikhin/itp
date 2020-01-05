@@ -63,27 +63,37 @@ class Plot:
     def xtics_generator(self, new_xtics_generator):
         self._xtics_generator = new_xtics_generator
 
-    def plot(self, filename=''):
+    def plot(self, filename=None):
+        history_color = 'darkblue'
+        forecast_color = 'lightcoral'
+
         history = self._forecasting_result.history.series(self._series_number)
         forecast = self._forecasting_result.forecast[self._compressor].series(self._series_number)
         x_axis_len = len(history) + len(forecast)
        
-        plt.plot(history, 'b')
-        plt.plot(np.arange(len(history), x_axis_len), forecast, 'r')
-        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], 'r')
+        plt.plot(history, history_color)
+        plt.plot(np.arange(len(history), x_axis_len), forecast, forecast_color)
+        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], forecast_color)
+
+        lower_bounds = self._forecasting_result.lower_bounds[self._compressor].series(self._series_number)
+        upper_bounds = self._forecasting_result.upper_bounds[self._compressor].series(self._series_number)
+
+        plt.plot(np.arange(len(history), x_axis_len), lower_bounds, forecast_color, linestyle='--')
+        plt.plot(np.arange(len(history), x_axis_len), upper_bounds, forecast_color, linestyle='--')
+
+        plt.plot([len(history)-1, len(history)], [history[-1], lower_bounds[0]], forecast_color, linestyle='--')
+        plt.plot([len(history)-1, len(history)], [history[-1], upper_bounds[0]], forecast_color, linestyle='--')
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
         plt.xticks(np.arange(x_axis_len), [self._xtics_generator.next() for _ in range(x_axis_len)],
                    rotation='vertical')
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
-        plt.fill_between(np.arange(len(self._forecasting_result.history), x_axis_len),
-                         self._forecasting_result.lower_bounds[self._compressor].series(self._series_number),
-                         self._forecasting_result.upper_bounds[self._compressor].series(self._series_number),
-                         color='k', alpha=.2)
         plt.tight_layout()
 
-        if not filename:
+        if filename is None:
             plt.show()
         else:
             plt.savefig(filename, format='eps')
+
+        plt.clf()
