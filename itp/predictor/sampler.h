@@ -39,6 +39,7 @@ private:
 	double indent_ = 0.1;
 };
 
+// TODO Make it possible to use negative numbers.
 template<>
 class Sampler<Symbol>
 {

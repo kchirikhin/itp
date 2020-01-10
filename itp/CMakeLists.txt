@@ -79,3 +79,8 @@ set(SAMPLERS_TESTS tests/test_samplers.cc ${SOURCE_DIR}/sampler.cc)
 add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
 target_link_libraries(samplers_tests rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME samplers_tests COMMAND samplers_tests)
+
+set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc)
+add_executable(selector_test ${SELECTOR_TESTS} ${SOURCE_DIR}/selector.h)
+target_link_libraries(selector_test ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME selector_test COMMAND selector_test)
