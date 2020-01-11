@@ -182,7 +182,7 @@ TEST_F(SelectorRealCaseTest, CallsCompressorWithSeriesDiscretizedUsingAllSpecifi
 
 TEST_F(SelectorRealCaseTest, ThrowsIfNoQuantaCountIsSpecified)
 {
-	EXPECT_THROW(evaluator_->Evaluate(test_real_ts_, {"zlib", "ppmd"}, 0, {}), std::runtime_error);
+	EXPECT_THROW(evaluator_->Evaluate(test_real_ts_, {"zlib", "ppmd"}, 0, {}), SelectorError);
 }
 
 TEST_F(SelectorRealCaseTest, ReturnsCodeLengthForEachCompressor)
@@ -221,4 +221,28 @@ TEST_F(SelectorRealCaseTest, PaysAttentionToReducedSeriesLengthsAfterDifferentia
 
 	auto result = evaluator_->Evaluate(test_real_ts_, {"zlib"}, 1, {2, 4});
 	EXPECT_EQ(result["zlib"], 203);
+}
+
+TEST(SelectBestCompressorsTest, ThrowsIfResultsOfComputationsAreEmpty)
+{
+	EXPECT_THROW(GetBestCompressors({}, 1), SelectorError);
+}
+
+TEST(SelectBestCompressorsTest, ThrowsIfTargetNumberOfCompressorsIsMoreThanInResultsOfComputations)
+{
+	EXPECT_THROW(GetBestCompressors({{"zlib", 10},
+									 {"ppmd", 20}}, 3), SelectorError);
+}
+
+TEST(SelectBestCompressorsTest, TargetNumberOfCompressorsCanBeEqualToTheSizeOfResultsOfComputations)
+{
+	EXPECT_THAT(GetBestCompressors({{"zlib", 10},
+									{"ppmd", 20}}, 2), UnorderedElementsAre("zlib", "ppmd"));
+}
+
+TEST(SelectBestCompressorsTest, SelectsSpecefiedNumberOfCompressorsWithMinimalCodeLengths)
+{
+	EXPECT_THAT(GetBestCompressors({{"zlib",  10},
+									{"ppmd",  20},
+									{"bzip2", 15}}, 2), UnorderedElementsAre("zlib", "bzip2"));
 }

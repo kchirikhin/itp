@@ -8,6 +8,7 @@
 
 #include <gmock/gmock.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <functional>
@@ -15,6 +16,7 @@
 #include <numeric>
 #include "sampler.h"
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -28,23 +30,38 @@ class CompressorsFacade
 {
 public:
 	virtual ~CompressorsFacade() = default;
-	virtual size_t Compress(std::string, const unsigned char *, size_t) = 0;
+
+	virtual size_t Compress(std::string, const unsigned char*, size_t) = 0;
 };
 
 class CompressorsFacadeMock : public CompressorsFacade
 {
 public:
-	MOCK_METHOD3(Compress, size_t(std::string, const unsigned char *, size_t));
+	MOCK_METHOD3(Compress, size_t(std::string,
+			const unsigned char *, size_t));
 };
 
 namespace evaluation
 {
 
 /**
+ * The only type of exceptions for all functions in this file.
+ */
+class SelectorError : public std::runtime_error
+{
+public:
+	explicit SelectorError(const std::string& what_arg)
+			: runtime_error{what_arg}
+	{
+		// DO NOTHING
+	}
+};
+
+/**
  * Allows to get code lengths for the specified series by compressing it with the specified compressors.
  * @tparam T Data type of the series to compress.
  */
-template <typename T>
+template<typename T>
 class CodeLengthEvaluator
 {
 public:
@@ -53,7 +70,7 @@ public:
 	 * @param compressors An interface, which allows to call a compressor by its name.
 	 */
 	explicit CodeLengthEvaluator(std::unique_ptr<CompressorsFacade> compressors)
-		: compressors_{std::move(compressors)}
+			: compressors_{std::move(compressors)}
 	{
 		// DO NOTHING
 	}
@@ -69,8 +86,9 @@ public:
 	 * time. For a discrete series this parameter is ignored.
 	 * @return For each compressor its best code length (in the form of <name -> length> mapping).
 	 */
-	std::unordered_map<std::string, size_t> Evaluate(const std::vector<T> &history,
-			const std::set<std::string> &compressors, size_t difference, const std::vector<size_t> &quanta_count);
+	std::unordered_map<std::string, size_t> Evaluate(const std::vector<T>& history,
+													 const std::set<std::string>& compressors, size_t difference,
+													 const std::vector<size_t>& quanta_count);
 
 private:
 	std::unique_ptr<CompressorsFacade> compressors_;
@@ -83,7 +101,7 @@ private:
  * @param n Number of differences to take.
  * @return Computes series of adjacent differences.
  */
-template <typename T>
+template<typename T>
 std::vector<T> diff_n(std::vector<T> vec, size_t n = 1)
 {
 	if (vec.size() <= n)
@@ -103,7 +121,7 @@ std::vector<T> diff_n(std::vector<T> vec, size_t n = 1)
 	return vec;
 }
 
-template <typename T>
+template<typename T>
 class SampledSeriesStorageBase
 {
 public:
@@ -129,39 +147,40 @@ public:
 		using size_type = SampledSeriesStorageBase<T>::size_type;
 
 		const_iterator() = default;
-		explicit const_iterator(const SampledSeriesStorageBase<T> *storage, size_t current_pos = 0)
+
+		explicit const_iterator(const SampledSeriesStorageBase<T>* storage, size_t current_pos = 0)
 				: storage_{storage}, current_pos_{current_pos}
 		{
 			// DO NOTHING
 		}
 
-		const_reference operator * () const
+		const_reference operator*() const
 		{
 			return storage_->GetTimeSeries(current_pos_);
 		}
 
-		const value_type* operator -> () const
+		const value_type* operator->() const
 		{
 			return &storage_->GetTimeSeries(current_pos_);
 		}
 
-		bool operator == (const const_iterator& other) const
+		bool operator==(const const_iterator& other) const
 		{
 			return current_pos_ == other.current_pos_;
 		}
 
-		bool operator != (const const_iterator& other) const
+		bool operator!=(const const_iterator& other) const
 		{
 			return current_pos_ != other.current_pos_;
 		}
 
-		const_iterator& operator ++ ()
+		const_iterator& operator++()
 		{
 			++current_pos_;
 			return *this;
 		}
 
-		const_iterator operator ++ (int)
+		const_iterator operator++(int)
 		{
 			const auto to_return = *this;
 			++current_pos_;
@@ -169,7 +188,7 @@ public:
 		}
 
 	private:
-		const SampledSeriesStorageBase<T> *storage_ = nullptr;
+		const SampledSeriesStorageBase<T>* storage_ = nullptr;
 		size_t current_pos_ = 0;
 	};
 
@@ -194,8 +213,9 @@ public:
 	}
 
 protected:
-	explicit SampledSeriesStorageBase(const std::vector<T> &original_series);
-	SampledSeriesStorageBase(const std::vector<T> &original_series, const std::vector<size_t> &quanta_counts);
+	explicit SampledSeriesStorageBase(const std::vector<T>& original_series);
+
+	SampledSeriesStorageBase(const std::vector<T>& original_series, const std::vector<size_t>& quanta_counts);
 
 private:
 	[[nodiscard]]
@@ -205,15 +225,15 @@ private:
 	std::vector<PlainTimeSeries<Symbol>> quantified_series_;
 };
 
-template <typename T>
-SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T> &original_series)
+template<typename T>
+SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& original_series)
 {
 	quantified_series_.push_back(sampler_.Transform(original_series).to_plain_tseries());
 }
 
-template <typename T>
-SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T> &original_series,
-		const std::vector<size_t> &quanta_counts)
+template<typename T>
+SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& original_series,
+													  const std::vector<size_t>& quanta_counts)
 {
 	for (const auto quanta_count : quanta_counts)
 	{
@@ -221,60 +241,60 @@ SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T> &orig
 	}
 }
 
-template <typename T>
+template<typename T>
 const std::vector<Symbol>& SampledSeriesStorageBase<T>::GetTimeSeries(size_t index) const
 {
 	return quantified_series_[index];
 }
 
-template <typename T>
+template<typename T>
 class SampledSeriesStorage;
 
-template <>
+template<>
 class SampledSeriesStorage<Double> : public SampledSeriesStorageBase<Double>
 {
 public:
-	explicit SampledSeriesStorage(const std::vector<Double> &ts, const std::vector<size_t> &quanta_counts)
-		: SampledSeriesStorageBase(ts, quanta_counts)
+	explicit SampledSeriesStorage(const std::vector<Double>& ts, const std::vector<size_t>& quanta_counts)
+			: SampledSeriesStorageBase{ts, quanta_counts}
 	{
 		// DO NOTHING
 	}
 };
 
-template <>
+template<>
 class SampledSeriesStorage<VectorDouble> : public SampledSeriesStorageBase<VectorDouble>
 {
 public:
-	explicit SampledSeriesStorage(const std::vector<VectorDouble> &ts, const std::vector<size_t> &quanta_counts)
-			: SampledSeriesStorageBase(ts, quanta_counts)
+	explicit SampledSeriesStorage(const std::vector<VectorDouble>& ts, const std::vector<size_t>& quanta_counts)
+			: SampledSeriesStorageBase{ts, quanta_counts}
 	{
 		// DO NOTHING
 	}
 };
 
-template <>
+template<>
 class SampledSeriesStorage<Symbol> : public SampledSeriesStorageBase<Symbol>
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<Symbol>& ts, const std::vector<size_t>& = {})
-			: SampledSeriesStorageBase(ts)
+			: SampledSeriesStorageBase{ts}
 	{
 		// DO NOTHING
 	}
 };
 
-template <>
+template<>
 class SampledSeriesStorage<VectorSymbol> : public SampledSeriesStorageBase<VectorSymbol>
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<VectorSymbol>& ts, const std::vector<size_t>& = {})
-			: SampledSeriesStorageBase(ts)
+			: SampledSeriesStorageBase{ts}
 	{
 		// DO NOTHING
 	}
 };
 
-template <typename T>
+template<typename T>
 std::vector<size_t> ComputeCorrections(const std::vector<size_t>& quanta_counts, const size_t ts_length)
 {
 	if (quanta_counts.empty())
@@ -293,42 +313,44 @@ std::vector<size_t> ComputeCorrections(const std::vector<size_t>& quanta_counts,
 	return to_return;
 }
 
-template <>
+template<>
 std::vector<size_t> ComputeCorrections<Symbol>(const std::vector<size_t>& quanta_counts, const size_t)
 {
 	return {0};
 }
 
-template <>
+template<>
 std::vector<size_t> ComputeCorrections<VectorSymbol>(const std::vector<size_t>& quanta_counts, const size_t)
 {
 	return {0};
 }
 
-template <typename T>
-void CheckQuantaCounts(const std::vector<size_t> &quanta_counts)
+template<typename T>
+void CheckQuantaCounts(const std::vector<size_t>& quanta_counts)
 {
 	if (quanta_counts.empty())
 	{
-		throw std::runtime_error("quanta_counts is empty");
+		throw SelectorError("quanta_counts is empty");
 	}
 }
 
-template <>
-void CheckQuantaCounts<Symbol>(const std::vector<size_t> &)
+template<>
+void CheckQuantaCounts<Symbol>(const std::vector<size_t>&)
 {
 	return;
 }
 
-template <>
-void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t> &)
+template<>
+void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&)
 {
 	return;
 }
 
-template <typename T>
-std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const std::vector<T> &history,
-		const std::set<std::string> &compressors, const size_t difference, const std::vector<size_t> &quanta_counts)
+template<typename T>
+std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const std::vector<T>& history,
+																		 const std::set<std::string>& compressors,
+																		 const size_t difference,
+																		 const std::vector<size_t>& quanta_counts)
 {
 	CheckQuantaCounts<T>(quanta_counts);
 
@@ -336,7 +358,7 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 	const auto corrections = ComputeCorrections<T>(quanta_counts, diff_history.size());
 	std::unordered_map<std::string, size_t> to_return;
 	const SampledSeriesStorage<T> series_storage{diff_history, quanta_counts};
-	for (const auto &compressor : compressors)
+	for (const auto& compressor : compressors)
 	{
 		if (diff_history.empty())
 		{
@@ -346,10 +368,11 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 		{
 			std::priority_queue<size_t, std::vector<size_t>, std::greater<>> code_lengths;
 			auto correction = std::cbegin(corrections);
-			for (const auto &series : series_storage)
+			for (const auto& series : series_storage)
 			{
-				code_lengths.push(compressors_->Compress(compressor, reinterpret_cast<const unsigned char *>(series.data()),
-														 series.size() * sizeof(Symbol)) * 8 + *correction++);
+				code_lengths.push(
+						compressors_->Compress(compressor, reinterpret_cast<const unsigned char*>(series.data()),
+											   series.size() * sizeof(Symbol)) * 8 + *correction++);
 			}
 			to_return[compressor] = code_lengths.top();
 		}
@@ -358,7 +381,64 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 	return to_return;
 }
 
+bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, const std::pair<std::string, size_t>& rhs)
+{
+	if (lhs.second < rhs.second)
+	{
+		return true;
+	}
+	else if (rhs.second < lhs.second)
+	{
+		return false;
+	}
+
+	return lhs.first <= rhs.first;
+}
+
+// std::for_each_n was not implemented in the libstdc++ at the moment of writing this code.
+namespace ad_hoc
+{
+
+template <typename InputIt, typename Size, typename UnaryFunction>
+InputIt for_each_n(InputIt first, Size n, UnaryFunction f)
+{
+	for (size_t i = 0; i < n; ++i, f(*first++));
+	return first;
+}
+
+} // namespace ad_hoc
+
+itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& results_of_computations,
+							  const size_t target_number)
+{
+	if (results_of_computations.size() < target_number)
+	{
+		throw SelectorError("results_of_computations's size is less than the target_number of compressors");
+	}
+
+	std::vector<std::pair<std::string, size_t>> results_sorted_by_file_size{std::cbegin(results_of_computations),
+																			std::cend(results_of_computations)};
+	std::sort(std::begin(results_sorted_by_file_size), std::end(results_sorted_by_file_size),
+			  CompressionResultComparator);
+
+
+	itp::Names to_return;
+	ad_hoc::for_each_n(std::cbegin(results_sorted_by_file_size), target_number, [&](const auto& name_size_pair)
+	{
+		to_return.push_back(name_size_pair.first);
+	});
+
+	return to_return;
+}
+
 } // namespace evaluation
+
+template <typename T>
+itp::Names SelectBestCompressors(const std::vector<T>& history, const std::set<std::string>& compressors,
+		size_t difference, const std::vector<size_t>& quanta_count)
+{
+	return {};
+}
 
 } // namespace itp
 
