@@ -153,7 +153,6 @@ class IntervalPredictor:
             for i in range(len(errors[compressor])):
                 errors[compressor][i] = errors[compressor][i] / ts_mean_value
 
-            assert forecast.compressors() == deviations.compressors()
             horizon = len(forecast[compressor])
         upper_bounds = ForecastingResult(horizon)
         lower_bounds = ForecastingResult(horizon)
