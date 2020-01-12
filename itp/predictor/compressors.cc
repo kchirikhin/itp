@@ -3,135 +3,170 @@
 #include <cassert>
 #include <iostream>
 
-namespace itp {
-void Compressor::set_ts_params(Symbol, Symbol, size_t) {
-  // DO NOTHING
+namespace itp
+{
+
+void Compressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
+{
+	// DO NOTHING
 }
 
-Zstd_compressor::Zstd_compressor() {
-  context = ZSTD_createCCtx();
+ZstdCompressor::ZstdCompressor()
+{
+	if (context_ = ZSTD_createCCtx(); !context_)
+	{
+		throw CompressorsError{"cannot init zstd compressor"};
+	}
 }
 
-Zstd_compressor::~Zstd_compressor() {
-  ZSTD_freeCCtx(context);
+ZstdCompressor::~ZstdCompressor()
+{
+	assert(context_);
+	ZSTD_freeCCtx(context_);
 }
 
-size_t Zstd_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **tmp_buffer,
-                                    size_t *buffer_size) {
-  assert(buffer_size != nullptr);
+size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+{
+	assert(context_);
+	assert(data);
+	assert(output_buffer);
 
-  size_t dst_capacity = ZSTD_compressBound(size);
-  fit_buffer(dst_capacity, tmp_buffer, buffer_size);
+	size_t dst_capacity = ZSTD_compressBound(size);
+	FitBuffer(dst_capacity, output_buffer);
 
-  auto result = ZSTD_compressCCtx(context, *tmp_buffer, *buffer_size, data, size, ZSTD_maxCLevel());
-  return result;
+	return ZSTD_compressCCtx(context_, output_buffer->data(), output_buffer->size(), data, size, ZSTD_maxCLevel());
 }
 
-size_t Zlib_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **tmp_buffer,
-                                    size_t *buffer_size) {
-  size_t dst_capacity = compressBound(size * sizeof(Symbol));
-  fit_buffer(dst_capacity, tmp_buffer, buffer_size);
-  if (compress2(*tmp_buffer, &dst_capacity,
-                data, size, Z_BEST_COMPRESSION) != Z_OK) {
-    throw std::runtime_error("zlib: an error occured.");
-  }
+size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+{
+	size_t dst_capacity = compressBound(size * sizeof(Symbol));
+	FitBuffer(dst_capacity, output_buffer);
+	if (compress2(output_buffer->data(), &dst_capacity,
+				  data, size, Z_BEST_COMPRESSION) != Z_OK)
+	{
+		throw CompressorsError{"zlib: an error is occured"};
+	}
 
-  return dst_capacity;
+	return dst_capacity;
 }
 
-size_t Ppm_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **tmp_buffer,
-                                   size_t *buffer_size) {
-  size_t dst_capacity = Ppmd::compress_bound(size);
-  fit_buffer(dst_capacity, tmp_buffer, buffer_size);
+size_t PpmCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+{
+	size_t dst_capacity = Ppmd::compress_bound(size);
+	FitBuffer(dst_capacity, output_buffer);
 
-  auto result = Ppmd::ppmd_compress(*tmp_buffer, *buffer_size, data, size);
-  return result;
+	return Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size);
 }
 
-size_t Rp_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **,
-                                  size_t *) {
-  auto result = Rp::rp_compress(data, size);
-  return result;
+size_t RpCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *)
+{
+	return Rp::rp_compress(data, size);
 }
 
-size_t Bzip2_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **tmp_buffer,
-                                     size_t *buffer_size) {
-  // according to documentation, such capacity guaranties that the compressed data will fit in the buffer
-  std::unique_ptr<char[]> src(new char[size]);
-  memcpy(src.get(), data, size * sizeof(Symbol));
-  uint dst_capacity = static_cast<uint>(size * sizeof(Symbol) + ceil(size * sizeof(Symbol) * 0.01) + 600);
-  fit_buffer(dst_capacity, tmp_buffer, buffer_size);
-  if (BZ2_bzBuffToBuffCompress(reinterpret_cast<char *>(*tmp_buffer), &dst_capacity,
-                               src.get(), static_cast<uint>(size), 9, 0, 30) != BZ_OK) {
-    throw std::runtime_error("Bzip2: an error occured.");
-  }
+size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+{
+	assert(output_buffer != nullptr);
 
-  return dst_capacity;
+	// according to documentation, such capacity guaranties that the compressed data will fit in the buffer
+	std::unique_ptr<char[]> src(new char[size]);
+	std::copy(data, data + size, src.get());
+	uint dst_capacity = static_cast<uint>(size * sizeof(Symbol) + ceil(size * sizeof(Symbol) * 0.01) + 600);
+	FitBuffer(dst_capacity, output_buffer);
+	if (BZ2_bzBuffToBuffCompress(reinterpret_cast<char*>(output_buffer->data()), &dst_capacity,
+								 src.get(), static_cast<uint>(size), 9, 0, 30) != BZ_OK)
+	{
+		throw CompressorsError{"bzip2: an error occured"};
+	}
+
+	return dst_capacity;
 }
 
-size_t Lca_compressor::operator ()(const unsigned char *data, size_t size, unsigned char **,
-                                   size_t *) {
-  auto result = Lcacomp::lcacomp_compress(data, size);
-  return result;
+size_t LcaCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *)
+{
+	return Lcacomp::lcacomp_compress(data, size);
 }
 
-Automation_compressor::Automation_compressor()
-    : automation {new Sensing_DFA {0, 255, 127}} {
-  // DO NOTHING
+AutomatonCompressor::AutomatonCompressor()
+		: automation{new Sensing_DFA{0, 255, 127}}
+{
+	// DO NOTHING
 }
 
-size_t Automation_compressor::operator ()(const unsigned char *data, size_t size,
-                                          unsigned char **, size_t *) {
-  auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data+size));
-  auto res = ceil(-log2(automation->EvalProbability(PlainTimeSeries<Symbol>(data, data+size))));
+size_t AutomatonCompressor::operator()(const unsigned char* data, size_t size,
+									   std::vector<unsigned char> *)
+{
+	auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
+	auto res = ceil(-log2(automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size))));
 
-  size_t final_result;
-  if (std::numeric_limits<size_t>::max() < res) {
-    final_result = std::numeric_limits<size_t>::max();
-  } else {
-    final_result = static_cast<size_t>(res);
-  }
-  
-  return final_result;
+	if (std::numeric_limits<size_t>::max() < res)
+	{
+		return std::numeric_limits<size_t>::max();
+	}
+	else
+	{
+		return static_cast<size_t>(res);
+	}
 }
 
-void Automation_compressor::set_ts_params(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol, size_t) {
-  automation->SetMinSymbol(alphabet_min_symbol);
-  automation->SetMaxSymbol(alphabet_max_symbol);
+void AutomatonCompressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
+{
+	  automation->SetMinSymbol(alphabet_min_symbol);
+	  automation->SetMaxSymbol(alphabet_max_symbol);
 }
 
-Compressors_pool::~Compressors_pool() {
-  delete[] buffer;
-  for (auto &pair : compressor_instances) {
-    delete pair.second;
-  }
+CompressorsPool::CompressorsPool(AlphabetDescription alphabet_description)
+	: alphabet_description_{alphabet_description}
+{
+	// DO NOTHING
 }
 
-Compressors_pool::Compressors_pool() {
-  compressor_instances.emplace("lcacomp", new Lca_compressor);
-  compressor_instances.emplace("rp", new Rp_compressor);
-  compressor_instances.emplace("zstd", new Zstd_compressor);
-  compressor_instances.emplace("bzip2", new Bzip2_compressor);
-  compressor_instances.emplace("zlib", new Zlib_compressor);
-  compressor_instances.emplace("ppmd", new Ppm_compressor);
-  compressor_instances.emplace("automation", new Automation_compressor);
+void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<Compressor> compressor)
+{
+	if (name.empty())
+	{
+		throw CompressorsError{"RegisterCompressor: name is empty"};
+	}
+
+	if (!compressor)
+	{
+		throw CompressorsError{"RegisterCompressor: compressor is nullptr"};
+	}
+
+	if (auto [compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); success)
+	{
+		compressor_iter->second->SetTsParams(alphabet_description_.min_symbol, alphabet_description_.max_symbol);
+	}
+	else
+	{
+		throw CompressorsError{"RegisterCompressor: trying to register already registered compressor"};
+	}
 }
 
-void Compressors_pool::init_compressors_for_ts(Symbol min_symbol, Symbol max_symbol,
-                                               size_t n_sym_to_evaluate) {
-  for (auto compressor : compressor_instances) {
-    compressor.second->set_ts_params(min_symbol, max_symbol, n_sym_to_evaluate);
-  }
+size_t CompressorsPool::Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const
+{
+	try
+	{
+		return compressor_instances_.at(compressor_name)->operator()(data, size, &output_buffer_);
+	}
+	catch (const std::out_of_range& e)
+	{
+		throw CompressorsError{"Incorrect compressor name " + compressor_name};
+	}
 }
 
-size_t Compressors_pool::operator()(const std::string &compressor_name,
-                                    const unsigned char *data, size_t size) {
-  try {
-    return compressor_instances.at(compressor_name)->operator()(data, size, &buffer, &buffer_size);
-  }
-  
-  catch (const std::out_of_range &e) {
-    throw std::invalid_argument(std::string("Incorrect compressor name ") + compressor_name);
-  }
+std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description)
+{
+	auto to_return = std::make_unique<CompressorsPool>(alphabet_description);
+
+	to_return->RegisterCompressor("lcacomp", std::make_unique<LcaCompressor>());
+	to_return->RegisterCompressor("rp", std::make_unique<RpCompressor>());
+	to_return->RegisterCompressor("zstd", std::make_unique<ZstdCompressor>());
+	to_return->RegisterCompressor("bzip2", std::make_unique<Bzip2Compressor>());
+	to_return->RegisterCompressor("zlib", std::make_unique<ZlibCompressor>());
+	to_return->RegisterCompressor("ppmd", std::make_unique<PpmCompressor>());
+	to_return->RegisterCompressor("automation", std::make_unique<AutomatonCompressor>());
+
+	return to_return;
 }
-} // itp
+
+} // of namespace itp

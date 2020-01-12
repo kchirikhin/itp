@@ -130,7 +130,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
-  Compressors_pool::get_instance().init_compressors_for_ts(0, alphabet - 1, length_of_continuation);
+  auto compressors = MakeStandardCompressorsPool({0, static_cast<Symbol>(alphabet - 1)});
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                       std::begin(compressors_to_compute), std::end(compressors_to_compute));
@@ -142,7 +142,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
 
     for (size_t j = 0; j < result.factors_size(); ++j) {
       result(continuation, compressors_to_compute[j]) =
-          Compressors_pool::get_instance()(compressors_to_compute[j], buffer.get(),
+			  compressors->Compress(compressors_to_compute[j], buffer.get(),
                                            history.size() + length_of_continuation) * kBitsInByte;
     }
   }

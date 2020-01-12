@@ -359,26 +359,6 @@ TEST(CodesLengthsComputerTest,
   EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 104.);
 }
 
-TEST(CompressorsPoolTest, compression)
-{
-  unsigned char ts[] {0, 1, 1, 0, 1, 3, 0, 0, 0};
-  size_t expected_size = 18;
-  size_t obtained_size = Compressors_pool::get_instance()("zstd", ts, sizeof(ts));
-  EXPECT_EQ(obtained_size, expected_size);
-
-  expected_size = 17;
-  obtained_size = Compressors_pool::get_instance()("zlib", ts, sizeof(ts));
-  EXPECT_EQ(obtained_size, expected_size);
-
-  expected_size = 18;
-  obtained_size = Compressors_pool::get_instance()("zstd", ts, sizeof(ts));
-  EXPECT_EQ(obtained_size, expected_size);
-
-  expected_size = 15;
-  obtained_size = Compressors_pool::get_instance()("ppmd", ts, sizeof(ts));
-  EXPECT_EQ(obtained_size, expected_size);
-}
-
 class TablesConvertersTest : public ::testing::Test
 {
  protected:
@@ -641,15 +621,17 @@ TEST(CompressionMethodsTest, main)
     EXPECT_EQ(c5, c6);
     BOOST_CHECK(c1 < c4);*/
 
-  auto c1 = Compressors_pool::get_instance()("rp", time_series1.data(), time_series1.size());
-  auto c2 = Compressors_pool::get_instance()("rp", time_series1.data(), time_series1.size());
-  auto c3 = Compressors_pool::get_instance()("rp", time_series1.data(), time_series1.size());
+  auto compressors = MakeStandardCompressorsPool({0, 255});
+
+  auto c1 = compressors->Compress("rp", time_series1.data(), time_series1.size());
+  auto c2 = compressors->Compress("rp", time_series1.data(), time_series1.size());
+  auto c3 = compressors->Compress("rp", time_series1.data(), time_series1.size());
   EXPECT_EQ(c1, c2);
   EXPECT_EQ(c2, c3);
 
-  auto c4 = Compressors_pool::get_instance()("rp", time_series2.data(), time_series2.size());
-  auto c5 = Compressors_pool::get_instance()("rp", time_series2.data(), time_series2.size());
-  auto c6 = Compressors_pool::get_instance()("rp", time_series2.data(), time_series2.size());
+  auto c4 = compressors->Compress("rp", time_series2.data(), time_series2.size());
+  auto c5 = compressors->Compress("rp", time_series2.data(), time_series2.size());
+  auto c6 = compressors->Compress("rp", time_series2.data(), time_series2.size());
   EXPECT_EQ(c4, c5);
   EXPECT_EQ(c5, c6);
   EXPECT_LE(c1, c4);
@@ -673,60 +655,64 @@ class CustomCompressionMehtodsTest : public ::testing::Test
 protected:
   CustomCompressionMehtodsTest()
       : ts1{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, ts2{1, 2, 3, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6},
-        ts3{1, 2, 3, 4, 5, 2, 1, 2, 3, 4, 2, 3, 129, 230, 2, 3, 1, 2, 3, 4, 2, 3, 4} {
+        ts3{1, 2, 3, 4, 5, 2, 1, 2, 3, 4, 2, 3, 129, 230, 2, 3, 1, 2, 3, 4, 2, 3, 4},
+        compressors_{MakeStandardCompressorsPool(AlphabetDescription{0, 255})}
+        {
           // DO NOTHING
         }
 
   unsigned char ts1[12];
   unsigned char ts2[15];
   unsigned char ts3[23];
+
+  std::unique_ptr<CompressorsFacade> compressors_;
 };
 
 TEST_F(CustomCompressionMehtodsTest, RePair)
 {
   // The sequences were compressed manually by the original Re-Pair program.
-  EXPECT_EQ(Compressors_pool::get_instance()("rp", ts1, 12), 9);
-  EXPECT_EQ(Compressors_pool::get_instance()("rp", ts2, 15), 17);
-  EXPECT_EQ(Compressors_pool::get_instance()("rp", ts3, 23), 25);
+  EXPECT_EQ(compressors_->Compress("rp", ts1, 12), 9);
+  EXPECT_EQ(compressors_->Compress("rp", ts2, 15), 17);
+  EXPECT_EQ(compressors_->Compress("rp", ts3, 23), 25);
 }
 
 TEST_F(CustomCompressionMehtodsTest, Ppmd)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts1, 12), 10);
-  EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts2, 15), 17);
-  EXPECT_EQ(Compressors_pool::get_instance()("ppmd", ts3, 23), 21);
+  EXPECT_EQ(compressors_->Compress("ppmd", ts1, 12), 10);
+  EXPECT_EQ(compressors_->Compress("ppmd", ts2, 15), 17);
+  EXPECT_EQ(compressors_->Compress("ppmd", ts3, 23), 21);
 }
 
 TEST_F(CustomCompressionMehtodsTest, Lcacomp)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts1, 12), 16);
-  EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts2, 15), 28);
-  EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts3, 23), 32);
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts1, 12), 16);
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts2, 15), 28);
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), 32);
 }
 
 TEST_F(CustomCompressionMehtodsTest, Zstd)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts1, 12), 16);
-  EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts2, 15), 24);
-  EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts3, 23), 32);
+  EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), 16);
+  EXPECT_EQ(compressors_->Compress("zstd", ts2, 15), 24);
+  EXPECT_EQ(compressors_->Compress("zstd", ts3, 23), 32);
 }
 
 TEST_F(CustomCompressionMehtodsTest, Bzip2)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts1, 12), 37);
-  EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts2, 15), 43);
-  EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts3, 23), 50);
+  EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), 37);
+  EXPECT_EQ(compressors_->Compress("bzip2", ts2, 15), 43);
+  EXPECT_EQ(compressors_->Compress("bzip2", ts3, 23), 50);
 }
 
 TEST_F(CustomCompressionMehtodsTest, OneByOne)
 {
-  EXPECT_EQ(Compressors_pool::get_instance()("bzip2", ts1, 12), 37);
-  EXPECT_EQ(Compressors_pool::get_instance()("zstd", ts1, 12), 16);
-  EXPECT_EQ(Compressors_pool::get_instance()("lcacomp", ts3, 23), 32);
+  EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), 37);
+  EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), 16);
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), 32);
 }
 
 TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect)

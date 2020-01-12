@@ -58,7 +58,7 @@ set(GMOCK_LIB gmock_main gmock)
 include_directories(${GTEST_INCLUDE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 
-set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_builders.cc tests/test_tseries.cc)
+set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_compressors.cc tests/test_builders.cc tests/test_tseries.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
 target_link_libraries(pred_test rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})

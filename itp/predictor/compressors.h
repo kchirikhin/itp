@@ -1,3 +1,7 @@
+/**
+ * Implementations of an access point to external data compression libraries.
+ */
+
 #ifndef ITP_COMPRESSORS_H_INCLUDED_
 #define ITP_COMPRESSORS_H_INCLUDED_
 
@@ -13,111 +17,174 @@
 
 #include <iostream>
 #include <memory>
-#include <memory.h>
 #include <cmath>
+#include <stdexcept>
 #include <unordered_map>
 
-namespace itp {
+namespace itp
+{
 
-class Compressor {
- public:
-  virtual size_t operator ()(const unsigned char *data, size_t size,
-                             unsigned char **tmp_buffer, size_t *buffer_size) = 0;
-  virtual ~Compressor() = default;
-
-  virtual void set_ts_params(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol,
-                             size_t n_sym_to_evaluate);
- protected:
-  void fit_buffer(size_t desired_size, unsigned char **tmp_buffer, size_t *buffer_size) {
-    if (*buffer_size < desired_size) {
-      delete[] *tmp_buffer;
-      *tmp_buffer = new unsigned char[desired_size];
-      *buffer_size = desired_size;
-    }
-  }
-};
-
-class Zstd_compressor : public Compressor {
- public:
-  Zstd_compressor();
-  ~Zstd_compressor() override;
-
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
- private:
-  ZSTD_CCtx *context;
-};
-
-class Zlib_compressor : public Compressor {
- public:
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-};
-
-class Ppm_compressor : public Compressor {
- public:
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-};
-
-class Rp_compressor : public Compressor {
- public:
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-};
-
-class Bzip2_compressor : public Compressor {
- public:
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-};
-
-class Lca_compressor : public Compressor {
- public:
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-};
-
-class Automation_compressor : public Compressor {
- public:
-  Automation_compressor();
-        
-  size_t operator ()(const unsigned char *data, size_t size,
-                     unsigned char **tmp_buffer, size_t *buffer_size) override;
-
-  void set_ts_params(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol,
-                     size_t n_sym_to_evaluate) override;
- private:
-  PredictionAutomationPtr automation;
+/**
+ * The only excpetion type can be thrown in this module.
+ */
+class CompressorsError : public std::runtime_error
+{
+public:
+	explicit CompressorsError(const std::string& what_arg)
+			: runtime_error{what_arg}
+	{
+		// DO NOTHING
+	}
 };
 
 /**
- * Singleton pattern (see Gamma et al., 1995).
- * Main purpose - to avoid unnecessary memory allocations by maintaining a single
- * buffer for handling all temporary compressed data.
+ * Base class for all data compression algorithms. Hides calls for library-specific functions.
  */
-class Compressors_pool {
- public:
-  Compressors_pool(const Compressors_pool &) = delete;
-  void operator =(const Compressors_pool &) = delete;
+class Compressor
+{
+public:
+	virtual ~Compressor() = default;
 
-  static Compressors_pool& get_instance() {
-    static Compressors_pool instance;
+	/**
+	 * Compresses data and returns size of the output sequence.
+	 * @param data Data to compress.
+	 * @param size Size of data.
+	 * @param output_buffer Where to put result.
+	 * @return Size of the compressed data in bytes.
+	 */
+	virtual size_t operator()(const unsigned char* data, size_t size,
+							  std::vector<unsigned char>* output_buffer) = 0;
 
-    return instance;
-  }
+	/**
+	 * Inform algorithm about minimal and maximal possible values in data. It's important for automaton.
+	 */
+	virtual void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol);
 
-  void init_compressors_for_ts(Symbol, Symbol, size_t);
-        
-  size_t operator()(const std::string &, const unsigned char *, size_t);
-  virtual ~Compressors_pool();
- protected:
-  Compressors_pool();
- protected:
-  std::unordered_map<std::string, Compressor*> compressor_instances;
-  unsigned char *buffer = nullptr;
-  size_t buffer_size = 0;
+protected:
+	/**
+	 * Allocates memory for output data if it's not enough.
+	 * @param desired_size Size to set.
+	 * @param output_buffer Buffer to resize.
+	 */
+	static void FitBuffer(size_t desired_size, std::vector<unsigned char>* output_buffer)
+	{
+		if (output_buffer->size() < desired_size)
+		{
+			output_buffer->resize(desired_size);
+		}
+	}
 };
-} // of itp
+
+class ZstdCompressor : public Compressor
+{
+public:
+	ZstdCompressor();
+	~ZstdCompressor() override;
+
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+
+private:
+	ZSTD_CCtx* context_ = nullptr;
+};
+
+class ZlibCompressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class PpmCompressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class RpCompressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class Bzip2Compressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class LcaCompressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class AutomatonCompressor : public Compressor
+{
+public:
+	AutomatonCompressor();
+
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+
+	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
+
+private:
+	PredictionAutomationPtr automation;
+};
+
+/**
+ * An iterface to access all integrated data compression algorithms.
+ */
+class CompressorsFacade
+{
+public:
+	virtual ~CompressorsFacade() = default;
+
+	/**
+	 * Returns code length, obtained by compression of data by the specified compressor.
+	 * @param compressor_name The name of data compression algorithm to use.
+	 * @param data Buffer with data to compress.
+	 * @param size Size of the data in the buffer.
+	 * @return The obtain code length in bytes.
+	 */
+	virtual size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const = 0;
+};
+
+/**
+ * Defines an integer alphabet by specifying its min and max symbols.
+ */
+struct AlphabetDescription
+{
+	Symbol min_symbol;
+	Symbol max_symbol;
+};
+
+/**
+ * Implementation of CompressorsFacade, which avoids unnecessary allocations of memory to improve efficiency.
+ */
+class CompressorsPool : public CompressorsFacade
+{
+public:
+	explicit CompressorsPool(AlphabetDescription alphabet_description);
+
+	void RegisterCompressor(std::string name, std::unique_ptr<Compressor> compressor);
+
+	size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const override;
+
+private:
+	AlphabetDescription alphabet_description_;
+
+	std::unordered_map<std::string, std::unique_ptr<Compressor>> compressor_instances_;
+	mutable std::vector<unsigned char> output_buffer_;
+};
+
+std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description);
+
+} // of namespace itp
 
 #endif // ITP_COMPRESSORS_H_INCLUDED_
