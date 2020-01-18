@@ -142,9 +142,9 @@ class Executor:
         to_return = ForecastingResult(horizon)
         for compressor, forecast in result.items():
             if isinstance(forecast[0], list):
-                to_return.add_compressor(compressor, MultivariateTimeSeries(forecast))
+                to_return.add_compressor(compressor, MultivariateTimeSeries(forecast, dtype=float))
             else:
-                to_return.add_compressor(compressor, TimeSeries(forecast))
+                to_return.add_compressor(compressor, TimeSeries(forecast, dtype=float))
 
         return to_return
 
