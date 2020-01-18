@@ -7,6 +7,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "compressors_facade_mock.h"
 #include "gtest_extensions.h"
 
 using namespace itp;

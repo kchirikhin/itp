@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include "compressors.h"
 #include <iterator>
 #include <functional>
 #include <memory>
@@ -25,21 +26,6 @@
 
 namespace itp
 {
-
-class CompressorsFacade
-{
-public:
-	virtual ~CompressorsFacade() = default;
-
-	virtual size_t Compress(std::string, const unsigned char*, size_t) = 0;
-};
-
-class CompressorsFacadeMock : public CompressorsFacade
-{
-public:
-	MOCK_METHOD3(Compress, size_t(std::string,
-			const unsigned char *, size_t));
-};
 
 namespace evaluation
 {
