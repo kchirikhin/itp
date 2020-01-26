@@ -402,6 +402,13 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 		throw SelectorError("results_of_computations's size is less than the target_number of compressors");
 	}
 
+	std::cout << "Results:\n";
+	for (const auto& [name, size] : results_of_computations)
+	{
+		std::cout << name << ' ' << size << "\n";
+	}
+
+
 	std::vector<std::pair<std::string, size_t>> results_sorted_by_file_size{std::cbegin(results_of_computations),
 																			std::cend(results_of_computations)};
 	std::sort(std::begin(results_sorted_by_file_size), std::end(results_sorted_by_file_size),
@@ -419,11 +426,47 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 
 } // namespace evaluation
 
+/**
+ * Class that represents a share (like percentage), ranging from 0 to 1. Allows explicit casting from double and
+ * implicit casting to double.
+ */
+class Share
+{
+public:
+	explicit Share(const double init_value = 0.)
+		: share_{init_value}
+	{
+		ThrowIfShareIsIncorrect();
+	}
+
+	operator double () const
+	{
+		return share_;
+	}
+
+private:
+	void ThrowIfShareIsIncorrect() const
+	{
+		if (share_ < .0 || 1. < share_)
+		{
+			throw std::invalid_argument{"share is out of range"};
+		}
+	}
+
+	double share_;
+};
+
 template <typename T>
 itp::Names SelectBestCompressors(const std::vector<T>& history, const std::set<std::string>& compressors,
-		size_t difference, const std::vector<size_t>& quanta_count)
+		size_t difference, const std::vector<size_t>& quanta_count, Share part_to_consider, size_t target_number)
 {
-	return {};
+	const auto elems_to_consider = static_cast<size_t>(std::ceil(history.size() * part_to_consider));
+	std::vector<T> shrinked_history{std::cbegin(history), std::next(std::cbegin(history), elems_to_consider)};
+
+	using namespace evaluation;
+	CodeLengthEvaluator<T> evaluator{MakeStandardCompressorsPool({0, 255})};
+
+	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressors, difference, quanta_count), target_number);
 }
 
 } // namespace itp

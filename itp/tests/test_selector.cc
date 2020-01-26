@@ -247,3 +247,24 @@ TEST(SelectBestCompressorsTest, SelectsSpecefiedNumberOfCompressorsWithMinimalCo
 									{"ppmd",  20},
 									{"bzip2", 15}}, 2), UnorderedElementsAre("zlib", "bzip2"));
 }
+
+TEST(ShareTest, AllowsExplicitInitializationFromDouble)
+{
+	EXPECT_NO_THROW(Share{0.1});
+}
+
+TEST(ShareTest, ThrowsIfShareIsNegative)
+{
+	EXPECT_THROW(Share{-0.1}, std::invalid_argument);
+}
+
+TEST(ShareTest, ThrowsIfShareIsGreaterThanOne)
+{
+	EXPECT_THROW(Share{1.1}, std::invalid_argument);
+}
+
+TEST(ShareTest, AllowsImplicitCastingToDouble)
+{
+	double double_share = Share{0.2};
+	EXPECT_DOUBLE_EQ(double_share, 0.2);
+}

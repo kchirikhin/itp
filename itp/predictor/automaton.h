@@ -90,6 +90,8 @@ class MultiheadAutomaton;
 template <size_t N = 1>
 class MultiheadAutomaton : public PredictionAutomation {
  public:
+	static_assert(sizeof(Symbol) <= sizeof(size_t), "");
+
   static const size_t heads_count = N;
   enum class IsPredictionConfident { kYes, kNo };
 
@@ -109,7 +111,7 @@ class MultiheadAutomaton : public PredictionAutomation {
 
   Symbol GetMinSymbol() const;
   Symbol GetMaxSymbol() const;
-  Symbol GetAlphabetRange() const;
+  size_t GetAlphabetRange() const;
 
   void SetMinSymbol(Symbol new_min_symbol) override;
   void SetMaxSymbol(Symbol new_max_symbol) override;
@@ -233,8 +235,7 @@ void itp::MultiheadAutomaton<N>::Guess(Symbol guessed_symbol,
         confident_guess_freq_[guessed_symbol] = confident_estimations_series_len_;
         sym_probability = KrichevskyPredictor(observed_symbol, confident_guess_freq_[observed_symbol],
                                               total_freq, GetAlphabetRange());
-        evaluated_probability_ *= KrichevskyPredictor(observed_symbol, confident_guess_freq_[observed_symbol],
-                                                     total_freq, GetAlphabetRange());
+        evaluated_probability_ *= sym_probability;
         confident_guess_freq_[guessed_symbol] = 0;
         break;
       case IsPredictionConfident::kNo:
@@ -243,8 +244,7 @@ void itp::MultiheadAutomaton<N>::Guess(Symbol guessed_symbol,
         total_freq = position_in_word + 1;
         sym_probability = KrichevskyPredictor(observed_symbol, letters_freq_[observed_symbol],
                                               total_freq, GetAlphabetRange());
-        evaluated_probability_ *= KrichevskyPredictor(observed_symbol, letters_freq_[observed_symbol],
-                                                     total_freq, GetAlphabetRange());
+        evaluated_probability_ *= sym_probability;
     }
   }
 }
@@ -322,8 +322,8 @@ itp::Symbol itp::MultiheadAutomaton<N>::GetMaxSymbol() const {
 }
 
 template <size_t N>
-itp::Symbol itp::MultiheadAutomaton<N>::GetAlphabetRange() const {
-  return alphabet_max_symbol_ - alphabet_min_symbol_ + 1;
+size_t itp::MultiheadAutomaton<N>::GetAlphabetRange() const {
+  return static_cast<size_t>(alphabet_max_symbol_) - static_cast<size_t>(alphabet_min_symbol_) + 1;
 }
 
 template <size_t N>
