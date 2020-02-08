@@ -53,7 +53,7 @@ public:
 
 itp::AutomatonForTesting::AutomatonForTesting(const Symbol alphabet_min_symbol,
                                               const Symbol alphabet_max_symbol)
-    : Sensing_DFA{alphabet_min_symbol, alphabet_max_symbol, 0}
+    : Sensing_DFA{alphabet_min_symbol, alphabet_max_symbol}
 {
   // DO NOTHING
 }

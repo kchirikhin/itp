@@ -138,6 +138,15 @@ private:
 };
 
 /**
+ * Defines an integer alphabet by specifying its min and max symbols.
+ */
+struct AlphabetDescription
+{
+	Symbol min_symbol;
+	Symbol max_symbol;
+};
+
+/**
  * An iterface to access all integrated data compression algorithms.
  */
 class CompressorsFacade
@@ -153,15 +162,13 @@ public:
 	 * @return The obtain code length in bytes.
 	 */
 	virtual size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const = 0;
-};
 
-/**
- * Defines an integer alphabet by specifying its min and max symbols.
- */
-struct AlphabetDescription
-{
-	Symbol min_symbol;
-	Symbol max_symbol;
+	/**
+	 * Some compressors need to know the size of the alphabel. This method allows to specify it before compressing
+	 * a series.
+	 * @param alphabet_description Minimal and maximal letters of the integer alphabet.
+	 */
+	virtual void ResetAlphabetDescription(AlphabetDescription alphabet_description) = 0;
 };
 
 /**
@@ -175,6 +182,8 @@ public:
 	void RegisterCompressor(std::string name, std::unique_ptr<Compressor> compressor);
 
 	size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const override;
+
+	void ResetAlphabetDescription(AlphabetDescription alphabet_description) override;
 
 private:
 	AlphabetDescription alphabet_description_;

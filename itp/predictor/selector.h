@@ -6,8 +6,6 @@
 #ifndef ITP_SELECTOR_H_INCLUDED_
 #define ITP_SELECTOR_H_INCLUDED_
 
-#include <gmock/gmock.h>
-
 #include <algorithm>
 #include <cmath>
 #include "compressors.h"
@@ -108,11 +106,37 @@ std::vector<T> diff_n(std::vector<T> vec, size_t n = 1)
 }
 
 template<typename T>
+class QuantifiedVector : public std::vector<T>
+{
+public:
+	using std::vector<T>::vector;
+
+	QuantifiedVector(const std::vector<T>& vec)
+			: std::vector<T>(std::cbegin(vec), std::cend(vec))
+	{
+	}
+
+	void SetAlphabetSize(size_t max_letter)
+	{
+		max_letter_ = max_letter;
+	}
+
+	[[nodiscard]]
+	size_t GetAlphabetSize() const
+	{
+		return max_letter_;
+	}
+
+private:
+	size_t max_letter_ = 256;
+};
+
+template<typename T>
 class SampledSeriesStorageBase
 {
 public:
-	using value_type = std::vector<Symbol>;
-	using reference = std::vector<Symbol>&;
+	using value_type = QuantifiedVector<Symbol>;
+	using reference = QuantifiedVector<Symbol>&;
 	using const_reference = const value_type&;
 	using difference_type = ptrdiff_t;
 	using size_type = size_t;
@@ -205,16 +229,18 @@ protected:
 
 private:
 	[[nodiscard]]
-	const std::vector<Symbol>& GetTimeSeries(size_t index) const;
+	const QuantifiedVector<Symbol>& GetTimeSeries(size_t index) const;
 
 	Sampler<T> sampler_;
-	std::vector<PlainTimeSeries<Symbol>> quantified_series_;
+	std::vector<QuantifiedVector<Symbol>> quantified_series_;
 };
 
 template<typename T>
 SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& original_series)
 {
-	quantified_series_.push_back(sampler_.Transform(original_series).to_plain_tseries());
+	const auto quantified_series = sampler_.Transform(original_series);
+	quantified_series_.push_back(quantified_series.to_plain_tseries());
+	quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
 }
 
 template<typename T>
@@ -223,12 +249,14 @@ SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& orig
 {
 	for (const auto quanta_count : quanta_counts)
 	{
-		quantified_series_.push_back(sampler_.Transform(original_series, quanta_count).to_plain_tseries());
+		auto quantified_series = sampler_.Transform(original_series, quanta_count);
+		quantified_series_.push_back(quantified_series.to_plain_tseries());
+		quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
 	}
 }
 
 template<typename T>
-const std::vector<Symbol>& SampledSeriesStorageBase<T>::GetTimeSeries(size_t index) const
+const QuantifiedVector<Symbol>& SampledSeriesStorageBase<T>::GetTimeSeries(size_t index) const
 {
 	return quantified_series_[index];
 }
@@ -323,13 +351,11 @@ void CheckQuantaCounts(const std::vector<size_t>& quanta_counts)
 template<>
 void CheckQuantaCounts<Symbol>(const std::vector<size_t>&)
 {
-	return;
 }
 
 template<>
 void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&)
 {
-	return;
 }
 
 template<typename T>
@@ -356,6 +382,7 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 			auto correction = std::cbegin(corrections);
 			for (const auto& series : series_storage)
 			{
+				compressors_->ResetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
 				code_lengths.push(
 						compressors_->Compress(compressor, reinterpret_cast<const unsigned char*>(series.data()),
 											   series.size() * sizeof(Symbol)) * 8 + *correction++);
@@ -385,7 +412,7 @@ bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, cons
 namespace ad_hoc
 {
 
-template <typename InputIt, typename Size, typename UnaryFunction>
+template<typename InputIt, typename Size, typename UnaryFunction>
 InputIt for_each_n(InputIt first, Size n, UnaryFunction f)
 {
 	for (size_t i = 0; i < n; ++i, f(*first++));
@@ -403,7 +430,7 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 	}
 
 	std::cout << "Results:\n";
-	for (const auto& [name, size] : results_of_computations)
+	for (const auto&[name, size] : results_of_computations)
 	{
 		std::cout << name << ' ' << size << "\n";
 	}
@@ -434,12 +461,12 @@ class Share
 {
 public:
 	explicit Share(const double init_value = 0.)
-		: share_{init_value}
+			: share_{init_value}
 	{
 		ThrowIfShareIsIncorrect();
 	}
 
-	operator double () const
+	operator double() const
 	{
 		return share_;
 	}
@@ -456,17 +483,23 @@ private:
 	double share_;
 };
 
-template <typename T>
-itp::Names SelectBestCompressors(const std::vector<T>& history, const std::set<std::string>& compressors,
-		size_t difference, const std::vector<size_t>& quanta_count, Share part_to_consider, size_t target_number)
+template<typename T>
+itp::Names SelectBestCompressors(
+		const std::vector<T>& history,
+		const std::set<std::string>& compressors,
+		const size_t difference,
+		const std::vector<size_t>& quanta_count,
+		const Share part_to_consider,
+		const size_t target_number)
 {
 	const auto elems_to_consider = static_cast<size_t>(std::ceil(history.size() * part_to_consider));
-	std::vector<T> shrinked_history{std::cbegin(history), std::next(std::cbegin(history), elems_to_consider)};
+	const std::vector<T> shrinked_history{std::cbegin(history), std::next(std::cbegin(history), elems_to_consider)};
 
 	using namespace evaluation;
 	CodeLengthEvaluator<T> evaluator{MakeStandardCompressorsPool({0, 255})};
 
-	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressors, difference, quanta_count), target_number);
+	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressors, difference, quanta_count),
+							  target_number);
 }
 
 } // namespace itp

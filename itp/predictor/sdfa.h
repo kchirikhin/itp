@@ -42,7 +42,7 @@ bool less (long lhs, size_t rhs);
  */
 class Sensing_DFA : public MultiheadAutomaton<10> {
  public:
-  Sensing_DFA(Symbol min_symbol, Symbol max_symbol, Symbol default_symbol);
+  Sensing_DFA(Symbol min_symbol, Symbol max_symbol);
 
  private:
   /**
@@ -74,7 +74,6 @@ class Sensing_DFA : public MultiheadAutomaton<10> {
    *
    */
   const Head &h3a, &inner, &outer, &l, &r, &t;
-  Symbol default_symbol;
 };
 } // of itp
 

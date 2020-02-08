@@ -2,16 +2,12 @@
 
 namespace itp {
 bool less (long lhs, size_t rhs) {
-  if ((lhs < 0) || (static_cast<size_t>(lhs) < rhs)) {
-    return true;
-  }
-
-  return false;
+  return (lhs < 0) || (static_cast<size_t>(lhs) < rhs);
 }
 
-Sensing_DFA::Sensing_DFA(Symbol min_symbol, Symbol max_symbol, Symbol default_symbol)
+Sensing_DFA::Sensing_DFA(Symbol min_symbol, Symbol max_symbol)
     : MultiheadAutomaton<10> {min_symbol, max_symbol}, h3a{h(0)}, inner{h(5)}, outer{h(6)}, l{h(7)},
-  r{h(8)}, t{h(9)}, default_symbol {default_symbol} {
+  r{h(8)}, t{h(9)} {
     SetHeadName(0, "h3a");
     SetHeadName(1, "h1");
     SetHeadName(2, "h2");
@@ -34,7 +30,7 @@ void Sensing_DFA::Run() {
 }
 
 Symbol Sensing_DFA::mean_symbol() const {
-  return (GetMaxSymbol() + GetMinSymbol()) / 2;
+  return static_cast<Symbol>((static_cast<size_t>(GetMaxSymbol()) + static_cast<size_t>(GetMinSymbol())) / 2);
 }
 
 void Sensing_DFA::guess_if_rightmost(const Head &h, IsPredictionConfident confidence) {

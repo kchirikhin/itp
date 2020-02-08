@@ -15,6 +15,7 @@ class CompressorsFacadeMock : public CompressorsFacade
 {
 public:
 	MOCK_CONST_METHOD3(Compress, size_t(const std::string&, const unsigned char *, size_t));
+	MOCK_METHOD1(ResetAlphabetDescription, void(AlphabetDescription));
 };
 
 } // namespace itp

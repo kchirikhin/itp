@@ -56,21 +56,32 @@ TEST(SampledSeriesStorageTest, WorksInDiscreteCase)
 	SampledSeriesStorage<Symbol> storage{ts};
 
 	auto res = storage.cbegin();
-	EXPECT_THAT(*res, ElementsAre(8, 0, 2));
+	EXPECT_THAT(*res, ElementsAre(8., 0., 2.));
+	EXPECT_EQ(res->GetAlphabetSize(), 9);
 }
 
 TEST(SampledSeriesStorageTest, WorksInRealCase)
 {
 	std::vector<Double> ts{4.2, 5.6, 7.8, 1.4};
-	SampledSeriesStorage<Double> storage{ts, {2, 4}};
+	std::vector<size_t> quanta_count{2, 4};
+	SampledSeriesStorage<Double> storage{ts, quanta_count};
 
 	std::vector<std::vector<Symbol>> expected_series =
-			{
-					{0, 1, 1, 0},
-					{1, 2, 3, 0}
-			};
+    {
+            {0, 1, 1, 0},
+            {1, 2, 3, 0}
+    };
 
 	ExpectContainerRangesEq(storage, expected_series);
+    ExpectTransformedContainerEq(quanta_count, storage, [](const auto& item) { return item.GetAlphabetSize(); });
+}
+
+TEST(SampledSeriesStorageTest, QuantedSeriesContainRightQuantaCount)
+{
+    const std::vector<size_t> quanta_count{2, 4};
+
+    const std::vector<Double> ts{4.2, 5.6, 7.8, 1.4};
+    const SampledSeriesStorage<Double> storage{ts, quanta_count};
 }
 
 TEST(ComputeCorrectionsTest, ReturnsZeroOnEmptyInputInDiscreteCase)
@@ -169,7 +180,6 @@ TEST_F(SelectorRealCaseTest, ReturnsZeroIfInputSeriesIsEmpty)
 	EXPECT_EQ(result.at("zlib"), 0);
 }
 
-
 TEST_F(SelectorRealCaseTest, CallsCompressorWithSeriesDiscretizedUsingAllSpecifiedQuantaCounts)
 {
 	{
@@ -178,6 +188,21 @@ TEST_F(SelectorRealCaseTest, CallsCompressorWithSeriesDiscretizedUsingAllSpecifi
 		EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, test_real_ts_.size())).With(Args<1, 2>(ElementsAre(1, 2, 3, 0))).Times(1).WillOnce(Return(0));
 	}
 
+	evaluator_->Evaluate(test_real_ts_, {"zlib"}, 0, {2, 4});
+}
+
+MATCHER_P(AlphabetsEqual, other,"")
+{
+	return std::tie(arg.min_symbol, arg.max_symbol) == std::tie(other.min_symbol, other.max_symbol);
+}
+
+TEST_F(SelectorRealCaseTest, SetsEachQuantaCountOnEvaluator)
+{
+	auto compressors_pool = std::make_unique<NiceMock<CompressorsFacadeMock>>();
+	EXPECT_CALL(*compressors_pool, ResetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 1})));
+	EXPECT_CALL(*compressors_pool, ResetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 3})));
+
+	evaluator_ = std::make_unique<CodeLengthEvaluator<Double>>(std::move(compressors_pool));
 	evaluator_->Evaluate(test_real_ts_, {"zlib"}, 0, {2, 4});
 }
 

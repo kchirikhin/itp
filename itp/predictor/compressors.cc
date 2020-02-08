@@ -87,7 +87,7 @@ size_t LcaCompressor::operator()(const unsigned char* data, size_t size, std::ve
 }
 
 AutomatonCompressor::AutomatonCompressor()
-		: automation{new Sensing_DFA{0, 255, 127}}
+		: automation{new Sensing_DFA{0, 255}}
 {
 	// DO NOTHING
 }
@@ -151,6 +151,14 @@ size_t CompressorsPool::Compress(const std::string& compressor_name, const unsig
 	catch (const std::out_of_range& e)
 	{
 		throw CompressorsError{"Incorrect compressor name " + compressor_name};
+	}
+}
+
+void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_description)
+{
+	for (auto& [name, compressor] : compressor_instances_)
+	{
+		compressor->SetTsParams(alphabet_description.min_symbol, alphabet_description.max_symbol);
 	}
 }
 

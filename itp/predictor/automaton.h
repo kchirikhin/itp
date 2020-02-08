@@ -303,12 +303,12 @@ void itp::MultiheadAutomaton<N>::Init() {
 
 template <size_t N>
 void itp::MultiheadAutomaton<N>::OnMoveHead(const Head &) {
-  // DO KNOTHING
+  // DO NOTHING
 }
 
 template <size_t N>
 void itp::MultiheadAutomaton<N>::OnGuess(Symbol) {
-  // DO KNOTHING
+  // DO NOTHING
 }
 
 template <size_t N>
