@@ -67,25 +67,28 @@ class Plot:
         self._xtics_generator = new_xtics_generator
 
     def plot(self, filename=None):
-        history_color = 'darkblue'
-        forecast_color = 'lightcoral'
+        history_color = 'black'
+        forecast_color = 'black'
+
+        forecast_linestyle = '--'
+        bounds_linestyle = ':'
 
         history = self._forecasting_result.history.series(self._series_number)
         forecast = self._forecasting_result.forecast[self._compressor].series(self._series_number)
         x_axis_len = len(history) + len(forecast)
        
         plt.plot(history, history_color)
-        plt.plot(np.arange(len(history), x_axis_len), forecast, forecast_color)
-        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], forecast_color)
+        plt.plot(np.arange(len(history), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
+        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
 
         lower_bounds = self._forecasting_result.lower_bounds[self._compressor].series(self._series_number)
         upper_bounds = self._forecasting_result.upper_bounds[self._compressor].series(self._series_number)
 
-        plt.plot(np.arange(len(history), x_axis_len), lower_bounds, forecast_color, linestyle='--')
-        plt.plot(np.arange(len(history), x_axis_len), upper_bounds, forecast_color, linestyle='--')
+        plt.plot(np.arange(len(history), x_axis_len), lower_bounds, forecast_color, linestyle=bounds_linestyle)
+        plt.plot(np.arange(len(history), x_axis_len), upper_bounds, forecast_color, linestyle=bounds_linestyle)
 
-        plt.plot([len(history)-1, len(history)], [history[-1], lower_bounds[0]], forecast_color, linestyle='--')
-        plt.plot([len(history)-1, len(history)], [history[-1], upper_bounds[0]], forecast_color, linestyle='--')
+        plt.plot([len(history)-1, len(history)], [history[-1], lower_bounds[0]], forecast_color, linestyle=bounds_linestyle)
+        plt.plot([len(history)-1, len(history)], [history[-1], upper_bounds[0]], forecast_color, linestyle=bounds_linestyle)
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
