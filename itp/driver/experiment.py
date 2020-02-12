@@ -6,6 +6,12 @@ from itp.driver.executor import ForecastingTask, ForecastingResult, Executor
 import math
 import numpy as np
 from collections import namedtuple
+import itp.driver.plot as plt
+import os
+from mpi4py import MPI
+import itp.driver.executor as e
+import itp.driver.mpi_executor as me
+import time
 
 
 class ExperimentError(Exception):
@@ -165,3 +171,90 @@ class IntervalPredictor:
                 lower_bounds[compressor][i] = forecast[compressor][i] - deviations[compressor][i]
 
         return IntervalPrediction(task.time_series(), forecast, errors, lower_bounds, upper_bounds)
+
+
+comm = MPI.COMM_WORLD
+executor = me.MpiExecutor(e.SmoothingExecutor(e.Executor()))
+runner = IntervalPredictor(executor)
+Configuration = namedtuple('Configuration', 'compressors horizon difference max_quanta_count sparse')
+
+Description = namedtuple('Description', 'xlabel ylabel filename')
+
+
+class Timer:
+    """"Context manager timer"""
+
+    def __enter__(self):
+        self._start = time.perf_counter()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        elapsed = time.perf_counter() - self._start
+        print("Elapsed time: " + str(elapsed) + "s.")
+
+
+class Compressors:
+    def __init__(self, compressors):
+        if type(compressors) is str:
+            self._compressors = compressors
+        else:
+            self._compressors = ''
+            for compressor in compressors:
+                self._compressors += (compressor + '_')
+
+            self._compressors = self._compressors[:-1]
+
+    def as_list(self):
+        return self._compressors.split('_')
+
+    def as_string(self):
+        return self._compressors
+
+    def as_set(self):
+        return set(self.as_list())
+
+
+def run(time_series, xticks_generator, config, description0, description1=None):
+    for horizon, max_quanta_count in zip(config.horizon, config.max_quanta_count):
+        dirname = 'q' + str(max_quanta_count)
+        if not os.path.exists(dirname):
+            try:
+                os.mkdir(dirname)
+            except FileExistsError:
+                pass
+
+        if description1 is not None:
+            fname = os.path.splitext(description0.filename)[0] + "_" + os.path.splitext(
+                description1.filename)[0] + "_results.txt"
+        else:
+            fname = os.path.splitext(description0.filename)[0] + "_results.txt"
+
+        with open(os.path.join(dirname, fname), 'w') as f:
+            print('-' * 20, file=f)
+            if description1 is None:
+                print(description0.xlabel, file=f)
+            else:
+                print(description0.xlabel + ' и ' + description1.xlabel, file=f)
+
+            task = e.ForecastingTask(time_series, [config.compressors], horizon=horizon,
+                                     difference=config.difference, max_quanta_count=max_quanta_count,
+                                     sparse=config.sparse)
+            result = runner.run(task)
+            print(result.forecast, file=f)
+            print(result.relative_errors, file=f)
+            print(result.lower_bounds, file=f)
+            print(result.upper_bounds, file=f)
+
+        assert result is not None
+
+        plot0 = plt.Plot(result, config.compressors, 0)
+        plot0.xtics_generator(xticks_generator)
+        plot0.xlabel(description0.xlabel)
+        plot0.ylabel(description0.ylabel)
+        plot0.plot(os.path.join(dirname, description0.filename))
+
+        if description1 is not None:
+            plot1 = plt.Plot(result, config.compressors, 1)
+            plot1.xtics_generator(xticks_generator)
+            plot1.xlabel(description1.xlabel)
+            plot1.ylabel(description1.ylabel)
+            plot1.plot(os.path.join(dirname, description1.filename))
