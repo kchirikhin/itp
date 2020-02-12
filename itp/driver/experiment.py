@@ -181,15 +181,15 @@ Configuration = namedtuple('Configuration', 'compressors horizon difference max_
 Description = namedtuple('Description', 'xlabel ylabel filename')
 
 
-class Timer:
+class MpiTimer:
     """"Context manager timer"""
-
     def __enter__(self):
-        self._start = time.perf_counter()
+        if comm.Get_rank() == 0:
+            self._start = MPI.Wtime()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        elapsed = time.perf_counter() - self._start
-        print("Elapsed time: " + str(elapsed) + "s.")
+        if comm.Get_rank() == 0:
+            print("Elapsed time: " + str(MPI.Wtime() - self._start) + "s.")
 
 
 class Compressors:
