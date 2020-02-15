@@ -11,8 +11,7 @@ import os
 from mpi4py import MPI
 import itp.driver.executor as e
 import itp.driver.mpi_executor as me
-import time
-
+import copy
 
 class ExperimentError(Exception):
     pass
@@ -174,7 +173,7 @@ class IntervalPredictor:
 
 
 comm = MPI.COMM_WORLD
-executor = me.MpiExecutor(e.SmoothingExecutor(e.Executor()))
+executor = me.MpiExecutor(e.SmoothingExecutor(e.Executor()), comm)
 runner = IntervalPredictor(executor)
 Configuration = namedtuple('Configuration', 'compressors horizon difference max_quanta_count sparse')
 
@@ -215,18 +214,25 @@ class Compressors:
 
 def run(time_series, xticks_generator, config, description0, description1=None):
     for horizon, max_quanta_count in zip(config.horizon, config.max_quanta_count):
+        task = e.ForecastingTask(time_series, [config.compressors], horizon=horizon,
+                                         difference=config.difference, max_quanta_count=max_quanta_count,
+                                         sparse=config.sparse)
+        result = runner.run(task)
+        if comm.Get_rank() != 0:
+            continue
+
+        if description1 is not None:
+            fname = os.path.splitext(description0.filename)[0] + "_" + os.path.splitext(
+            description1.filename)[0] + "_results.txt"
+        else:
+            fname = os.path.splitext(description0.filename)[0] + "_results.txt"
+
         dirname = 'q' + str(max_quanta_count)
         if not os.path.exists(dirname):
             try:
                 os.mkdir(dirname)
             except FileExistsError:
                 pass
-
-        if description1 is not None:
-            fname = os.path.splitext(description0.filename)[0] + "_" + os.path.splitext(
-                description1.filename)[0] + "_results.txt"
-        else:
-            fname = os.path.splitext(description0.filename)[0] + "_results.txt"
 
         with open(os.path.join(dirname, fname), 'w') as f:
             print('-' * 20, file=f)
@@ -235,10 +241,6 @@ def run(time_series, xticks_generator, config, description0, description1=None):
             else:
                 print(description0.xlabel + ' и ' + description1.xlabel, file=f)
 
-            task = e.ForecastingTask(time_series, [config.compressors], horizon=horizon,
-                                     difference=config.difference, max_quanta_count=max_quanta_count,
-                                     sparse=config.sparse)
-            result = runner.run(task)
             print(result.forecast, file=f)
             print(result.relative_errors, file=f)
             print(result.lower_bounds, file=f)
@@ -247,14 +249,14 @@ def run(time_series, xticks_generator, config, description0, description1=None):
         assert result is not None
 
         plot0 = plt.Plot(result, config.compressors, 0)
-        plot0.xtics_generator(xticks_generator)
+        plot0.xtics_generator(copy.deepcopy(xticks_generator))
         plot0.xlabel(description0.xlabel)
         plot0.ylabel(description0.ylabel)
         plot0.plot(os.path.join(dirname, description0.filename))
 
         if description1 is not None:
             plot1 = plt.Plot(result, config.compressors, 1)
-            plot1.xtics_generator(xticks_generator)
+            plot1.xtics_generator(copy.deepcopy(xticks_generator))
             plot1.xlabel(description1.xlabel)
             plot1.ylabel(description1.ylabel)
             plot1.plot(os.path.join(dirname, description1.filename))
