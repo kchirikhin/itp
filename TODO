@@ -1,0 +1,2 @@
+1. Eliminate double calculations if sparse is 1
+2. Fix behaviour if forecasting horizon is 1
