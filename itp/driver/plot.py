@@ -3,21 +3,55 @@ matplotlib.use('agg')
 
 import matplotlib.pyplot as plt
 import numpy as np
+from abc import abstractmethod
 
 
-class YearsGenerator:
+class TicsGenerator:
+
+    @abstractmethod
+    def next(self):
+        pass
+
+    def generate(self, n, skip=None):
+        """Returns a tuple of two arrays: positions of tics and labels of tics"""
+        if n < 0:
+            raise ValueError("cannot generate negative amount of tics")
+
+        positions = []
+        tics = []
+
+        step = 1
+        if skip is not None:
+            step = skip + 1
+
+        i = 0
+        while i < n:
+            tics.append(self.next())
+            positions.append(i)
+            i += step
+
+            j = 1
+            while j < step:
+                self.next()
+                j += 1
+
+        return positions, tics
+
+
+class YearsGenerator(TicsGenerator):
     """Each call of next returns the next year as str"""
 
     def __init__(self, start_year=1):
         self._current_year = start_year
 
     def next(self):
+        """Returns the value for the next tic"""
         to_return = str(self._current_year)
         self._current_year += 1
         return to_return
 
 
-class MonthsGenerator:
+class MonthsGenerator(TicsGenerator):
     """Each call of next returns the next month as str (together with the year)"""
 
     _month_to_ind = {'Январь': 0, 'Февраль': 1, 'Март': 2, 'Апрель': 3, 'Май': 4, 'Июнь': 5,
