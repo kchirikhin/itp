@@ -175,6 +175,17 @@ class TestMultivariateTimeSeries(unittest.TestCase):
         self.assertEqual(self._ts.series(1), self._ts.series(-1))
         self.assertEqual(self._ts.series(0), self._ts.series(-2))
 
+    def test_series_preserves_dtype(self):
+        ts = MultivariateTimeSeries([[1.2, 3.4], [5.6, 7.8]], dtype=float)
+        self.assertEqual(ts.series(0), TimeSeries([1.2, 3.4], dtype=float))
+
+        ts = MultivariateTimeSeries([[1, 3], [5, 7]], dtype=int)
+        self.assertEqual(ts.series(0), TimeSeries([1, 3], dtype=int))
+
+    def test_series_preserves_frequency(self):
+        ts = MultivariateTimeSeries([[1, 3], [5, 7]], frequency=2)
+        self.assertEqual(ts.series(1), TimeSeries([5, 7], frequency=2))
+
     def test_series_raises_if_index_is_out_of_range(self):
         self.assertRaises(IndexError, self._ts.series, 2)
         self.assertRaises(IndexError, self._ts.series, -3)

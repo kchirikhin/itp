@@ -122,7 +122,7 @@ class MultivariateTimeSeries(TimeSeries):
         return len(self._data)
 
     def series(self, index):
-        return TimeSeries(self._data[index])
+        return TimeSeries(self._data[index], frequency=self._frequency, dtype=self._dtype)
 
     def generate_zeroes_array(self, n, frequency=None, dtype=None):
         if frequency is None:
