@@ -12,16 +12,25 @@ class MpiExecutor(Executor):
         size = self._comm.Get_size()
         rank = self._comm.Get_rank()
 
-        chunk_size = int(math.floor(len(package) / size))
-        assert(chunk_size > 0)
+        if size <= len(package):
+            chunk_size = int(math.floor(len(package) / size))
+            assert(chunk_size > 0)
 
-        chunk_begin = chunk_size*rank
-        if rank + 1 < size:
-            chunk_end = chunk_size*(rank+1)
+            chunk_begin = chunk_size*rank
+            if rank + 1 < size:
+                chunk_end = chunk_size*(rank+1)
+            else:
+                chunk_end = len(package)
+
+            results = self._base_executor.execute(package[chunk_begin:chunk_end], itp_predictors)
         else:
-            chunk_end = len(package)
+            if rank < len(package):
+                chunk_begin = rank
+                chunk_end = rank + 1
+                results = self._base_executor.execute(package[chunk_begin:chunk_end], itp_predictors)
+            else:
+                results = []
 
-        results = self._base_executor.execute(package[chunk_begin:chunk_end], itp_predictors)
         common_results = self._comm.allgather(results)
         common_results = list(it.chain.from_iterable(common_results))
 
