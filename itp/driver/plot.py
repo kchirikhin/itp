@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from abc import abstractmethod
 
+plt.rcParams["font.family"] = "Times New Roman"
+
+from matplotlib import font_manager
+
+font_manager.findfont('Times New Roman')
 
 class TicsGenerator:
 
