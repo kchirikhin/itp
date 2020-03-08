@@ -1,5 +1,6 @@
 from itp.driver.time_series import TimeSeries
 from itp.driver.time_series import MultivariateTimeSeries
+from itp.driver.forecasting_result import ForecastingResult
 import predictor as p
 
 
@@ -10,11 +11,6 @@ class ExecutorError(Exception):
 
 class SeriesTooShortError(ExecutorError):
     """Should be raised if an input series is too short to perform an algorithm"""
-    pass
-
-
-class DifferentLengthsError(ExecutorError):
-    """Should be raised if the required condition that all time series must be of the same lengths is violated"""
     pass
 
 
@@ -56,42 +52,6 @@ class ForecastingTask:
         return ("Time series: " + str(self._time_series) + "\nCompressors: " + str(self._compressors) + "\nHorizont: " +
                 str(self._horizon) + "\nDifference: " + str(self._difference) + "\nMax quants count: " +
                 str(self._max_quanta_count) + "\nSparse: " + str(self._sparse))
-
-
-class ForecastingResult:
-    """A prediction for a single time series (or a single group of series in the multivariate case)"""
-
-    def __init__(self, horizon):
-        self._horizon = horizon
-        self._forecasts = {}
-
-        self._validate()
-
-    def add_compressor(self, name, forecast):
-        if len(forecast) != self._horizon:
-            raise DifferentLengthsError("The length of the forecast differs from the specified horizont")
-
-        self._forecasts[name] = forecast
-
-    def compressors(self):
-        return list(self._forecasts.keys())
-
-    def horizon(self):
-        return self._horizon
-
-    def __getitem__(self, key):
-        return self._forecasts[key]
-
-    def __repr__(self):
-        to_return = ""
-        for compressor, forecast in self._forecasts.items():
-            to_return += str(compressor) + ": " + str(forecast) + "\n"
-
-        return to_return
-
-    def _validate(self):
-        if not self._horizon > 0:
-            raise ValueError("horizon must be a positive value")
 
 
 class ItpPredictorInterface:
