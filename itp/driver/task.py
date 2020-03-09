@@ -1,6 +1,8 @@
 from abc import abstractmethod
 
 import predictor as p
+from itp.driver.utils import to_forecasting_result
+from itp.driver.time_series import TimeSeries
 
 
 class ElementaryTask:
@@ -87,4 +89,4 @@ class DiscreteUnivariateTask(Task):
         if len(results) != 1:
             raise ValueError("results must be a list with a single elem for DiscreteUnivariateTask")
 
-        return results[0]
+        return to_forecasting_result(results[0], TimeSeries, int)

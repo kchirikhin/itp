@@ -49,6 +49,9 @@ class ForecastingResult:
 
         return to_return
 
+    def __eq__(self, other):
+        return (self.__class__ == other.__class__) and (self._forecasts == other._forecasts)
+
     def _validate(self):
         if not self._horizon > 0:
             raise ValueError("horizon must be a positive value")

@@ -1,4 +1,6 @@
 from itp.driver.task import DiscreteUnivariateElemetaryTask, DiscreteUnivariateTask
+from itp.driver.forecasting_result import ForecastingResult
+from itp.driver.time_series import TimeSeries
 
 import unittest
 
@@ -20,7 +22,10 @@ class TestDiscreteUnivariateTask(unittest.TestCase):
         self.assertRaises(ValueError, self._task.handle_results_of_computations, [])
 
     def test_result_handler_returns_the_first_result(self):
-        self.assertEqual(self._task.handle_results_of_computations([1]), 1)
+        expected_result = ForecastingResult(3)
+        expected_result.add_compressor('zlib', TimeSeries([1, 2, 3]))
+        actual_result = self._task.handle_results_of_computations([{'zlib': [1, 2, 3]}])
+        self.assertEqual(actual_result, expected_result)
 
 
 if __name__ == '__main__':
