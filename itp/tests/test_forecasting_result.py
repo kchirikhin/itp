@@ -29,8 +29,36 @@ class TestForecastingResult(unittest.TestCase):
         res.add_compressor('zlib', TimeSeries([10, 20]))
         res.add_compressor('ppmd', MultivariateTimeSeries([[10, 20], [30, 40]], int))
 
-        self.assertEqual(res['zlib'], TimeSeries([10, 20]))
-        self.assertEqual(res['ppmd'], MultivariateTimeSeries([[10, 20], [30, 40]], int))
+        self.assertEqual(res.forecast('zlib'), TimeSeries([10, 20]))
+        self.assertEqual(res.forecast('ppmd'), MultivariateTimeSeries([[10, 20], [30, 40]], int))
+
+    def test_has_no_upper_bounds_by_default(self):
+        res = ForecastingResult(2)
+        res.add_compressor('zlib', TimeSeries([10, 20]))
+
+        # intentionally check twice to be assured that check doesn't implicitly creates empty value
+        self.assertFalse(res.has_upper_bounds('zlib'))
+        self.assertFalse(res.has_upper_bounds('zlib'))
+
+    def test_has_upper_bounds_after_explicitly_setting_them(self):
+        res = ForecastingResult(2)
+        res.add_compressor('zlib', TimeSeries([10, 20]), upper_bounds=TimeSeries([20, 30]))
+
+        self.assertTrue(res.has_upper_bounds('zlib'))
+
+    def test_finds_upper_bounds_by_compressor(self):
+        res = ForecastingResult(2)
+        res.add_compressor('zlib', TimeSeries([10, 20]), upper_bounds=TimeSeries([20, 30]))
+
+        self.assertEqual(res.upper_bounds('zlib'), TimeSeries([20, 30]))
+
+    def test_upper_bounds_is_none_by_default(self):
+        res = ForecastingResult(2)
+        res.add_compressor('zlib', TimeSeries([10, 20]))
+
+        # intentionally check twice to be assured that read doesn't implicitly creates empty value
+        self.assertIsNone(res.upper_bounds('zlib'))
+        self.assertIsNone(res.upper_bounds('zlib'))
 
 
 if __name__ == '__main__':

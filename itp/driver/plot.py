@@ -1,9 +1,9 @@
 import matplotlib
-matplotlib.use('agg')
-
 import matplotlib.pyplot as plt
 import numpy as np
 from abc import abstractmethod
+from itp.driver.forecasting_result import IntervalPrediction
+from itp.driver.visualizer import Visualizer
 
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -11,8 +11,8 @@ from matplotlib import font_manager
 
 font_manager.findfont('Times New Roman')
 
-class TicsGenerator:
 
+class TicsGenerator:
     @abstractmethod
     def next(self):
         pass
@@ -85,49 +85,42 @@ class MonthsGenerator(TicsGenerator):
         return to_return
 
 
-class Plot:
-    """Plots the history and forecast with confidence intervals"""
-
-    def __init__(self, forecasting_result, compressor, series_number=0):
-        self._forecasting_result = forecasting_result
+class Plot(Visualizer):
+    def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0):
         self._compressor = compressor
+        self._xtics_generator = xtics_generator
+        self._xlabel = xlabel
+        self._ylabel = ylabel
+        self._filename = filename
         self._series_number = series_number
-        self._xlabel = ''
-        self._ylabel = ''
-        self._xtics_generator = YearsGenerator()
 
-    def xlabel(self, new_xlabel):
-        self._xlabel = new_xlabel
+    def visualize(self, history, forecasting_result):
+        if self._filename is None:
+            matplotlib.use('agg')
 
-    def ylabel(self, new_ylabel):
-        self._ylabel = new_ylabel
-
-    def xtics_generator(self, new_xtics_generator):
-        self._xtics_generator = new_xtics_generator
-
-    def plot(self, filename=None):
         history_color = 'black'
         forecast_color = 'black'
 
         forecast_linestyle = '--'
+
+        target_series = history.series(self._series_number).to_list()
+        forecast = forecasting_result.forecast(self._compressor).series(self._series_number).to_list()
+        x_axis_len = len(target_series) + len(forecast)
+
+        plt.plot(target_series, history_color)
+        plt.plot(np.arange(len(target_series), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
+        plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
+
         bounds_linestyle = ':'
+        if forecasting_result.has_lower_bounds(self._compressor):
+            lower_bounds = forecasting_result.lower_bounds(self._compressor).series(self._series_number).to_list()
+            plt.plot(np.arange(len(target_series), x_axis_len), lower_bounds, forecast_color, linestyle=bounds_linestyle)
+            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], lower_bounds[0]], forecast_color, linestyle=bounds_linestyle)
 
-        history = self._forecasting_result.history.series(self._series_number)
-        forecast = self._forecasting_result.forecast[self._compressor].series(self._series_number)
-        x_axis_len = len(history) + len(forecast)
-       
-        plt.plot(history, history_color)
-        plt.plot(np.arange(len(history), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
-        plt.plot([len(history)-1, len(history)], [history[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
-
-        lower_bounds = self._forecasting_result.lower_bounds[self._compressor].series(self._series_number)
-        upper_bounds = self._forecasting_result.upper_bounds[self._compressor].series(self._series_number)
-
-        plt.plot(np.arange(len(history), x_axis_len), lower_bounds, forecast_color, linestyle=bounds_linestyle)
-        plt.plot(np.arange(len(history), x_axis_len), upper_bounds, forecast_color, linestyle=bounds_linestyle)
-
-        plt.plot([len(history)-1, len(history)], [history[-1], lower_bounds[0]], forecast_color, linestyle=bounds_linestyle)
-        plt.plot([len(history)-1, len(history)], [history[-1], upper_bounds[0]], forecast_color, linestyle=bounds_linestyle)
+        if forecasting_result.has_upper_bounds(self._compressor):
+            upper_bounds = forecasting_result.upper_bounds(self._compressor).series(self._series_number).to_list()
+            plt.plot(np.arange(len(target_series), x_axis_len), upper_bounds, forecast_color, linestyle=bounds_linestyle)
+            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], upper_bounds[0]], forecast_color, linestyle=bounds_linestyle)
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
@@ -136,9 +129,9 @@ class Plot:
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
         plt.tight_layout()
 
-        if filename is None:
+        if self._filename is None:
             plt.show()
         else:
-            plt.savefig(filename, format='eps')
+            plt.savefig(self._filename, format='eps')
 
         plt.clf()

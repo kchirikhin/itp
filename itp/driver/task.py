@@ -37,6 +37,14 @@ class Task:
         """
         pass
 
+    @abstractmethod
+    def history(self):
+        """
+        Returns the forecasting series.
+        :return: The forecasting series.
+        """
+        pass
+
 
 class ItpPredictorInterface:
     """
@@ -71,22 +79,26 @@ class DiscreteUnivariateElemetaryTask(ElementaryTask):
         self._predictor_interface = predictor_interface
 
     def run(self):
-        return self._predictor_interface.forecast_discrete(self._time_series.to_list(), self._compressors,
-                                                           self._horizon, self._difference, self._sparse)
+        return self._predictor_interface.forecast_discrete(self._time_series, self._compressors, self._horizon,
+                                                           self._difference, self._sparse)
 
 
 class DiscreteUnivariateTask(Task):
     """
     Prediction of a single discrete univariate time series.
     """
-    def __init__(self, **kwargs):
-        self._elementary_task = DiscreteUnivariateElemetaryTask(**kwargs)
+    def __init__(self, time_series, *args, **kwargs):
+        self._time_series = time_series
+        self._elementary_task = DiscreteUnivariateElemetaryTask(time_series, *args, **kwargs)
 
     def get_elementary_tasks(self):
-        return self._elementary_task
+        return [self._elementary_task]
 
     def handle_results_of_computations(self, results):
         if len(results) != 1:
             raise ValueError("results must be a list with a single elem for DiscreteUnivariateTask")
 
         return to_forecasting_result(results[0], TimeSeries, int)
+
+    def history(self):
+        return self._time_series

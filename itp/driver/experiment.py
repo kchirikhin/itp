@@ -5,13 +5,15 @@ from itp.driver.executor import ForecastingTask, ForecastingResult, Executor
 
 import math
 import numpy as np
-from collections import namedtuple
 import itp.driver.plot as plt
 import os
 from mpi4py import MPI
 import itp.driver.executor as e
 import itp.driver.mpi_executor as me
 import copy
+from itp.driver.forecasting_result import IntervalPrediction
+from collections import namedtuple
+
 
 class ExperimentError(Exception):
     pass
@@ -137,9 +139,6 @@ class ExperimentRunner:
             to_return.add_compressor(compressor, standard_deviations)
 
         return to_return
-
-
-IntervalPrediction = namedtuple('IntervalPrediction', 'history forecast relative_errors lower_bounds upper_bounds')
 
 
 class IntervalPredictor:
