@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import axes
 import numpy as np
 from abc import abstractmethod
 from itp.driver.forecasting_result import IntervalPrediction
@@ -95,7 +96,7 @@ class Plot(Visualizer):
         self._series_number = series_number
 
     def visualize(self, history, forecasting_result):
-        if self._filename is None:
+        if self._filename is not None:
             matplotlib.use('agg')
 
         history_color = 'black'
@@ -108,6 +109,7 @@ class Plot(Visualizer):
         x_axis_len = len(target_series) + len(forecast)
 
         plt.plot(target_series, history_color)
+        plt.ticklabel_format(axis='y', style='plain')
         plt.plot(np.arange(len(target_series), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
         plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
 
