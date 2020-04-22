@@ -1,4 +1,4 @@
-from itp.driver.task import DiscreteUnivariateElemetaryTask, DiscreteUnivariateTask
+from itp.driver.task import DiscreteUnivariateElemetaryTask, UnivariateTask
 from itp.driver.forecasting_result import ForecastingResult
 from itp.driver.time_series import TimeSeries
 
@@ -11,9 +11,10 @@ class TestDiscreteUnivariateElemetaryTask(unittest.TestCase):
                           horizon=0, difference=0, sparse=-1, predictor_interface=None)
 
 
-class TestDiscreteUnivariateTask(unittest.TestCase):
+class TestUnivariateTask(unittest.TestCase):
     def setUp(self):
-        self._task = DiscreteUnivariateTask(time_series=[], compressors='', horizon=0, difference=0, sparse=-1)
+        self._task = UnivariateTask(dtype=int, elementary_task_type=DiscreteUnivariateElemetaryTask,
+                                    time_series=[], compressors='', horizon=0, difference=0, sparse=-1)
 
     def test_raises_if_asked_to_handle_more_than_one_result_of_computations(self):
         self.assertRaises(ValueError, self._task.handle_results_of_computations, [{}, {}])
