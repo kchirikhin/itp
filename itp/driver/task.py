@@ -108,7 +108,7 @@ class RealUnivariateElemetaryTask(ElementaryTask):
                                                                 self._difference, self._max_quanta_count, self._sparse)
 
 
-class UnivariateTask(Task):
+class SimpleTask(Task):
     """
     The base class for all univariate tasks, implements basic functionality.
     """
@@ -130,7 +130,7 @@ class UnivariateTask(Task):
         return self._time_series
 
 
-class DiscreteUnivariateTask(UnivariateTask):
+class DiscreteUnivariateSimpleTask(SimpleTask):
     """
     Prediction of a single discrete univariate time series.
     """
@@ -138,7 +138,7 @@ class DiscreteUnivariateTask(UnivariateTask):
         super().__init__(int, DiscreteUnivariateElemetaryTask, time_series, *args, **kwargs)
 
 
-class RealUnivariateTask(UnivariateTask):
+class RealUnivariateSimpleTask(SimpleTask):
     """
     Prediction of a single continuous univariate time series.
     """
