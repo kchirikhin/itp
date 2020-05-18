@@ -1,10 +1,9 @@
-from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
 from itp.driver.forecasting_result import ForecastingResult
 
 
 def to_forecasting_result(result, time_series_type, elem_type):
     """
-    Converts plain result, obtained from the predictor, to an instance of ForecstingResult class.
+    Converts plain result, obtained from the predictor, to an instance of ForecastingResult class.
     :param result: The output from predictor module.
     :param time_series_type: TimeSeries or MultivariateTimeSeries.
     :param elem_type: int or float.

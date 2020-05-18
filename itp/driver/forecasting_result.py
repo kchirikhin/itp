@@ -94,6 +94,7 @@ class ForecastingResult:
         return to_return
 
     def __eq__(self, other):
+        # noinspection PyProtectedMember
         return (self.__class__ == other.__class__) and (self._forecasts == other._forecasts) and (
                     self._relative_errors == other._relative_errors) and (
                            self._lower_bounds == other._lower_bounds) and (self._upper_bounds == other._upper_bounds)
