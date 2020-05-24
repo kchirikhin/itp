@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib import axes
 import numpy as np
 from abc import abstractmethod
-from itp.driver.forecasting_result import IntervalPrediction
-from itp.driver.visualizer import Visualizer
+from itp.driver.statistics_handler import IStatisticsHandler
+from itp.driver.visualizer import Visualizer, has_method
 
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -95,7 +95,7 @@ class Plot(Visualizer):
         self._filename = filename
         self._series_number = series_number
 
-    def visualize(self, history, forecasting_result):
+    def visualize(self, statistics_handler: IStatisticsHandler):
         if self._filename is not None:
             matplotlib.use('agg')
 
@@ -104,8 +104,8 @@ class Plot(Visualizer):
 
         forecast_linestyle = '--'
 
-        target_series = history.series(self._series_number).to_list()
-        forecast = forecasting_result.forecast(self._compressor).series(self._series_number).to_list()
+        target_series = statistics_handler.history().series(self._series_number).to_list()
+        forecast = statistics_handler.forecast(self._compressor).series(self._series_number).to_list()
         x_axis_len = len(target_series) + len(forecast)
 
         plt.plot(target_series, history_color)
@@ -114,13 +114,13 @@ class Plot(Visualizer):
         plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
 
         bounds_linestyle = ':'
-        if forecasting_result.has_lower_bounds(self._compressor):
-            lower_bounds = forecasting_result.lower_bounds(self._compressor).series(self._series_number).to_list()
+        if has_method(statistics_handler, 'lower_bounds'):
+            lower_bounds = statistics_handler.lower_bounds(self._compressor).series(self._series_number).to_list()
             plt.plot(np.arange(len(target_series), x_axis_len), lower_bounds, forecast_color, linestyle=bounds_linestyle)
             plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], lower_bounds[0]], forecast_color, linestyle=bounds_linestyle)
 
-        if forecasting_result.has_upper_bounds(self._compressor):
-            upper_bounds = forecasting_result.upper_bounds(self._compressor).series(self._series_number).to_list()
+        if has_method(statistics_handler, 'upper_bounds'):
+            upper_bounds = statistics_handler.upper_bounds(self._compressor).series(self._series_number).to_list()
             plt.plot(np.arange(len(target_series), x_axis_len), upper_bounds, forecast_color, linestyle=bounds_linestyle)
             plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], upper_bounds[0]], forecast_color, linestyle=bounds_linestyle)
 

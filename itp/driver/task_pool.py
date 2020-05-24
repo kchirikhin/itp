@@ -50,4 +50,4 @@ class SequentialTaskPool(TaskPool):
         for task_number, elem_tasks_range in task_number_to_elem_tasks_range.items():
             result = self._tasks[task_number].handle_results_of_computations(elementary_results[elem_tasks_range])
             for visualizer in self._visualizers[task_number]:
-                visualizer.visualize(self._tasks[task_number].history(), result)
+                visualizer.visualize(result)
