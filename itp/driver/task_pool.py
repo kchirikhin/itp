@@ -36,18 +36,30 @@ class SequentialTaskPool(TaskPool):
         self._visualizers.append(visualizers)
 
     def execute(self):
+        elementary_tasks, task_number_to_elem_tasks_range = self._prepare_elementary_tasks(self._tasks)
+        elementary_results = self._run_tasks(elementary_tasks)
+        self._call_visualizers(self._tasks, self._visualizers, elementary_results, task_number_to_elem_tasks_range)
+
+    @staticmethod
+    def _prepare_elementary_tasks(tasks):
         elementary_tasks = []
         task_number_to_elem_tasks_range = {}
-        for i in range(len(self._tasks)):
+        for i in range(len(tasks)):
             range_begin = len(elementary_tasks)
-            elementary_tasks.extend(self._tasks[i].get_elementary_tasks())
+            elementary_tasks.extend(tasks[i].get_elementary_tasks())
             task_number_to_elem_tasks_range[i] = slice(range_begin, len(elementary_tasks))
 
+        return elementary_tasks, task_number_to_elem_tasks_range
+
+    def _run_tasks(self, elementary_tasks):
         elementary_results = []
         for elementary_task in elementary_tasks:
             elementary_results.append(elementary_task.run())
+        return elementary_results
 
+    @staticmethod
+    def _call_visualizers(tasks, visualizers, elementary_results, task_number_to_elem_tasks_range):
         for task_number, elem_tasks_range in task_number_to_elem_tasks_range.items():
-            result = self._tasks[task_number].handle_results_of_computations(elementary_results[elem_tasks_range])
-            for visualizer in self._visualizers[task_number]:
+            result = tasks[task_number].handle_results_of_computations(elementary_results[elem_tasks_range])
+            for visualizer in visualizers[task_number]:
                 visualizer.visualize(result)
