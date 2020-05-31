@@ -1,12 +1,14 @@
 from abc import abstractmethod
 from collections import namedtuple
 import math
+import copy
 
 import predictor as p
 from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
 from itp.driver.forecasting_result import ForecastingResult
 from itp.driver.statistics_handler import ISimpleTaskStatisticsHandler, SimpleTaskStatisticsHandler
 from itp.driver.statistics_handler import IComplexTaskStatisticsHandler, ComplexTaskStatisticsHandler
+from itp.driver.hooks import IHook, EmptyHook
 
 from typing import Dict
 
@@ -85,7 +87,7 @@ class DiscreteUnivariateElemetaryTask(ElementaryTask):
     Prediction of a single discrete univariate time series. Just for internal usage.
     """
     def __init__(self, time_series, compressors, horizon, difference, sparse,
-                 predictor_interface=ItpPredictorInterface()):
+                 predictor_interface=ItpPredictorInterface(), hook: IHook = EmptyHook()):
         if predictor_interface is None:
             raise ValueError("predictor_interface is None")
 
@@ -95,10 +97,11 @@ class DiscreteUnivariateElemetaryTask(ElementaryTask):
         self._difference = difference
         self._sparse = sparse
         self._predictor_interface = predictor_interface
+        self._hook = copy.deepcopy(hook)
 
     def run(self):
-        return self._predictor_interface.forecast_discrete(self._time_series, self._compressors, self._horizon,
-                                                           self._difference, self._sparse)
+        return self._hook.postprocess(self._predictor_interface.forecast_discrete(
+            self._hook.preprocess(self._time_series), self._compressors, self._horizon, self._difference, self._sparse))
 
 
 # todo: max_quanta_count should be an instance of a class, which maintains the invariant.
@@ -107,7 +110,7 @@ class RealUnivariateElemetaryTask(ElementaryTask):
     Prediction of a single continuous univariate time series. Just for internal usage.
     """
     def __init__(self, time_series, compressors, horizon, difference, sparse,
-                 max_quanta_count, predictor_interface=ItpPredictorInterface()):
+                 max_quanta_count, predictor_interface=ItpPredictorInterface(), hook: IHook = EmptyHook()):
         if predictor_interface is None:
             raise ValueError("predictor_interface is None")
 
@@ -118,10 +121,12 @@ class RealUnivariateElemetaryTask(ElementaryTask):
         self._sparse = sparse
         self._max_quanta_count = max_quanta_count
         self._predictor_interface = predictor_interface
+        self._hook = copy.deepcopy(hook)
 
     def run(self):
-        return self._predictor_interface.forecast_multialphabet(self._time_series, self._compressors, self._horizon,
-                                                                self._difference, self._max_quanta_count, self._sparse)
+        return self._hook.postprocess(self._predictor_interface.forecast_multialphabet(
+            self._hook.preprocess(self._time_series), self._compressors, self._horizon, self._difference,
+            self._max_quanta_count, self._sparse))
 
 
 class RealMultivariateElemetaryTask(ElementaryTask):
@@ -129,7 +134,7 @@ class RealMultivariateElemetaryTask(ElementaryTask):
     Prediction of a single continuous multivariate time series. Just for internal usage.
     """
     def __init__(self, time_series, compressors, horizon, difference, sparse,
-                 max_quanta_count, predictor_interface=ItpPredictorInterface()):
+                 max_quanta_count, predictor_interface=ItpPredictorInterface(), hook: IHook = EmptyHook()):
         if predictor_interface is None:
             raise ValueError("predictor_interface is None")
 
@@ -140,11 +145,12 @@ class RealMultivariateElemetaryTask(ElementaryTask):
         self._sparse = sparse
         self._max_quanta_count = max_quanta_count
         self._predictor_interface = predictor_interface
+        self._hook = copy.deepcopy(hook)
 
     def run(self):
-        return self._predictor_interface.forecast_multialphabet_vec(self._time_series, self._compressors, self._horizon,
-                                                                    self._difference, self._max_quanta_count,
-                                                                    self._sparse)
+        return self._hook.postprocess(self._predictor_interface.forecast_multialphabet_vec(
+            self._hook.preprocess(self._time_series), self._compressors, self._horizon, self._difference,
+            self._max_quanta_count, self._sparse))
 
 
 Types_ = namedtuple('Types', ['dtype', 'time_series_type', 'elementary_task_type'])
@@ -196,8 +202,8 @@ class ComplexTask(Task):
     """
     The forecasting task which includes error and confidence intervals evaluation by forecasting already known data.
     """
-    def __init__(self, statistics_handler: IComplexTaskStatisticsHandler, types, time_series, history_share,
-                 compressors, horizon, *args, **kwargs):
+    def __init__(self, statistics_handler: IComplexTaskStatisticsHandler, types, time_series,
+                 history_share, compressors, horizon, *args, **kwargs):
         """
         :param statistics_handler: An object which will handle the results of forecasting of already known data.
         :param types: Types of item (single or vector), of time series and of elementary task.
