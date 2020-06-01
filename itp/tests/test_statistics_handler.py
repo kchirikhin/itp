@@ -65,6 +65,12 @@ class TestComplexTaskStatisticsHandler(unittest.TestCase):
         for i in range(len(self._history)):
             self.assertAlmostEqual(obtained_history[i], self._history[i])
 
+    def test_returns_right_mean_absolute_errors(self):
+        expected_absolute_errors = TimeSeries([0.05, 0.15, 0.2], dtype=float)
+        obtained_absolute_errors = self._statistics.mean_absolute_errors('zlib')
+        for i in range(len(expected_absolute_errors)):
+            self.assertAlmostEqual(obtained_absolute_errors[i], expected_absolute_errors[i])
+
     def test_returns_right_relative_errors(self):
         expected_relative_errors = TimeSeries([0.07142857, 0.21428571, 0.28571429], dtype=float)
         obtained_relative_errors = self._statistics.relative_errors('zlib')

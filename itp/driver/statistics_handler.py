@@ -179,6 +179,7 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
     def __init__(self):
         self._history = None
         self._forecast = None
+        self._absolute_errors = None
         self._relative_errors = None
         self._lower_bounds = None
         self._upper_bounds = None
@@ -190,16 +191,17 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
                                     horizon: int) -> None:
         self._history = history
         self._forecast = forecast
+        self._absolute_errors = {}
         self._relative_errors = {}
         self._lower_bounds = {}
         self._upper_bounds = {}
 
-        mean_errors = _compute_mean_errors(predicted_values, observed_values, horizon)
+        self._absolute_errors = _compute_mean_errors(predicted_values, observed_values, horizon)
         standard_deviations = _compute_standard_deviations(predicted_values, observed_values, horizon)
 
         mean = ts_mean(history)
         for compressor in forecast.keys():
-            relative_errors = copy.deepcopy(mean_errors)
+            relative_errors = copy.deepcopy(self._absolute_errors)
             lower_bounds = copy.deepcopy(forecast)
             upper_bounds = copy.deepcopy(forecast)
             for i in range(len(relative_errors[compressor])):
@@ -213,6 +215,7 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
 
         assert self._history is not None
         assert self._forecast is not None
+        assert self._absolute_errors is not None
         assert self._relative_errors is not None
         assert self._lower_bounds is not None
         assert self._upper_bounds is not None
@@ -224,6 +227,10 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
     def forecast(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
         _raise_if_none(self._forecast, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
         return self._forecast[compressor]
+
+    def mean_absolute_errors(self, compressor: str):
+        _raise_if_none(self._absolute_errors, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        return self._absolute_errors[compressor]
 
     def relative_errors(self, compressor: str):
         _raise_if_none(self._relative_errors, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
@@ -238,7 +245,7 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
         Returns lower bounds of 95% confidence intervals for predictions.
 
         :param compressor: The name of a compressor for which predictions the lower bounds should be returned.
-        :return: The lower boudns.
+        :return: The lower bounds.
         """
         _raise_if_none(self._upper_bounds, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
         return self._upper_bounds[compressor]

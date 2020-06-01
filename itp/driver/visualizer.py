@@ -53,6 +53,7 @@ class TextVisualizer(Visualizer):
 
         self._print_row(statistics_handler.forecast, 'forecast')
 
+        self._print_if_exists(statistics_handler, 'mean_absolute_errors')
         self._print_if_exists(statistics_handler, 'relative_errors')
         self._print_if_exists(statistics_handler, 'lower_bounds')
         self._print_if_exists(statistics_handler, 'upper_bounds')
