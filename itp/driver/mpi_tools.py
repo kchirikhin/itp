@@ -9,6 +9,18 @@ import math
 import itertools as it
 
 
+def mpi_print(obj, comm: MPI.Comm = MPI.COMM_WORLD, root: int = 0) -> None:
+    """
+    Displays the specified object by passing it to print function in the root process only.
+
+    :param obj: Object to display.
+    :param comm: MPI communicator.
+    :param root: The process number which will display the object.
+    """
+    if comm.Get_rank() == root:
+        print(obj)
+
+
 class MpiTimer:
     """
     A context manager timer for MPI programs.
@@ -37,7 +49,7 @@ class MpiTaskPool(SequentialTaskPool):
         super().__init__()
         self._comm = MPI.COMM_WORLD
         self._root = root
-        if not self._root or self._comm.Get_size() <= self._root:
+        if self._root is None or self._comm.Get_size() <= self._root:
             raise ValueError("Incorrect root " + str(self._root) + ", it's value must be in set "
                              "{0, 1,..., {" + str(self._comm.Get_size()-1) + "}")
 
