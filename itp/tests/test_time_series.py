@@ -1,4 +1,5 @@
 from itp.driver.time_series import *
+from itp.driver.chrono import MonthlyTimePoint
 import numpy as np
 import unittest
 
@@ -116,6 +117,15 @@ class TimeSeriesTest(unittest.TestCase):
 
     def test_pow_works_correctly(self):
         np.testing.assert_allclose(self._ts ** 2, TimeSeries([1, 4, 9]))
+
+    def test_subseries_since_reports_error_if_date_is_none(self):
+        ts = TimeSeries([1, 2, 3], dtype=float)
+        self.assertRaises(TimeSeriesError, ts.subseries_since, MonthlyTimePoint(2000, 10))
+
+    def test_subseries_works_correctly_with_valid_time_point(self):
+        ts = TimeSeries([1, 2, 3], dtype=float, start_time_point=MonthlyTimePoint(2020, 1))
+        expected_subseries = TimeSeries([2, 3], dtype=float, start_time_point=MonthlyTimePoint(2020, 2))
+        self.assertEqual(ts.subseries_since(MonthlyTimePoint(2020, 2)), expected_subseries)
 
 
 class TestMultivariateTimeSeries(unittest.TestCase):

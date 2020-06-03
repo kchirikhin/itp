@@ -1,4 +1,5 @@
 import numpy as np
+import itp.driver.chrono as chr
 
 
 class TimeSeriesError(Exception):
@@ -14,7 +15,7 @@ class DifferentLengthsError(TimeSeriesError):
 class TimeSeries:
     """Represents a single time series with real or integer elements"""
 
-    def __init__(self, data=None, frequency=1, dtype=int):
+    def __init__(self, data=None, frequency=1, dtype=int, start_time_point: chr.TimePoint = None):
         if data is None:
             self._data = np.array(list(), dtype)
         else:
@@ -22,6 +23,7 @@ class TimeSeries:
 
         self._frequency = frequency
         self._dtype = dtype
+        self._start_time_point = start_time_point
 
     def __len__(self):
         return len(self._data)
@@ -77,6 +79,12 @@ class TimeSeries:
             dtype = self._dtype
 
         return TimeSeries([0] * n, frequency, dtype)
+
+    def subseries_since(self, time_point: chr.TimePoint):
+        if not self._start_time_point:
+            raise TimeSeriesError("Start time point is None")
+
+        return TimeSeries(self._data[(time_point - self._start_time_point):], self._frequency, self._dtype, time_point)
 
 
 class MultivariateTimeSeries(TimeSeries):
