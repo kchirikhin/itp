@@ -34,7 +34,7 @@ class TextVisualizer(Visualizer):
     Prints to the standard output results of forecasting.
     """
 
-    def __init__(self, compressor: str, series_number: int = 0, description: str = None):
+    def __init__(self, compressor: str, series_number: int = 0, description=None):
         """
         The visualizer can visualize only results of forecasting of single time series and by single compressor.
 
