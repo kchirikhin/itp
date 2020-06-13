@@ -23,7 +23,7 @@ include_directories(lib/tclap)
 file(GLOB EXTERNAL_HEADERS "lib/ttmath/*.h" "lib/tclap/*.h")
 
 # Include third-party headers and static libraries of compression algorithms.
-include_directories(lib/ppmd lib/rp lib/lcacomp lib/zstd lib/bzip2)
+include_directories(lib/ppmd lib/rp lib/lcacomp lib/zstd lib/bzip2 lib/zpaq)
 
 # Because zlib generates a header.
 include_directories(./lib/zlib)
@@ -36,7 +36,8 @@ add_subdirectory(lib/ppmd)
 add_subdirectory(lib/rp)
 add_subdirectory(lib/zlib)
 add_subdirectory(lib/zstd)
-set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd)
+add_subdirectory(lib/zpaq)
+set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd zpaq)
 
 # Build the Python binding.
 add_subdirectory(lib/pybind11)
@@ -61,7 +62,7 @@ include_directories(${GMOCK_INCLUDE_DIR})
 set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_compressors.cc tests/test_builders.cc tests/test_tseries.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
-target_link_libraries(pred_test rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
+target_link_libraries(pred_test PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME pred_test COMMAND pred_test)
 
 set(BIGNUMS_TESTS tests/test_bignums.cc)
@@ -77,7 +78,7 @@ add_test(NAME automaton_test COMMAND automaton_test)
 
 set(SAMPLERS_TESTS tests/test_samplers.cc ${SOURCE_DIR}/sampler.cc)
 add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
-target_link_libraries(samplers_tests rp z ppmd lca zstd bz2 ${GTEST_LIB} ${GMOCK_LIB})
+target_link_libraries(samplers_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME samplers_tests COMMAND samplers_tests)
 
 set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc)

@@ -14,6 +14,7 @@
 #include <lcacomp.h>
 #include <ppmd.h>
 #include <sdfa.h>
+#include <libzpaq.h>
 
 #include <iostream>
 #include <memory>
@@ -117,6 +118,13 @@ public:
 };
 
 class LcaCompressor : public Compressor
+{
+public:
+	size_t operator()(const unsigned char* data, size_t size,
+					  std::vector<unsigned char>* output_buffer) override;
+};
+
+class ZpaqCompressor : public Compressor
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,

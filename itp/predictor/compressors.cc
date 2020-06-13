@@ -1,5 +1,6 @@
 #include "compressors.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
@@ -81,9 +82,97 @@ size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::
 	return dst_capacity;
 }
 
-size_t LcaCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *)
+size_t LcaCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
 {
 	return Lcacomp::lcacomp_compress(data, size);
+}
+
+namespace
+{
+
+class ZpaqReader : public libzpaq::Reader
+{
+public:
+	ZpaqReader(const unsigned char* const data, const size_t size)
+			: data_{data}, size_{size}
+	{
+		// DO NOTHING
+	}
+
+	int get() override
+	{
+		if (curr_pos_ == size_)
+		{
+			return EOF;
+		}
+
+		return data_[curr_pos_++];
+	}
+
+	int read(char* buf, int n) override
+	{
+		if (curr_pos_ == size_)
+		{
+			return EOF;
+		}
+
+		assert(0 <= n);
+		const auto bytes_to_read = std::min(static_cast<size_t>(n), size_ - curr_pos_);
+		std::copy(data_ + curr_pos_, data_ + curr_pos_ + bytes_to_read, buf);
+		curr_pos_ += bytes_to_read;
+
+		return static_cast<int>(bytes_to_read);
+	}
+
+private:
+	const unsigned char* const data_;
+	const size_t size_;
+	size_t curr_pos_ = 0;
+};
+
+class ZpaqWriter : public libzpaq::Writer
+{
+public:
+	void put(int) override
+	{
+		++bytes_read_;
+	}
+
+	void write(const char*, int n) override
+	{
+		assert(0 <= n);
+		bytes_read_ += static_cast<size_t>(n);
+	}
+
+	[[nodiscard]] size_t GetCompressedSize() const
+	{
+		return bytes_read_;
+	}
+
+private:
+	size_t bytes_read_ = 0;
+};
+
+} // of namespace
+
+} // of namespace itp
+
+void libzpaq::error(const char* msg)
+{
+	throw itp::CompressorsError{msg};
+}
+
+namespace itp
+{
+
+size_t ZpaqCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
+{
+	const char* kMaxCompressionLevel = "5";
+	ZpaqReader reader{data, size};
+	ZpaqWriter writer;
+	libzpaq::compress(&reader, &writer, kMaxCompressionLevel);
+
+	return writer.GetCompressedSize();
 }
 
 AutomatonCompressor::AutomatonCompressor()
@@ -173,6 +262,7 @@ std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescripti
 	to_return->RegisterCompressor("zlib", std::make_unique<ZlibCompressor>());
 	to_return->RegisterCompressor("ppmd", std::make_unique<PpmCompressor>());
 	to_return->RegisterCompressor("automation", std::make_unique<AutomatonCompressor>());
+	to_return->RegisterCompressor("zpaq", std::make_unique<ZpaqCompressor>());
 
 	return to_return;
 }
