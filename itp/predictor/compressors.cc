@@ -26,7 +26,7 @@ ZstdCompressor::~ZstdCompressor()
 	ZSTD_freeCCtx(context_);
 }
 
-size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
 {
 	assert(context_);
 	assert(data);
@@ -38,7 +38,7 @@ size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::v
 	return ZSTD_compressCCtx(context_, output_buffer->data(), output_buffer->size(), data, size, ZSTD_maxCLevel());
 }
 
-size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
 {
 	size_t dst_capacity = compressBound(size * sizeof(Symbol));
 	FitBuffer(dst_capacity, output_buffer);
@@ -51,7 +51,7 @@ size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::v
 	return dst_capacity;
 }
 
-size_t PpmCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+size_t PpmCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
 {
 	size_t dst_capacity = Ppmd::compress_bound(size);
 	FitBuffer(dst_capacity, output_buffer);
@@ -59,12 +59,12 @@ size_t PpmCompressor::operator()(const unsigned char* data, size_t size, std::ve
 	return Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size);
 }
 
-size_t RpCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *)
+size_t RpCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
 {
 	return Rp::rp_compress(data, size);
 }
 
-size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char> *output_buffer)
+size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
 {
 	assert(output_buffer != nullptr);
 
