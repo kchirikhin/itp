@@ -203,12 +203,12 @@ class ComplexTask(Task):
     The forecasting task which includes error and confidence intervals evaluation by forecasting already known data.
     """
     def __init__(self, statistics_handler: IComplexTaskStatisticsHandler, types, time_series,
-                 history_share, compressors, horizon, *args, **kwargs):
+                 history_len, compressors, horizon, *args, **kwargs):
         """
         :param statistics_handler: An object which will handle the results of forecasting of already known data.
         :param types: Types of item (single or vector), of time series and of elementary task.
         :param time_series: The series for forecasting.
-        :param history_share: Which part of series should be used for training.
+        :param history_len: Which part of series should be used for training.
         :param compressors: Which compressors use during forecasting.
         :param horizon: How many future values should be predicted.
         :param args: Other arguments to elementary tasks.
@@ -217,14 +217,13 @@ class ComplexTask(Task):
         self._statistics_handler = statistics_handler
         self._types = types
         self._time_series = time_series
-        self._history_share = history_share
+        self._history_len = history_len
         self._horizon = horizon
         self._elementary_tasks = []  # self._types.elementary_task_type(time_series, *args, **kwargs)
 
-        history_len = int(math.floor(len(time_series) * history_share))
         last_position = len(time_series) - horizon + 1
         if last_position < history_len:
-            raise ComplexTaskError("Length of history is not enough to make forecasts with passed history share")
+            raise ComplexTaskError("Length of time series is not enough to make forecasts with passed history len")
 
         # To forecast already known values.
         for i in range(history_len, last_position):
@@ -244,7 +243,7 @@ class ComplexTask(Task):
 
         actual_forecast = results[-1]
         training_results = results[:-1]
-        observed_values = self._form_observed_values(self._time_series, self._horizon, self._history_share)
+        observed_values = self._form_observed_values(self._time_series, self._horizon, self._history_len)
 
         self._statistics_handler.set_results_of_computations(self._time_series, actual_forecast, training_results,
                                                              observed_values, self._horizon)
@@ -254,15 +253,14 @@ class ComplexTask(Task):
         return self._time_series
 
     @staticmethod
-    def _form_observed_values(time_series: TimeSeries, horizon: int, history_share: float = 0.5):
+    def _form_observed_values(time_series: TimeSeries, horizon: int, history_len: int):
         if horizon == 1:
             raise NotImplementedError("horizont must be greater than one")
 
         to_return = []
-        history_len = int(math.floor(len(time_series) * history_share))
         last_position = len(time_series) - horizon + 1
         if last_position < history_len:
-            raise ComplexTaskError("Length of history is not enough to make forecasts with passed history share")
+            raise ComplexTaskError("Length of time series is not enough to make forecasts with passed history len")
 
         for i in range(history_len, last_position):
             to_return.append(time_series[i:(i + horizon)])
@@ -302,18 +300,18 @@ class DiscreteUnivariateComplexTask(ComplexTask):
     """
     Prediction of a single discrete univariate time series.
     """
-    def __init__(self, time_series, history_share, compressors, horizon, *args, **kwargs):
+    def __init__(self, time_series, history_len, compressors, horizon, *args, **kwargs):
         super().__init__(ComplexTaskStatisticsHandler(), Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
-                         time_series, history_share, compressors, horizon, *args, **kwargs)
+                         time_series, history_len, compressors, horizon, *args, **kwargs)
 
 
 class RealUnivariateComplexTask(ComplexTask):
     """
     Prediction of a single continuous univariate time series.
     """
-    def __init__(self, time_series, history_share, compressors, horizon, *args, **kwargs):
+    def __init__(self, time_series, history_len, compressors, horizon, *args, **kwargs):
         super().__init__(ComplexTaskStatisticsHandler(), Types(float, TimeSeries, RealUnivariateElemetaryTask),
-                         time_series, history_share, compressors, horizon, *args, **kwargs)
+                         time_series, history_len, compressors, horizon, *args, **kwargs)
 
 
 class RealMultivariateComplexTask(ComplexTask):

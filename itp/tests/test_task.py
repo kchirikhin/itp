@@ -42,7 +42,7 @@ class TestComplexTask(unittest.TestCase):
         self._horizon = 3
         self._statistics_handler = MagicMock()
         self._task = ComplexTask(self._statistics_handler, Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
-                                 self._time_series, 0.5, ['zlib'], self._horizon, 0, 0)
+                                 self._time_series, 5, ['zlib'], self._horizon, 0, 0)
 
         self._prediction0 = {'zlib': TimeSeries([10, 11, 12], dtype=int)}
         self._prediction1 = {'zlib': TimeSeries([13, 14, 15], dtype=int)}
