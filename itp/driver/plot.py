@@ -1,6 +1,5 @@
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import axes
 import numpy as np
 from abc import abstractmethod
 from itp.driver.statistics_handler import IStatisticsHandler
