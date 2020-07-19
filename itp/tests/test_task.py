@@ -1,5 +1,4 @@
 from itp.driver.task import DiscreteUnivariateElemetaryTask, SimpleTask, Types, ComplexTask
-from itp.driver.statistics_handler import ISimpleTaskStatisticsHandler
 from itp.driver.time_series import TimeSeries
 
 import unittest
