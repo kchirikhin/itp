@@ -1,11 +1,9 @@
 from abc import abstractmethod
 from collections import namedtuple
-import math
 import copy
 
 import predictor as p
 from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
-from itp.driver.forecasting_result import ForecastingResult
 from itp.driver.statistics_handler import ISimpleTaskStatisticsHandler, SimpleTaskStatisticsHandler
 from itp.driver.statistics_handler import IComplexTaskStatisticsHandler, ComplexTaskStatisticsHandler
 from itp.driver.hooks import IHook, EmptyHook
@@ -183,7 +181,7 @@ class SimpleTask(Task):
     def get_elementary_tasks(self):
         return [self._elementary_task]
 
-    def handle_results_of_computations(self, results):
+    def handle_results_of_computations(self, results) -> ISimpleTaskStatisticsHandler:
         if len(results) != 1:
             raise ValueError("results must be a list with a single elem for univariate task")
 
@@ -237,7 +235,7 @@ class ComplexTask(Task):
     def get_elementary_tasks(self):
         return self._elementary_tasks
 
-    def handle_results_of_computations(self, results) -> ForecastingResult:
+    def handle_results_of_computations(self, results) -> IComplexTaskStatisticsHandler:
         if len(results) < 1:
             raise ValueError("results must be a list with at least one elem for complex task")
 
