@@ -9,6 +9,9 @@ class Arima(ItpPredictor):
         self._alphabet_max_symbol = 255
 
     def compress(self, time_series: List[int]) -> int:
+        if time_series is None or len(time_series) == 0:
+            return 0
+
         one_letter_probability = mp.mpf(1.0) / (self._alphabet_max_symbol - self._alphabet_min_symbol + 1)
         series_probability = mp.power(one_letter_probability, len(time_series))
         return int(mp.ceil(-mp.log(series_probability, 2)))

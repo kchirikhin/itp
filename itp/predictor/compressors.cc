@@ -4,6 +4,9 @@
 #include <cassert>
 #include <iostream>
 
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
+
 namespace itp
 {
 
@@ -182,7 +185,7 @@ AutomatonCompressor::AutomatonCompressor()
 }
 
 size_t AutomatonCompressor::operator()(const unsigned char* data, size_t size,
-									   std::vector<unsigned char> *)
+									   std::vector<unsigned char>*)
 {
 	auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
 	auto res = ceil(-log2(automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size))));
@@ -199,12 +202,12 @@ size_t AutomatonCompressor::operator()(const unsigned char* data, size_t size,
 
 void AutomatonCompressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
 {
-	  automation->SetMinSymbol(alphabet_min_symbol);
-	  automation->SetMaxSymbol(alphabet_max_symbol);
+	automation->SetMinSymbol(alphabet_min_symbol);
+	automation->SetMaxSymbol(alphabet_max_symbol);
 }
 
 CompressorsPool::CompressorsPool(AlphabetDescription alphabet_description)
-	: alphabet_description_{alphabet_description}
+		: alphabet_description_{alphabet_description}
 {
 	// DO NOTHING
 }
@@ -221,7 +224,7 @@ void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<Compr
 		throw CompressorsError{"RegisterCompressor: compressor is nullptr"};
 	}
 
-	if (auto [compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); success)
+	if (auto[compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); success)
 	{
 		compressor_iter->second->SetTsParams(alphabet_description_.min_symbol, alphabet_description_.max_symbol);
 	}
@@ -245,10 +248,50 @@ size_t CompressorsPool::Compress(const std::string& compressor_name, const unsig
 
 void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_description)
 {
-	for (auto& [name, compressor] : compressor_instances_)
+	for (auto&[name, compressor] : compressor_instances_)
 	{
 		compressor->SetTsParams(alphabet_description.min_symbol, alphabet_description.max_symbol);
 	}
+}
+
+PythonCompressor::PythonCompressor(std::string module_name)
+	: module_name_{std::move(module_name)}
+{
+	// DO NOTHING
+}
+
+class InterpreterSingleton
+{
+public:
+	static void InitInterpreter()
+	{
+		static pybind11::scoped_interpreter interpreter{};
+	}
+
+private:
+	InterpreterSingleton() = default;
+	~InterpreterSingleton() = default;
+};
+
+size_t PythonCompressor::operator()(const unsigned char* data, size_t size,
+		std::vector<unsigned char>* /*output_buffer*/)
+{
+	namespace py = pybind11;
+
+	InterpreterSingleton::InitInterpreter();
+
+	py::exec(
+		"import sys\n"
+		"sys.path.insert(0, \"/home/kon/src/itp/itp/extensions/\")\n"
+		"del sys\n"
+	);
+
+	std::vector<unsigned char> d{data, data + size};
+	auto arima_class = py::module::import("arima").attr("Arima");
+	auto arima = arima_class();
+	auto result = arima.attr("compress")(d);
+
+	return py::cast<size_t>(result);
 }
 
 std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description)

@@ -62,7 +62,7 @@ include_directories(${GMOCK_INCLUDE_DIR})
 set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_compressors.cc tests/test_builders.cc tests/test_tseries.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
-target_link_libraries(pred_test PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
+target_link_libraries(pred_test PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB} pybind11::embed)
 add_test(NAME pred_test COMMAND pred_test)
 
 set(BIGNUMS_TESTS tests/test_bignums.cc)
