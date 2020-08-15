@@ -1,7 +1,3 @@
-//
-// Created by kon on 11.01.2020.
-//
-
 #include <gtest/gtest.h>
 
 #include <compressors.h>

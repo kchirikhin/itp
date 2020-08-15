@@ -18,7 +18,7 @@
 #include <memory>
 #include <utility>
 
-namespace itp { 
+namespace itp {
 
 /**
  * Evaluates the probability of the given symbol of a word.

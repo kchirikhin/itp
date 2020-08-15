@@ -10,11 +10,6 @@
 namespace itp
 {
 
-void Compressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
-{
-	// DO NOTHING
-}
-
 ZstdCompressor::ZstdCompressor()
 {
 	if (context_ = ZSTD_createCCtx(); !context_)

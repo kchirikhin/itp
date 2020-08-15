@@ -6,6 +6,7 @@
 #define ITP_COMPRESSORS_H_INCLUDED_
 
 #include "dtypes.h"
+#include "ICompressor.h"
 
 #include <zstd.h>
 #include <bzlib.h>
@@ -38,28 +39,13 @@ public:
 	}
 };
 
-/**
- * Base class for all data compression algorithms. Hides calls for library-specific functions.
- */
-class Compressor
+class CompressorBase : public ICompressor
 {
 public:
-	virtual ~Compressor() = default;
-
-	/**
-	 * Compresses data and returns size of the output sequence.
-	 * @param data Data to compress.
-	 * @param size Size of data.
-	 * @param output_buffer Where to put result.
-	 * @return Size of the compressed data in bytes.
-	 */
-	virtual size_t operator()(const unsigned char* data, size_t size,
-							  std::vector<unsigned char>* output_buffer) = 0;
-
-	/**
-	 * Inform algorithm about minimal and maximal possible values in data. It's important for automaton.
-	 */
-	virtual void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol);
+	virtual void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
+	{
+		// DO NOTHING
+	};
 
 protected:
 	/**
@@ -76,7 +62,7 @@ protected:
 	}
 };
 
-class ZstdCompressor : public Compressor
+class ZstdCompressor : public CompressorBase
 {
 public:
 	ZstdCompressor();
@@ -89,49 +75,49 @@ private:
 	ZSTD_CCtx* context_ = nullptr;
 };
 
-class ZlibCompressor : public Compressor
+class ZlibCompressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class PpmCompressor : public Compressor
+class PpmCompressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class RpCompressor : public Compressor
+class RpCompressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class Bzip2Compressor : public Compressor
+class Bzip2Compressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class LcaCompressor : public Compressor
+class LcaCompressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class ZpaqCompressor : public Compressor
+class ZpaqCompressor : public CompressorBase
 {
 public:
 	size_t operator()(const unsigned char* data, size_t size,
 					  std::vector<unsigned char>* output_buffer) override;
 };
 
-class AutomatonCompressor : public Compressor
+class AutomatonCompressor : public CompressorBase
 {
 public:
 	AutomatonCompressor();
@@ -187,7 +173,7 @@ class CompressorsPool : public CompressorsFacade
 public:
 	explicit CompressorsPool(AlphabetDescription alphabet_description);
 
-	void RegisterCompressor(std::string name, std::unique_ptr<Compressor> compressor);
+	void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor);
 
 	size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const override;
 
@@ -196,11 +182,11 @@ public:
 private:
 	AlphabetDescription alphabet_description_;
 
-	std::unordered_map<std::string, std::unique_ptr<Compressor>> compressor_instances_;
+	std::unordered_map<std::string, std::unique_ptr<ICompressor>> compressor_instances_;
 	mutable std::vector<unsigned char> output_buffer_;
 };
 
-class PythonCompressor : public Compressor
+class PythonCompressor : public CompressorBase
 {
 public:
 	explicit PythonCompressor(std::string module_name);
