@@ -85,3 +85,8 @@ set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc)
 add_executable(selector_test ${SELECTOR_TESTS} ${SOURCE_DIR}/selector.h)
 target_link_libraries(selector_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME selector_test COMMAND selector_test)
+
+set(NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS tests/test_non_compression_algorithm_adaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc)
+add_executable(non_compression_algorithm_adaptor_test ${NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS})
+target_link_libraries(non_compression_algorithm_adaptor_test ${GTEST_LIB} ${GMOCK_LIB})
+add_test(NAME non_compression_algorithm_adaptor_test COMMAND non_compression_algorithm_adaptor_test)
