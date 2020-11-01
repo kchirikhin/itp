@@ -1,11 +1,10 @@
 #include "compressors.h"
 
+#include "NonCompressionAlgorithmAdaptor.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-
-#include <pybind11/embed.h>
-#include <pybind11/stl.h>
 
 namespace itp
 {
@@ -207,7 +206,7 @@ CompressorsPool::CompressorsPool(AlphabetDescription alphabet_description)
 	// DO NOTHING
 }
 
-void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<Compressor> compressor)
+void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor)
 {
 	if (name.empty())
 	{
@@ -249,46 +248,6 @@ void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_desc
 	}
 }
 
-PythonCompressor::PythonCompressor(std::string module_name)
-	: module_name_{std::move(module_name)}
-{
-	// DO NOTHING
-}
-
-class InterpreterSingleton
-{
-public:
-	static void InitInterpreter()
-	{
-		static pybind11::scoped_interpreter interpreter{};
-	}
-
-private:
-	InterpreterSingleton() = default;
-	~InterpreterSingleton() = default;
-};
-
-size_t PythonCompressor::operator()(const unsigned char* data, size_t size,
-		std::vector<unsigned char>* /*output_buffer*/)
-{
-	namespace py = pybind11;
-
-	InterpreterSingleton::InitInterpreter();
-
-	py::exec(
-		"import sys\n"
-		"sys.path.insert(0, \"/home/kon/src/itp/itp/extensions/\")\n"
-		"del sys\n"
-	);
-
-	std::vector<unsigned char> d{data, data + size};
-	auto arima_class = py::module::import("arima").attr("Arima");
-	auto arima = arima_class();
-	auto result = arima.attr("compress")(d);
-
-	return py::cast<size_t>(result);
-}
-
 std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description)
 {
 	auto to_return = std::make_unique<CompressorsPool>(alphabet_description);
@@ -301,6 +260,8 @@ std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescripti
 	to_return->RegisterCompressor("ppmd", std::make_unique<PpmCompressor>());
 	to_return->RegisterCompressor("automation", std::make_unique<AutomatonCompressor>());
 	to_return->RegisterCompressor("zpaq", std::make_unique<ZpaqCompressor>());
+	to_return->RegisterCompressor("exponential", std::make_unique<NonCompressionAlgorithmAdaptor>(std::make_unique<PythonCompressor>("exponential_smoothing")));
+	to_return->RegisterCompressor("holt", std::make_unique<NonCompressionAlgorithmAdaptor>(std::make_unique<PythonCompressor>("holt")));
 
 	return to_return;
 }

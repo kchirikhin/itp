@@ -7,6 +7,7 @@
 
 #include "dtypes.h"
 #include "ICompressor.h"
+#include "PythonCompressor.h"
 
 #include <zstd.h>
 #include <bzlib.h>
@@ -184,17 +185,6 @@ private:
 
 	std::unordered_map<std::string, std::unique_ptr<ICompressor>> compressor_instances_;
 	mutable std::vector<unsigned char> output_buffer_;
-};
-
-class PythonCompressor : public CompressorBase
-{
-public:
-	explicit PythonCompressor(std::string module_name);
-	size_t operator()(const unsigned char* data, size_t size,
-			std::vector<unsigned char>* /*output_buffer*/) override;
-
-private:
-	std::string module_name_;
 };
 
 std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description);

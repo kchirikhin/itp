@@ -3,23 +3,38 @@ This module contains an interface which any Python forecasting algorithm intende
 """
 
 from abc import abstractmethod
-from typing import List
+from typing import List, Tuple
 
 
 class ItpPredictor:
     """
     An interface which ITP uses to call algorithms written in Python.
     """
+
     @abstractmethod
-    def compress(self, time_series: List[int]) -> int:
+    def register_full_time_series(self, time_series: List[int]) -> None:
         """
-        Evaluates the code length for the discrete time series.
+        Registers time series to predict.
+
+        :param time_series: Time series to predict.
         """
         pass
 
     @abstractmethod
-    def set_ts_params(self, alphabet_min_symbol: int, alphabet_max_symbol: int):
+    def give_next_prediction(self) -> Tuple[int, int]:
         """
-        Sets the parameters of the using alphabet.
+        Gives prediction of the next symbol. Can be called no more than len(time_series) times.
+        :return: A pair where the first element is the prediction and the second is the confidence level (0 for
+        confident prediction and 1 for non-confident one).
+        """
+        pass
+
+    @abstractmethod
+    def set_ts_params(self,  alphabet_min_symbol: int, alphabet_max_symbol: int):
+        """
+        Sets the information about alphabet.
+
+        :param alphabet_min_symbol: The minimal possible (integer) symbol in alphabet.
+        :param alphabet_max_symbol: The maximal possible (integer) symbol in alphabet.
         """
         pass

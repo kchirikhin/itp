@@ -3,12 +3,12 @@
 
 #include <gmock/gmock.h>
 
-#include <compressors.h>
+#include <ICompressor.h>
 
 namespace itp
 {
 
-class CompressorMock : public Compressor
+class CompressorMock : public ICompressor
 {
 public:
 	MOCK_METHOD3(CallOperator, size_t(const unsigned char*, size_t, std::vector<unsigned char>*));

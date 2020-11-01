@@ -13,8 +13,8 @@ HighPrecDouble KrichevskyPredictor(const size_t sym_freq, const size_t total_fre
 
 } // namespace
 
-NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAlgorithm* non_compression_algorithm)
-	: non_compression_algorithm_{non_compression_algorithm}
+NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAlgorithmPtr non_compression_algorithm)
+	: non_compression_algorithm_{std::move(non_compression_algorithm)}
 {
 	assert(non_compression_algorithm_ != nullptr);
 }
@@ -24,6 +24,7 @@ size_t NonCompressionAlgorithmAdaptor::operator()(
 	const size_t size,
 	std::vector<unsigned char>* /*output_buffer*/)
 {
+	evaluated_probability_ = 1.0;
 	if (data == nullptr)
 	{
 		throw std::runtime_error{"data is nullptr"};
@@ -66,7 +67,8 @@ size_t NonCompressionAlgorithmAdaptor::operator()(
 		letters_freq_[observed_symbol] += 1;
 	}
 
-	return ceil(-log2(evaluated_probability_));
+	constexpr size_t kBitsInByte = 8;
+	return ceil(-log2(evaluated_probability_) / kBitsInByte);
 }
 
 void NonCompressionAlgorithmAdaptor::SetTsParams(const Symbol alphabet_min_symbol, const Symbol alphabet_max_symbol)

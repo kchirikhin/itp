@@ -430,7 +430,7 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 	}
 
 	std::cout << "Results:\n";
-	for (const auto&[name, size] : results_of_computations)
+	for (const auto& [name, size] : results_of_computations)
 	{
 		std::cout << name << ' ' << size << "\n";
 	}

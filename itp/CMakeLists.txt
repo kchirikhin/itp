@@ -5,13 +5,17 @@ project(itp LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(SOURCE_DIR predictor)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 # Include directory with the headers developed in the scope of that project.
 include_directories(${SOURCE_DIR})
 
 # All source files developed in the scope of that project.
 set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
   ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
-  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/builders.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc)
+  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/builders.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc
+  ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc
+  ${SOURCE_DIR}/PythonCompressor.cc)
 file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h")
 
 # Include third-party library for high-precision floating-point arithmetic.
@@ -40,13 +44,18 @@ add_subdirectory(lib/zpaq)
 set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd zpaq)
 
 # Build the Python binding.
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+if (NOT ${Python_FOUND})
+    message(FATAL_ERROR "Cannot find python components")
+endif()
+
 add_subdirectory(lib/pybind11)
-include_directories(lib/pybind11)
+include_directories(lib/pybind11/include ${Python_INCLUDE_DIRS})
 pybind11_add_module(predictor ${SOURCE_DIR}/pyexport.cc ${PREDICTOR_SOURCES}
   ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
 
 target_compile_options(predictor PUBLIC -fPIC -Wall -pedantic)
-target_link_libraries(predictor PRIVATE ${COMPRESSION_LIBRARIES})
+target_link_libraries(predictor PRIVATE ${COMPRESSION_LIBRARIES} ${Python_LIBRARIES} pybind11::embed)
 
 enable_testing()
 
@@ -62,7 +71,7 @@ include_directories(${GMOCK_INCLUDE_DIR})
 set(PREDICTOR_TESTS tests/test_predictor.cc tests/test_compressors.cc tests/test_builders.cc tests/test_tseries.cc)
 add_executable(pred_test ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS}
   ${EXTERNAL_HEADERS})
-target_link_libraries(pred_test PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB} pybind11::embed)
+target_link_libraries(pred_test PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB} ${Python_LIBRARIES} pybind11::embed)
 add_test(NAME pred_test COMMAND pred_test)
 
 set(BIGNUMS_TESTS tests/test_bignums.cc)
@@ -78,7 +87,7 @@ add_test(NAME automaton_test COMMAND automaton_test)
 
 set(SAMPLERS_TESTS tests/test_samplers.cc ${SOURCE_DIR}/sampler.cc)
 add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
-target_link_libraries(samplers_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
+target_link_libraries(samplers_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB} ${Python_LIBRARIES})
 add_test(NAME samplers_tests COMMAND samplers_tests)
 
 set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc)
@@ -90,3 +99,8 @@ set(NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS tests/test_non_compression_algorithm
 add_executable(non_compression_algorithm_adaptor_test ${NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS})
 target_link_libraries(non_compression_algorithm_adaptor_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME non_compression_algorithm_adaptor_test COMMAND non_compression_algorithm_adaptor_test)
+
+set(EXPONENTIAL_SMOOTHING_TESTS tests/test_exponential_smoothing.cc ${SOURCE_DIR}/PythonCompressor.cc)
+add_executable(exponential_smoothing_test ${EXPONENTIAL_SMOOTHING_TESTS})
+target_link_libraries(exponential_smoothing_test ${GTEST_LIB} ${GMOCK_LIB} ${Python_LIBRARIES} pybind11::embed)
+add_test(NAME exponential_smoothing_test COMMAND exponential_smoothing_test)

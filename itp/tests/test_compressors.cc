@@ -57,24 +57,3 @@ TEST(CompressorsPoolTest, ResetsAlphabetDescriptionForAllRegisteredCompressors)
 
 	pool->ResetAlphabetDescription(AlphabetDescription{30, 40});
 }
-
-TEST(ArimaTest, ReturnsZeroOnEmptyInput)
-{
-	const unsigned char* data = nullptr;
-	PythonCompressor arima{"arima.py"};
-	EXPECT_EQ(arima(data, 0, nullptr), 0);
-}
-
-TEST(ArimaTest, CorrectlyWorksOnOneLetter)
-{
-	const unsigned char data[] = {5};
-	PythonCompressor arima{"arima.py"};
-	EXPECT_EQ(arima(data, sizeof(data) / sizeof(unsigned char), nullptr), static_cast<size_t>(ceil(-log2(1.0/256))));
-}
-
-TEST(ArimaTest, CorrectlyWorksOnTwoLetters)
-{
-	const unsigned char data[] = {5, 7};
-	PythonCompressor arima{"arima.py"};
-	EXPECT_EQ(arima(data, sizeof(data) / sizeof(unsigned char), nullptr), static_cast<size_t>(ceil(-log2(1.0/(256 * 256)))));
-}

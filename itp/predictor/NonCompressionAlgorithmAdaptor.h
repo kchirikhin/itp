@@ -11,7 +11,7 @@ namespace itp
 class NonCompressionAlgorithmAdaptor : public ICompressor
 {
 public:
-	explicit NonCompressionAlgorithmAdaptor(INonCompressionAlgorithm* non_compression_algorithm);
+	explicit NonCompressionAlgorithmAdaptor(INonCompressionAlgorithmPtr non_compression_algorithm);
 
 	size_t operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) override;
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
@@ -24,7 +24,7 @@ private:
 		return static_cast<size_t>(*alphabet_max_symbol_) - static_cast<size_t>(*alphabet_min_symbol_) + 1u;
 	}
 
-	INonCompressionAlgorithm* non_compression_algorithm_;
+	INonCompressionAlgorithmPtr non_compression_algorithm_;
 
 	std::optional<Symbol> alphabet_min_symbol_ = std::nullopt;
 	std::optional<Symbol> alphabet_max_symbol_ = std::nullopt;
