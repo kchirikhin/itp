@@ -52,7 +52,21 @@ class TimeSeriesTest(unittest.TestCase):
 
     def test_raises_during_assignment_if_slice_is_out_of_range(self):
         ts = TimeSeries([10, 20])
-        self.assertRaises(IndexError, ts.__setitem__, slice(1, 3), [40, 50])
+        self.assertRaises(ValueError, ts.__setitem__, slice(1, 3), [40, 50])
+
+    def test_getitem_supports_negative_start(self):
+        self.assertEqual(self._ts[-2:], TimeSeries([2, 3]))
+
+    def test_setitem_supports_negative_start(self):
+        self._ts[-2:] = TimeSeries([4, 5])
+        self.assertEqual(self._ts, TimeSeries([1, 4, 5]))
+
+    def test_getitem_supports_negative_end(self):
+        self.assertEqual(self._ts[:-1], TimeSeries([1, 2]))
+
+    def test_setitem_supports_negative_end(self):
+        self._ts[:-1] = TimeSeries([4, 5])
+        self.assertEqual(self._ts, TimeSeries([4, 5, 3]))
 
     def test_time_series_are_comparable(self):
         self.assertEqual(self._ts, self._ts)
@@ -173,8 +187,19 @@ class TestMultivariateTimeSeries(unittest.TestCase):
         self.assertEqual(self._ts[0:2], MultivariateTimeSeries([[1, 2], [4, 5]]))
         np.testing.assert_array_equal(self._ts[0:2][1], np.array([2, 5]))
 
-    def test_raises_if_slice_is_out_of_range(self):
-        np.testing.assert_raises(IndexError, self._ts.__getitem__, slice(2, 4))
+    def test_getitem_supports_negative_start(self):
+        self.assertEqual(self._ts[-2:], MultivariateTimeSeries([[2, 3], [5, 6]]))
+
+    def test_setitem_supports_negative_start(self):
+        self._ts[-2:] = [[20, 30], [50, 60]]
+        self.assertEqual(self._ts, MultivariateTimeSeries([[1, 20, 30], [4, 50, 60]]))
+
+    def test_getitem_supports_negative_end(self):
+        self.assertEqual(self._ts[:-1], MultivariateTimeSeries([[1, 2], [4, 5]]))
+
+    def test_setitem_supports_negative_end(self):
+        self._ts[:-1] = [[10, 20], [40, 50]]
+        self.assertEqual(self._ts, MultivariateTimeSeries([[10, 20, 3], [40, 50, 6]]))
 
     def test_nseries_returns_number_of_series(self):
         self.assertEqual(self._ts.nseries(), 2)
@@ -210,7 +235,7 @@ class TestMultivariateTimeSeries(unittest.TestCase):
 
     def test_assignment_throws_if_index_is_out_of_range(self):
         self.assertRaises(IndexError, self._ts.__setitem__, 3, [5, 6])
-        self.assertRaises(IndexError, self._ts.__setitem__, slice(3, 4), [[5, 6], [7, 8]])
+        self.assertRaises(ValueError, self._ts.__setitem__, slice(3, 4), [[5, 6], [7, 8]])
 
     def test_frequency_is_one_by_default(self):
         self.assertEqual(self._ts.frequency(), 1)

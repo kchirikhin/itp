@@ -34,10 +34,6 @@ class TimeSeries:
         return self._data[key]
 
     def __setitem__(self, key, value):
-        if isinstance(key, slice):
-            if (key.start is not None and key.start < 0) or (key.stop is not None and len(self._data) < key.stop):
-                raise IndexError("Key " + str(key) + " is out of range [0:" + str(len(self._data)) + "]")
-
         self._data[key] = value
 
     def __eq__(self, other):
@@ -106,19 +102,12 @@ class MultivariateTimeSeries(TimeSeries):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
-                raise IndexError("Key " + str(key) + " is out of range [0:" + str(self._size) + "]")
-
             return MultivariateTimeSeries(self._data[:, key], self._frequency, self._dtype)
 
         self._validate_key(key)
         return np.fromiter(self._make_slice(key), self._dtype)
 
     def __setitem__(self, key, value):
-        if isinstance(key, slice):
-            if (key.start is not None and key.start < 0) or (key.stop is not None and self._size < key.stop):
-                raise IndexError("Key " + str(key) + " is out of range [0:" + str(self._size) + "]")
-
         for i in range(self.nseries()):
             self._data[i, key] = value[i]
 
