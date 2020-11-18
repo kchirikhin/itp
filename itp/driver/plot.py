@@ -59,10 +59,10 @@ class YearsGenerator(TicsGenerator):
 class MonthsGenerator(TicsGenerator):
     """Each call of next returns the next month as str (together with the year)"""
 
-    _month_to_ind = {'Январь': 0, 'Февраль': 1, 'Март': 2, 'Апрель': 3, 'Май': 4, 'Июнь': 5,
-                     'Июль': 6, 'Август': 7, 'Сентябрь': 8, 'Октябрь': 9, 'Ноябрь': 10, 'Декабрь': 11}
-    _ind_to_month = {0: 'Январь', 1: 'Февраль', 2: 'Март', 3: 'Апрель', 4: 'Май', 5: 'Июнь',
-                     6: 'Июль', 7: 'Август', 8: 'Сентябрь', 9: 'Октябрь', 10: 'Ноябрь', 11: 'Декабрь'}
+    _month_to_ind = {'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+                     'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11}
+    _ind_to_month = {0: 'January', 1: 'February', 2: 'March', 3: 'April', 4: 'May', 5: 'June',
+                     6: 'July', 7: 'August', 8: 'September', 9: 'October', 10: 'November', 11: 'December'}
 
     """Start month can be specified as month number (starting with zero), or as a month's name in Russian"""
 
