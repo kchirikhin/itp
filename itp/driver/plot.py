@@ -85,6 +85,39 @@ class MonthsGenerator(TicsGenerator):
         return to_return
 
 
+class CustomGenerator(TicsGenerator):
+    """
+    Ticks generator that yields passed labels.
+    """
+    class _BoundedCounter:
+        """
+        A counter with upper limit.
+        """
+        def __init__(self, max_value):
+            self._counter = 0
+            self._max_value = max_value
+
+        def postfix_increment(self) -> int:
+            """
+            Increments counter by 1 and returns its value before increment.
+
+            If after increment the value becomes greater than max_value, the counter will not be incremented.
+            :return: The value of counter before increment.
+            :rtype: int
+            """
+            result = self._counter
+            if self._counter < self._max_value:
+                self._counter += 1
+            return result
+
+    def __init__(self, ticks):
+        self._ticks = ticks
+        self._current_tick = self._BoundedCounter(len(self._ticks) - 1)
+
+    def next(self):
+        return self._ticks[self._current_tick.postfix_increment()]
+
+
 class Plot(Visualizer):
     def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0, tail=None):
         self._compressor = compressor
