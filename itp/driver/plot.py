@@ -64,7 +64,7 @@ class MonthsGenerator(TicsGenerator):
     _ind_to_month = {0: 'Январь', 1: 'Февраль', 2: 'Март', 3: 'Апрель', 4: 'Май', 5: 'Июнь',
                      6: 'Июль', 7: 'Август', 8: 'Сентябрь', 9: 'Октябрь', 10: 'Ноябрь', 11: 'Декабрь'}
 
-    """Start month can be specefied as month number (starting with zero), or as a month's name in Russian"""
+    """Start month can be specified as month number (starting with zero), or as a month's name in Russian"""
 
     def __init__(self, start_month=0, start_year=1):
         if type(start_month) is str:
