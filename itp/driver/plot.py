@@ -99,7 +99,7 @@ class Plot(Visualizer):
             matplotlib.use('agg')
 
         history_color = 'black'
-        forecast_color = 'black'
+        forecast_color = 'red'
 
         forecast_linestyle = '--'
 
