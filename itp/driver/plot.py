@@ -86,13 +86,14 @@ class MonthsGenerator(TicsGenerator):
 
 
 class Plot(Visualizer):
-    def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0):
+    def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0, tail=None):
         self._compressor = compressor
         self._xtics_generator = xtics_generator
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._filename = filename
         self._series_number = series_number
+        self._tail = tail
 
     def visualize(self, statistics_handler: IStatisticsHandler):
         if self._filename is not None:
@@ -104,24 +105,32 @@ class Plot(Visualizer):
         forecast_linestyle = '--'
 
         target_series = statistics_handler.history().series(self._series_number).to_list()
+        if self._tail is not None:
+            target_series = target_series[-self._tail:]
+
         forecast = statistics_handler.forecast(self._compressor).series(self._series_number).to_list()
         x_axis_len = len(target_series) + len(forecast)
 
         plt.plot(target_series, history_color)
         plt.ticklabel_format(axis='y', style='plain')
         plt.plot(np.arange(len(target_series), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
-        plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color, linestyle=forecast_linestyle)
+        plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color,
+                 linestyle=forecast_linestyle)
 
         bounds_linestyle = ':'
         if has_method(statistics_handler, 'lower_bounds'):
             lower_bounds = statistics_handler.lower_bounds(self._compressor).series(self._series_number).to_list()
-            plt.plot(np.arange(len(target_series), x_axis_len), lower_bounds, forecast_color, linestyle=bounds_linestyle)
-            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], lower_bounds[0]], forecast_color, linestyle=bounds_linestyle)
+            plt.plot(np.arange(len(target_series), x_axis_len), lower_bounds, forecast_color,
+                     linestyle=bounds_linestyle)
+            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], lower_bounds[0]], forecast_color,
+                     linestyle=bounds_linestyle)
 
         if has_method(statistics_handler, 'upper_bounds'):
             upper_bounds = statistics_handler.upper_bounds(self._compressor).series(self._series_number).to_list()
-            plt.plot(np.arange(len(target_series), x_axis_len), upper_bounds, forecast_color, linestyle=bounds_linestyle)
-            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], upper_bounds[0]], forecast_color, linestyle=bounds_linestyle)
+            plt.plot(np.arange(len(target_series), x_axis_len), upper_bounds, forecast_color,
+                     linestyle=bounds_linestyle)
+            plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], upper_bounds[0]], forecast_color,
+                     linestyle=bounds_linestyle)
 
         plt.xlabel(self._xlabel)
         plt.ylabel(self._ylabel)
