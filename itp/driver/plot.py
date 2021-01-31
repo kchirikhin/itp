@@ -119,7 +119,8 @@ class CustomGenerator(TicsGenerator):
 
 
 class Plot(Visualizer):
-    def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0, tail=None):
+    def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0, tail=None,
+                 legend_loc=None):
         self._compressor = compressor
         self._xtics_generator = xtics_generator
         self._xlabel = xlabel
@@ -127,6 +128,7 @@ class Plot(Visualizer):
         self._filename = filename
         self._series_number = series_number
         self._tail = tail
+        self._legend_loc = legend_loc
 
     def visualize(self, statistics_handler: IStatisticsHandler):
         if self._filename is not None:
@@ -144,11 +146,11 @@ class Plot(Visualizer):
         forecast = statistics_handler.forecast(self._compressor).series(self._series_number).to_list()
         x_axis_len = len(target_series) + len(forecast)
 
-        plt.plot(target_series, history_color)
+        plt.plot(target_series, history_color, label="observed values")
         plt.ticklabel_format(axis='y', style='plain')
         plt.plot(np.arange(len(target_series), x_axis_len), forecast, forecast_color, linestyle=forecast_linestyle)
         plt.plot([len(target_series)-1, len(target_series)], [target_series[-1], forecast[0]], forecast_color,
-                 linestyle=forecast_linestyle)
+                 linestyle=forecast_linestyle, label="forecast")
 
         bounds_linestyle = ':'
         if has_method(statistics_handler, 'lower_bounds'):
@@ -171,6 +173,9 @@ class Plot(Visualizer):
                    rotation='vertical')
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
         plt.tight_layout()
+
+        if self._legend_loc is not None:
+            plt.legend(loc=self._legend_loc)
 
         if self._filename is None:
             plt.show()
