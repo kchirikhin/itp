@@ -168,7 +168,7 @@ def _compute_standard_deviations(results, observed, horizon):
         errors_ts = results[0][compressor].generate_zeroes_array(len(observed), dtype=float)
         for i in range(horizon):
             for j in range(len(observed)):
-                errors_ts[j] = abs(results[j][compressor][i] - observed[j][i])
+                errors_ts[j] = results[j][compressor][i] - observed[j][i]
             standard_deviations[i] = ts_standard_deviation(errors_ts)
         to_return[compressor] = standard_deviations
 
