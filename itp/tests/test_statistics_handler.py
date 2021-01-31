@@ -41,7 +41,7 @@ class TestUtilityFunctions(unittest.TestCase):
             self.assertAlmostEqual(expected_result['zlib'][i], actual_result['zlib'][i])
 
     def test_compute_standard_deviations_returns_right_answer(self) -> None:
-        expected_result = {'zlib': TimeSeries([0.05, 0.05, 0.0], dtype=float)}
+        expected_result = {'zlib': TimeSeries([0.05, 0.15, 0.2], dtype=float)}
         actual_result = sut._compute_standard_deviations(self._predicted, self._observed, self._horizon)
 
         for i in range(len(expected_result['zlib'])):
@@ -85,13 +85,13 @@ class TestComplexTaskStatisticsHandler(unittest.TestCase):
             self.assertAlmostEqual(obtained_relative_errors[i], expected_relative_errors[i])
 
     def test_returns_right_lower_bounds(self):
-        expected_lower_bounds = TimeSeries([0.95, 1.45, 2], dtype=float)
+        expected_lower_bounds = TimeSeries([0.95, 1.35, 1.8], dtype=float)
         obtained_lower_bounds = self._statistics.lower_bounds('zlib')
         for i in range(len(expected_lower_bounds)):
             self.assertAlmostEqual(obtained_lower_bounds[i], expected_lower_bounds[i])
 
     def test_returns_right_upper_bounds(self):
-        expected_upper_bounds = TimeSeries([1.05, 1.55, 2], dtype=float)
+        expected_upper_bounds = TimeSeries([1.05, 1.65, 2.2], dtype=float)
         obtained_upper_bounds = self._statistics.upper_bounds('zlib')
         for i in range(len(expected_upper_bounds)):
             self.assertAlmostEqual(obtained_upper_bounds[i], expected_upper_bounds[i])
