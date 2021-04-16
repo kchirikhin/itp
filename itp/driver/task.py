@@ -270,8 +270,8 @@ class DiscreteUnivariateSimpleTask(SimpleTask):
     """
     Prediction of a single discrete univariate time series.
     """
-    def __init__(self, time_series, *args, **kwargs):
-        super().__init__(SimpleTaskStatisticsHandler(), Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
+    def __init__(self, time_series, statistics_handler=SimpleTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
                          time_series, *args, **kwargs)
 
 
@@ -279,8 +279,8 @@ class RealUnivariateSimpleTask(SimpleTask):
     """
     Prediction of a single continuous univariate time series.
     """
-    def __init__(self, time_series, *args, **kwargs):
-        super().__init__(SimpleTaskStatisticsHandler(), Types(float, TimeSeries, RealUnivariateElemetaryTask),
+    def __init__(self, time_series, statistics_handler=SimpleTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(float, TimeSeries, RealUnivariateElemetaryTask),
                          time_series, *args, **kwargs)
 
 
@@ -288,18 +288,18 @@ class RealMultivariateSimpleTask(SimpleTask):
     """
     Prediction of a single continuous multivariate time series.
     """
-    def __init__(self, time_series, *args, **kwargs):
-        super().__init__(SimpleTaskStatisticsHandler(),
-                         Types(float, MultivariateTimeSeries, RealMultivariateElemetaryTask), time_series, *args,
-                         **kwargs)
+    def __init__(self, time_series, statistics_handler=SimpleTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(float, MultivariateTimeSeries, RealMultivariateElemetaryTask),
+                         time_series, *args, **kwargs)
 
 
 class DiscreteUnivariateComplexTask(ComplexTask):
     """
     Prediction of a single discrete univariate time series.
     """
-    def __init__(self, time_series, history_len, compressors, horizon, *args, **kwargs):
-        super().__init__(ComplexTaskStatisticsHandler(), Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
+    def __init__(self, time_series, history_len, compressors, horizon,
+                 statistics_handler=ComplexTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
                          time_series, history_len, compressors, horizon, *args, **kwargs)
 
 
@@ -307,8 +307,9 @@ class RealUnivariateComplexTask(ComplexTask):
     """
     Prediction of a single continuous univariate time series.
     """
-    def __init__(self, time_series, history_len, compressors, horizon, *args, **kwargs):
-        super().__init__(ComplexTaskStatisticsHandler(), Types(float, TimeSeries, RealUnivariateElemetaryTask),
+    def __init__(self, time_series, history_len, compressors, horizon,
+                 statistics_handler=ComplexTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(float, TimeSeries, RealUnivariateElemetaryTask),
                          time_series, history_len, compressors, horizon, *args, **kwargs)
 
 
@@ -316,7 +317,6 @@ class RealMultivariateComplexTask(ComplexTask):
     """
     Prediction of a single continuous multivariate time series.
     """
-    def __init__(self, time_series, *args, **kwargs):
-        super().__init__(ComplexTaskStatisticsHandler(),
-                         Types(float, MultivariateTimeSeries, RealMultivariateElemetaryTask), time_series, *args,
-                         **kwargs)
+    def __init__(self, time_series, statistics_handler=ComplexTaskStatisticsHandler(), *args, **kwargs):
+        super().__init__(statistics_handler, Types(float, MultivariateTimeSeries, RealMultivariateElemetaryTask),
+                         time_series, *args, **kwargs)

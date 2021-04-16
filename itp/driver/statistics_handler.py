@@ -252,3 +252,51 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
 
     def __eq__(self, other: 'ComplexTaskStatisticsHandler') -> bool:
         return self._forecast == other._forecast
+
+
+class SumOfErrorsStatisticsHandler(IComplexTaskStatisticsHandler):
+    def __init__(self):
+        self._history = None
+        self._forecast = None
+        self._sum_of_errors = None
+
+    def set_results_of_computations(self, history: Union[TimeSeries, MultivariateTimeSeries],
+                                    forecast: Dict[str, Union[TimeSeries, MultivariateTimeSeries]],
+                                    predicted_values: List[Dict[str, Union[TimeSeries, MultivariateTimeSeries]]],
+                                    observed_values: List[Union[TimeSeries, MultivariateTimeSeries]],
+                                    horizon: int) -> None:
+        self._history = history
+        self._forecast = forecast
+        self._sum_of_errors = _compute_sum_of_errors(predicted_values, observed_values, horizon)
+
+        assert self._history is not None
+        assert self._forecast is not None
+        assert self._sum_of_errors is not None
+
+    def history(self) -> Union[TimeSeries, MultivariateTimeSeries]:
+        _raise_if_none(self._history, self.__class__.__name__ + ": set_results_of_computations wasn't called")
+        return self._history
+
+    def forecast(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
+        _raise_if_none(self._forecast, self.__class__.__name__ + ": set_results_of_computations wasn't called")
+        return self._forecast[compressor]
+
+    def sum_of_errors(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
+        _raise_if_none(self._sum_of_errors, self.__class__.__name__ + ": set_results_of_computations wasn't called")
+        return self._sum_of_errors[compressor]
+
+
+def _compute_sum_of_errors(results, observed, horizon):
+    if len(results) == 0:
+        raise StatisticsHandlerError("Empty results were passed")
+
+    sum_of_errors = {}
+    for compressor in results[0].keys():
+        errors = results[0][compressor].generate_zeroes_array(horizon, dtype=float)
+        for result, real_values in zip(results, observed):
+            for i in range(horizon):
+                errors[i] += abs(result[compressor][i] - real_values[i])
+
+        sum_of_errors[compressor] = errors
+
+    return sum_of_errors

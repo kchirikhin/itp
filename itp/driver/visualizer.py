@@ -53,10 +53,9 @@ class TextVisualizer(Visualizer):
 
         self._print_row(statistics_handler.forecast, 'forecast')
 
-        self._print_if_exists(statistics_handler, 'mean_absolute_errors')
-        self._print_if_exists(statistics_handler, 'relative_errors')
-        self._print_if_exists(statistics_handler, 'lower_bounds')
-        self._print_if_exists(statistics_handler, 'upper_bounds')
+        optional_stats = ['mean_absolute_errors', 'relative_errors', 'lower_bounds', 'upper_bounds', 'sum_of_errors']
+        for stat in optional_stats:
+            self._print_if_exists(statistics_handler, stat)
 
     def _print_if_exists(self, statistics_handler, attr_name):
         if has_method(statistics_handler, attr_name):

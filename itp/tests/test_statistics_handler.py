@@ -47,6 +47,13 @@ class TestUtilityFunctions(unittest.TestCase):
         for i in range(len(expected_result['zlib'])):
             self.assertAlmostEqual(expected_result['zlib'][i], actual_result['zlib'][i])
 
+    def test_compute_sum_of_errors_returns_right_answer(self) -> None:
+        expected_result = {'zlib': TimeSeries([0.1, 0.3, 0.4], dtype=float)}
+        actual_result = sut._compute_sum_of_errors(self._predicted, self._observed, self._horizon)
+
+        for i in range(len(expected_result['zlib'])):
+            self.assertAlmostEqual(expected_result['zlib'][i], actual_result['zlib'][i])
+
 
 class TestComplexTaskStatisticsHandler(unittest.TestCase):
     def setUp(self) -> None:
@@ -88,6 +95,42 @@ class TestComplexTaskStatisticsHandler(unittest.TestCase):
         obtained_upper_bounds = self._statistics.upper_bounds('zlib')
         for i in range(len(expected_upper_bounds)):
             self.assertAlmostEqual(obtained_upper_bounds[i], expected_upper_bounds[i])
+
+
+class SumOfErrorsStatisticsHandler(unittest.TestCase):
+    def setUp(self) -> None:
+        self._history = TimeSeries([0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], dtype=int)
+        self._horizon = 1
+        self._predicted = [{'zlib': TimeSeries([1]), 'automaton': TimeSeries([0])},
+                           {'zlib': TimeSeries([1]), 'automaton': TimeSeries([0])},
+                           {'zlib': TimeSeries([0]), 'automaton': TimeSeries([0])},
+                           {'zlib': TimeSeries([1]), 'automaton': TimeSeries([1])},
+                           {'zlib': TimeSeries([0]), 'automaton': TimeSeries([1])},
+                           {'zlib': TimeSeries([1]), 'automaton': TimeSeries([1])}]
+        self._observed = [TimeSeries([0]), TimeSeries([0]), TimeSeries([0]), TimeSeries([1]), TimeSeries([1]),
+                          TimeSeries([1])]
+        self._forecast = {'zlib': TimeSeries([1]), 'automaton': TimeSeries([0])}
+        self._statistics = sut.SumOfErrorsStatisticsHandler()
+        self._statistics.set_results_of_computations(self._history, self._forecast, self._predicted,
+                                                     self._observed, self._horizon)
+
+    def test_returns_right_history(self):
+        self._sequences_almost_equal(self._statistics.history(), self._history)
+
+    def test_returns_right_forecast(self):
+        def check_for_compressor(compressor_name: str):
+            self._sequences_almost_equal(self._statistics.forecast(compressor_name), self._forecast[compressor_name])
+
+        check_for_compressor('zlib')
+        check_for_compressor('automaton')
+
+    def test_returns_right_sum_of_errors(self):
+        self._sequences_almost_equal(self._statistics.sum_of_errors('zlib'), TimeSeries([3]))
+        self._sequences_almost_equal(self._statistics.sum_of_errors('automaton'), TimeSeries([0]))
+
+    def _sequences_almost_equal(self, seq1, seq2):
+        for val1, val2 in zip(seq1, seq2):
+            self.assertAlmostEqual(val1, val2)
 
 
 if __name__ == '__main__':
