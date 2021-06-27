@@ -70,7 +70,7 @@ class ItpPredictorInterface:
     @staticmethod
     def forecast_discrete(time_series, compressors, horizon, difference, sparse) -> Dict[str, TimeSeries]:
         result = p.make_forecast_discrete(time_series.to_list(), compressors, horizon, difference, sparse)
-        return {key: TimeSeries(value, time_series.frequency(), time_series.dtype()) for key, value in result.items()}
+        return {key: TimeSeries([round(x) for x in value], time_series.frequency(), time_series.dtype()) for key, value in result.items()}
 
     @staticmethod
     def forecast_multialphabet(time_series, compressors, horizon, difference, max_quanta_count,
