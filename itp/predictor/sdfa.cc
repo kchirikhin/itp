@@ -161,10 +161,14 @@ bool Sensing_DFA::matching() {
       break;
     }
 
-    while ((h3a != h(3))) {
+    while ((h3a != h(3)) && (a[h3a] == a[h(4)])) {
       EXIT_IF_IMPOSSIBLE(Move(h3a));
       guess_if_rightmost(h(4), a[h3a], IsPredictionConfident::kYes);
       EXIT_IF_IMPOSSIBLE(Move(h(4)));
+    }
+
+    if (a[h3a] != a[h(4)]) {
+      break;
     }
   }
 
