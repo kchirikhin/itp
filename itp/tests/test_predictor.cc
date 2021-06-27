@@ -753,6 +753,35 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecas
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
 }
 
+TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceOneStepForecast_predict_PredictionIsCorrect)
+{
+	std::vector<unsigned char> ts {0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2};
+	auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+	auto sampler = std::make_shared<Sampler<Symbol>>();
+	size_t horizont = 1u;
+	std::vector<Names> compressors {{"ppmd"}};
+	auto dpredictor = std::make_shared<Discrete_distribution_predictor<Double, Symbol>>(computer, sampler);
+	Basic_pointwise_predictor<Double, Symbol> ppredictor {dpredictor};
+	Forecast<Double> forecast = ppredictor.Predict(ts, horizont, compressors);
+	std::vector<double> expected_forecast{1.9922028179};
+	EXPECT_NEAR(forecast("ppmd", 0).point, expected_forecast[0], 1e-5);
+}
+
+TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect)
+{
+	std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
+	auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+	auto sampler = std::make_shared<Sampler<Symbol>>();
+	size_t horizont = 2u;
+	std::vector<Names> compressors {{"zlib", "rp"}};
+	auto dpredictor = std::make_shared<Discrete_distribution_predictor<Double, Symbol>>(computer, sampler);
+	Basic_pointwise_predictor<Double, Symbol> ppredictor {dpredictor};
+	Forecast<Double> forecast = ppredictor.Predict(ts, horizont, compressors);
+	std::vector<double> expected_forecast{1.0264274976, 1.0151519618};
+	EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
+	EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
+}
+
 TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect)
 {
   std::vector<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};

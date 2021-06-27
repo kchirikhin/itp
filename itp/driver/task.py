@@ -252,9 +252,6 @@ class ComplexTask(Task):
 
     @staticmethod
     def _form_observed_values(time_series: TimeSeries, horizon: int, history_len: int):
-        if horizon == 1:
-            raise NotImplementedError("horizont must be greater than one")
-
         to_return = []
         last_position = len(time_series) - horizon + 1
         if last_position < history_len:
