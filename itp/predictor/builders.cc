@@ -42,32 +42,40 @@ inline void check_quants_count_range(size_t quants_count) {
 }
 
 std::map<std::string, std::vector<itp::Double>>
-make_forecast_real(const std::vector<itp::Double> &time_series, const itp::Names &compressors_groups,
-                   size_t horizont, size_t difference, size_t quants_count, int sparse) {
-  check_args(horizont, difference, sparse);
-  check_quants_count_range(quants_count);
+make_forecast_real(
+		const std::vector<itp::Double> &time_series,
+		const itp::Names &compressors_groups,
+		size_t horizon,
+		size_t difference,
+		size_t quanta_count, int sparse) {
+  check_args(horizon, difference, sparse);
+  check_quants_count_range(quanta_count);
   
   Forecasting_algorithm_real<itp::Double> make_forecast;
-  make_forecast.set_quants_count(quants_count);
-  return make_forecast(time_series, compressors_groups, horizont, difference, sparse);
+  make_forecast.set_quants_count(quanta_count);
+  return make_forecast(time_series, compressors_groups, horizon, difference, sparse);
 }
 
 std::map<std::string, std::vector<itp::Double>>
-make_forecast_multialphabet(const std::vector<double> &history,
-                            const itp::Names &compressors_groups, size_t horizont,
-                            size_t difference, size_t max_quants_count, int sparse) {
-  check_args(horizont, difference, sparse);
-  check_quants_count_range(max_quants_count);
-  if (!itp::IsPowerOfTwo(max_quants_count)) {
+make_forecast_multialphabet(
+		const std::vector<double> &history,
+		const itp::Names &compressors_groups,
+		size_t horizon,
+		size_t difference,
+		size_t max_quanta_count,
+		int sparse) {
+  check_args(horizon, difference, sparse);
+  check_quants_count_range(max_quanta_count);
+  if (!itp::IsPowerOfTwo(max_quanta_count)) {
     throw std::invalid_argument("Max quants count should be greater a power of two.");
   }
   
   Forecasting_algorithm_multialphabet<itp::Double> make_forecast;
-  make_forecast.set_quants_count(max_quants_count);
+  make_forecast.set_quants_count(max_quanta_count);
 
   std::vector<itp::Double> transformed_history;
   std::copy(begin(history), end(history), std::back_inserter(transformed_history));
-  return make_forecast(transformed_history, compressors_groups, horizont, difference, sparse);
+  return make_forecast(transformed_history, compressors_groups, horizon, difference, sparse);
 }
 
 std::vector<itp::VectorDouble> Convert(const std::vector<std::vector<double>> &series) {
@@ -114,8 +122,8 @@ std::vector<std::vector<double>> Convert(const std::vector<itp::VectorDouble> &r
   return to_return;
 }
 
-std::map<std::string, std::vector<std::vector<double>>>
-Convert(const std::map<std::string, std::vector<itp::VectorDouble>> &res) {
+std::map<std::string, std::vector<std::vector<double>>> Convert(
+		const std::map<std::string, std::vector<itp::VectorDouble>> &res) {
   std::map<std::string, std::vector<std::vector<double>>> to_return;
   for (const auto &pair : res) {
     to_return[pair.first] = Convert(pair.second);
@@ -124,40 +132,48 @@ Convert(const std::map<std::string, std::vector<itp::VectorDouble>> &res) {
   return to_return;
 }
 
-std::map<std::string, std::vector<std::vector<double>>>
-make_forecast_multialphabet_vec(const std::vector<std::vector<double>> &history,
-                                const itp::Names &compressors_groups, size_t horizont,
-                                size_t difference, size_t max_quants_count, int sparse) {
-  check_args(horizont, difference, sparse);
-  check_quants_count_range(max_quants_count);
-  if (!itp::IsPowerOfTwo(max_quants_count)) {
+std::map<std::string, std::vector<std::vector<double>>> make_forecast_multialphabet_vec(
+		const std::vector<std::vector<double>> &history,
+		const itp::Names &compressors_groups,
+		size_t horizon,
+		size_t difference,
+		size_t max_quanta_count,
+		int sparse) {
+  check_args(horizon, difference, sparse);
+  check_quants_count_range(max_quanta_count);
+  if (!itp::IsPowerOfTwo(max_quanta_count)) {
     throw std::invalid_argument("Max quants count should be greater a power of two.");
   }
   
   Forecasting_algorithm_multialphabet<itp::VectorDouble> make_forecast;
-  make_forecast.set_quants_count(max_quants_count);
+  make_forecast.set_quants_count(max_quanta_count);
 
-  return Convert(make_forecast(Convert(history), compressors_groups, horizont, difference, sparse));
+  return Convert(make_forecast(Convert(history), compressors_groups, horizon, difference, sparse));
 }
 
-std::map<std::string, std::vector<itp::Double>>
-make_forecast_discrete(const std::vector<itp::Symbol> &history, const std::vector<std::string> &compressors_groups,
-                       size_t horizont, size_t difference, int sparse) {
-  check_args(horizont, difference, sparse);
+std::map<std::string, std::vector<itp::Double>> make_forecast_discrete(
+		const std::vector<itp::Symbol> &history,
+		const std::vector<std::string> &compressors_groups,
+		size_t horizon,
+		size_t difference,
+		int sparse) {
+  check_args(horizon, difference, sparse);
   
   Forecasting_algorithm_discrete<itp::Double, itp::Symbol> make_forecast;
-  auto res = make_forecast(history, compressors_groups, horizont, difference, sparse);
+  auto res = make_forecast(history, compressors_groups, horizon, difference, sparse);
   return res;
 }
 
-std::map<std::string, std::vector<itp::VectorDouble>>
-make_forecast_discrete_vec(const std::vector<itp::VectorSymbol> &history,
-                           const std::vector<std::string> &compressors_groups, size_t horizont,
-                           size_t difference, int sparse) {
-  check_args(horizont, difference, sparse);
+std::map<std::string, std::vector<itp::VectorDouble>> make_forecast_discrete_vec(
+		const std::vector<itp::VectorSymbol> &history,
+		const std::vector<std::string> &compressors_groups,
+		size_t horizon,
+		size_t difference,
+		int sparse) {
+  check_args(horizon, difference, sparse);
 
   Forecasting_algorithm_discrete<itp::VectorDouble, itp::VectorSymbol> make_forecast;
-  auto res = make_forecast(history, compressors_groups, horizont, difference, sparse);
+  auto res = make_forecast(history, compressors_groups, horizon, difference, sparse);
 
   return res;
 }

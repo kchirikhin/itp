@@ -43,7 +43,7 @@ public:
 class CompressorBase : public ICompressor
 {
 public:
-	virtual void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
+	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override
 	{
 		// DO NOTHING
 	};
@@ -165,6 +165,7 @@ public:
 	 */
 	virtual void ResetAlphabetDescription(AlphabetDescription alphabet_description) = 0;
 };
+using CompressorsFacadeUPtr = std::unique_ptr<CompressorsFacade>;
 
 /**
  * Implementation of CompressorsFacade, which avoids unnecessary allocations of memory to improve efficiency.
@@ -187,7 +188,7 @@ private:
 	mutable std::vector<unsigned char> output_buffer_;
 };
 
-std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description);
+CompressorsFacadeUPtr MakeStandardCompressorsPool(AlphabetDescription alphabet_description);
 
 } // of namespace itp
 

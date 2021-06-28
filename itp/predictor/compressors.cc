@@ -248,7 +248,7 @@ void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_desc
 	}
 }
 
-std::unique_ptr<CompressorsFacade> MakeStandardCompressorsPool(AlphabetDescription alphabet_description)
+CompressorsFacadeUPtr MakeStandardCompressorsPool(AlphabetDescription alphabet_description)
 {
 	auto to_return = std::make_unique<CompressorsPool>(alphabet_description);
 

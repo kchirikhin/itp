@@ -16,16 +16,18 @@ class CodeLengthsComputer {
 
   virtual ~CodeLengthsComputer() = default;
 
-  virtual ContinuationsDistribution<T>
-  AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
-                                 size_t alphabet, size_t length_of_continuation,
-                                 const Names &compressors_to_compute,
-                                 const Trajectories &possible_continuations) const;
+  virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
+  		const PlainTimeSeries<Symbol> &history,
+  		size_t alphabet,
+  		size_t length_of_continuation,
+  		const Names &compressors_to_compute,
+  		const Trajectories &possible_continuations) const;
   
-  virtual ContinuationsDistribution<T>
-  AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history, size_t alphabet,
-                                 size_t length_of_continuation,
-                                 const Names &compressors_to_compute) const;
+  virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
+  		const PlainTimeSeries<Symbol> &history,
+  		size_t alphabet,
+  		size_t length_of_continuation,
+  		const Names &compressors_to_compute) const;
 
  private:
   static constexpr size_t kBitsInByte = 8;
