@@ -34,7 +34,7 @@ class Preprocessed_tseries : public Preproc_info<Orig_type> {
 
   Preprocessed_tseries() = default;
   Preprocessed_tseries(size_t, New_type);
-  Preprocessed_tseries(const PlainTimeSeries<New_type> &);
+  explicit Preprocessed_tseries(const PlainTimeSeries<New_type> &);
   Preprocessed_tseries(std::initializer_list<New_type>);
 
   template <typename Iter>

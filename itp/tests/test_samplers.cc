@@ -60,7 +60,7 @@ TEST_F(SamplerForIntegersTest, TransformsASeriesWithNonNegativeValues) {
 TEST_F(SamplerForIntegersTest, InverseTransformForNonNegativeIntegersWorks) {
   std::vector<Symbol> test_series {1, 5, 2, 4, 2};
 
-  auto transformed_series = sampler_.Transform(test_series);
+  auto transformed_series = sampler_.Transform(InitPreprocessedTs(test_series));
   ASSERT_EQ(transformed_series.size(), test_series.size());
   for (size_t i = 0; i < transformed_series.size(); ++i) {
     EXPECT_DOUBLE_EQ(sampler_.InverseTransform(transformed_series[i], transformed_series), test_series[i]);

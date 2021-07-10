@@ -104,7 +104,8 @@ itp::Forecast<OrigType> itp::Sparse_predictor<OrigType, NewType>::Predict(Prepro
   std::vector<Forecast<OrigType>> results(sparse);
   size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse));
   for (size_t i = 0; i < sparse; ++i) {
-    PlainTimeSeries<NewType> sparse_ts_data;
+	Preprocessed_tseries<OrigType, NewType> sparse_ts_data;
+	sparse_ts_data.copy_preprocessing_info_from(history);
     for (size_t j = i; j < history.size(); j += sparse) {
       sparse_ts_data.push_back(history[j]);
     }

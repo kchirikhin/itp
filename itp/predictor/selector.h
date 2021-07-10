@@ -238,7 +238,7 @@ private:
 template<typename T>
 SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& original_series)
 {
-	const auto quantified_series = sampler_.Transform(original_series);
+	const auto quantified_series = sampler_.Transform(InitPreprocessedTs(original_series));
 	quantified_series_.push_back(quantified_series.to_plain_tseries());
 	quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
 }
@@ -249,7 +249,7 @@ SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& orig
 {
 	for (const auto quanta_count : quanta_counts)
 	{
-		auto quantified_series = sampler_.Transform(original_series, quanta_count);
+		auto quantified_series = sampler_.Transform(InitPreprocessedTs(original_series), quanta_count);
 		quantified_series_.push_back(quantified_series.to_plain_tseries());
 		quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
 	}

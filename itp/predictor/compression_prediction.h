@@ -17,14 +17,14 @@ class CodeLengthsComputer {
   virtual ~CodeLengthsComputer() = default;
 
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
-  		const PlainTimeSeries<Symbol> &history,
+  		const Preprocessed_tseries<T, Symbol> &history,
   		size_t alphabet,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute,
   		const Trajectories &possible_continuations) const;
   
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
-  		const PlainTimeSeries<Symbol> &history,
+  		const Preprocessed_tseries<T, Symbol> &history,
   		size_t alphabet,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute) const;
@@ -125,7 +125,7 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
 
 template <typename T>
 ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const Preprocessed_tseries<T, Symbol> &history,
                                                        size_t alphabet, size_t length_of_continuation,
                                                        const Names &compressors_to_compute,
                                                        const Trajectories &possible_continuations) const {
@@ -154,7 +154,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Sym
 
 template <typename T>
 ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const PlainTimeSeries<Symbol> &history,
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const Preprocessed_tseries<T, Symbol> &history,
                                                        size_t alphabet, size_t length_of_continuation,
                                                        const Names &compressors_to_compute) const {
   assert(0 < alphabet);
@@ -205,7 +205,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
 
     // In the vector case it will differ from 2^(i+1)!
     alphabets[i] = sampled_ts.get_sampling_alphabet();
-    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_ts.to_plain_tseries(),
+    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_ts,
                                                                        sampled_ts.get_sampling_alphabet(),
                                                                        horizont, archivers);
     tables[i].copy_preprocessing_info_from(sampled_ts);
@@ -256,7 +256,7 @@ template <typename OrigType, typename NewType>
 ContinuationsDistribution<OrigType>
 Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const Names &compressors) const {
   auto sampled_tseries = sample(history);
-  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_tseries.to_plain_tseries(),
+  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_tseries,
                                                                       sampled_tseries.get_sampling_alphabet(),
                                                                       horizont, compressors);
   auto min = *std::min_element(begin(table), end(table));

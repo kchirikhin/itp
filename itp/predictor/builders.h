@@ -70,7 +70,7 @@ std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InTyp
     pointwise_predictor = std::make_shared<itp::Sparse_predictor<OutType, InType>>(pointwise_predictor, sparse);
   }
 
-  itp::Forecast<OutType> res = pointwise_predictor->Predict(time_series, horizon, compressors);
+  itp::Forecast<OutType> res = pointwise_predictor->Predict(itp::InitPreprocessedTs(time_series), horizon, compressors);
   std::map<std::string, std::vector<OutType>> ret;
   for (const auto &compressor : res.get_index()) {
     ret[compressor] = std::vector<OutType>(horizon);

@@ -53,8 +53,7 @@ template<>
 class Sampler<VectorDouble>
 {
 public:
-	Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorDouble> &,
-														 size_t);
+	Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorDouble> &, size_t);
 
 	VectorDouble InverseTransform(Symbol, const Preproc_info<VectorDouble> &);
 
@@ -109,6 +108,29 @@ typename std::iterator_traits<ForwardIterator>::value_type pointwise_min_element
 																				  ForwardIterator last)
 {
 	return pointwise_operation<ForwardIterator, Double>(first, last, std::less<Double>());
+}
+
+template <typename OriginalType>
+auto InitPreprocessedTs(const PlainTimeSeries<OriginalType> &);
+
+inline auto InitPreprocessedTs(const PlainTimeSeries<Double> &points)
+{
+	return Preprocessed_tseries<Double, Double>{points};
+}
+
+inline auto InitPreprocessedTs(const PlainTimeSeries<Symbol> &points)
+{
+	return Preprocessed_tseries<Double, Symbol>{points};
+}
+
+inline auto InitPreprocessedTs(const PlainTimeSeries<VectorDouble> &points)
+{
+	return Preprocessed_tseries<VectorDouble, VectorDouble>{points};
+}
+
+inline auto InitPreprocessedTs(const PlainTimeSeries<VectorSymbol> &points)
+{
+	return Preprocessed_tseries<VectorDouble, VectorSymbol>{points};
 }
 
 Symbol ConvertNumberToDec(const VectorSymbol &, size_t);
