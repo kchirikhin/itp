@@ -18,14 +18,12 @@ class CodeLengthsComputer {
 
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
   		const Preprocessed_tseries<T, Symbol> &history,
-  		size_t alphabet,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute,
   		const Trajectories &possible_continuations) const;
   
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
   		const Preprocessed_tseries<T, Symbol> &history,
-  		size_t alphabet,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute) const;
 
@@ -125,10 +123,12 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
 
 template <typename T>
 ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const Preprocessed_tseries<T, Symbol> &history,
-                                                       size_t alphabet, size_t length_of_continuation,
-                                                       const Names &compressors_to_compute,
-                                                       const Trajectories &possible_continuations) const {
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
+	const Preprocessed_tseries<T, Symbol> &history,
+	size_t length_of_continuation,
+	const Names &compressors_to_compute,
+	const Trajectories &possible_continuations) const {
+  const auto alphabet = history.get_sampling_alphabet();
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
@@ -154,18 +154,24 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const Preprocessed_tserie
 
 template <typename T>
 ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(const Preprocessed_tseries<T, Symbol> &history,
-                                                       size_t alphabet, size_t length_of_continuation,
-                                                       const Names &compressors_to_compute) const {
+CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
+	const Preprocessed_tseries<T, Symbol> &history,
+	size_t length_of_continuation,
+	const Names &compressors_to_compute) const {
+  const auto alphabet = history.get_sampling_alphabet();
   assert(0 < alphabet);
+
   std::vector<Continuation<Symbol>> possible_continuations;
   Continuation<Symbol> continuation(alphabet, length_of_continuation);
   for (size_t i = 0; i < pow(alphabet, length_of_continuation); ++i) {
     possible_continuations.push_back(continuation++);
   }
 
-  return AppendEachTrajectoryAndCompute(history, alphabet, length_of_continuation,
-                                            compressors_to_compute, possible_continuations);
+  return AppendEachTrajectoryAndCompute(
+  	history,
+  	length_of_continuation,
+  	compressors_to_compute,
+  	possible_continuations);
 }
 
 template <typename OrigType, typename NewType>
@@ -205,9 +211,10 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
 
     // In the vector case it will differ from 2^(i+1)!
     alphabets[i] = sampled_ts.get_sampling_alphabet();
-    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_ts,
-                                                                       sampled_ts.get_sampling_alphabet(),
-                                                                       horizont, archivers);
+    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(
+    	sampled_ts,
+    	horizont,
+    	archivers);
     tables[i].copy_preprocessing_info_from(sampled_ts);
   }
 
@@ -256,9 +263,10 @@ template <typename OrigType, typename NewType>
 ContinuationsDistribution<OrigType>
 Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const Names &compressors) const {
   auto sampled_tseries = sample(history);
-  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(sampled_tseries,
-                                                                      sampled_tseries.get_sampling_alphabet(),
-                                                                      horizont, compressors);
+  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(
+  	sampled_tseries,
+  	horizont,
+  	compressors);
   auto min = *std::min_element(begin(table), end(table));
   add_value_to_each(begin(table), end(table), -min);
   to_code_probabilities(begin(table), end(table));

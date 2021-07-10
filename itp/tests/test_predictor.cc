@@ -314,21 +314,21 @@ TEST(ContinuationTest, main)
 TEST(CodesLengthsComputerTest,
      ComputeLengthsForAllContinuations_AppendEachTrajectoryAndCompute_ComputedCorrectly)
 {
-  PlainTimeSeries<Symbol> history {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
-  size_t alphabet {2};
+  auto history = Preprocessed_tseries<Symbol, Symbol>{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+  history.set_sampling_alphabet(2);
+
   size_t length_of_continuation {3};
   Names compressors_to_compute {"zstd", "ppmd"};
 
   CodeLengthsComputer<Symbol> computer;
   auto result = computer.AppendEachTrajectoryAndCompute(
-  	Preprocessed_tseries<Symbol, Symbol>{history},
-  	alphabet,
+  	history,
   	length_of_continuation,
   	compressors_to_compute);
 
   ASSERT_EQ(8, result.index_size());
 
-  Continuation<Symbol> c(alphabet, length_of_continuation);
+  Continuation<Symbol> c(history.get_sampling_alphabet(), length_of_continuation);
   EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "zstd")), 176.);
   EXPECT_DOUBLE_EQ(static_cast<Double>(result(c, "ppmd")), 112.);
 
