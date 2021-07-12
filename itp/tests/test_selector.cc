@@ -199,8 +199,8 @@ MATCHER_P(AlphabetsEqual, other,"")
 TEST_F(SelectorRealCaseTest, SetsEachQuantaCountOnEvaluator)
 {
 	auto compressors_pool = std::make_unique<NiceMock<CompressorsFacadeMock>>();
-	EXPECT_CALL(*compressors_pool, ResetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 1})));
-	EXPECT_CALL(*compressors_pool, ResetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 3})));
+	EXPECT_CALL(*compressors_pool, SetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 1})));
+	EXPECT_CALL(*compressors_pool, SetAlphabetDescription(AlphabetsEqual(AlphabetDescription{0, 3})));
 
 	evaluator_ = std::make_unique<CodeLengthEvaluator<Double>>(std::move(compressors_pool));
 	evaluator_->Evaluate(test_real_ts_, {"zlib"}, 0, {2, 4});

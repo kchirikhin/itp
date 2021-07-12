@@ -200,12 +200,6 @@ void AutomatonCompressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabe
 	automation->SetMaxSymbol(alphabet_max_symbol);
 }
 
-CompressorsPool::CompressorsPool(AlphabetDescription alphabet_description)
-		: alphabet_description_{alphabet_description}
-{
-	// DO NOTHING
-}
-
 void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor)
 {
 	if (name.empty())
@@ -218,11 +212,7 @@ void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<IComp
 		throw CompressorsError{"RegisterCompressor: compressor is nullptr"};
 	}
 
-	if (auto[compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); success)
-	{
-		compressor_iter->second->SetTsParams(alphabet_description_.min_symbol, alphabet_description_.max_symbol);
-	}
-	else
+	if (auto[compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); !success)
 	{
 		throw CompressorsError{"RegisterCompressor: trying to register already registered compressor"};
 	}
@@ -240,7 +230,7 @@ size_t CompressorsPool::Compress(const std::string& compressor_name, const unsig
 	}
 }
 
-void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_description)
+void CompressorsPool::SetAlphabetDescription(AlphabetDescription alphabet_description)
 {
 	for (auto&[name, compressor] : compressor_instances_)
 	{
@@ -248,9 +238,9 @@ void CompressorsPool::ResetAlphabetDescription(AlphabetDescription alphabet_desc
 	}
 }
 
-CompressorsFacadeUPtr MakeStandardCompressorsPool(AlphabetDescription alphabet_description)
+CompressorsFacadeUPtr MakeStandardCompressorsPool()
 {
-	auto to_return = std::make_unique<CompressorsPool>(alphabet_description);
+	auto to_return = std::make_unique<CompressorsPool>();
 
 	to_return->RegisterCompressor("lcacomp", std::make_unique<LcaCompressor>());
 	to_return->RegisterCompressor("rp", std::make_unique<RpCompressor>());

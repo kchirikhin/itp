@@ -159,11 +159,11 @@ public:
 	virtual size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const = 0;
 
 	/**
-	 * Some compressors need to know the size of the alphabel. This method allows to specify it before compressing
+	 * Some compressors need to know the size of the alphabet. This method allows to specify it before compressing
 	 * a series.
 	 * @param alphabet_description Minimal and maximal letters of the integer alphabet.
 	 */
-	virtual void ResetAlphabetDescription(AlphabetDescription alphabet_description) = 0;
+	virtual void SetAlphabetDescription(AlphabetDescription alphabet_description) = 0;
 };
 using CompressorsFacadeUPtr = std::unique_ptr<CompressorsFacade>;
 
@@ -173,22 +173,18 @@ using CompressorsFacadeUPtr = std::unique_ptr<CompressorsFacade>;
 class CompressorsPool : public CompressorsFacade
 {
 public:
-	explicit CompressorsPool(AlphabetDescription alphabet_description);
-
 	void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor);
 
 	size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const override;
 
-	void ResetAlphabetDescription(AlphabetDescription alphabet_description) override;
+	void SetAlphabetDescription(AlphabetDescription alphabet_description) override;
 
 private:
-	AlphabetDescription alphabet_description_;
-
 	std::unordered_map<std::string, std::unique_ptr<ICompressor>> compressor_instances_;
 	mutable std::vector<unsigned char> output_buffer_;
 };
 
-CompressorsFacadeUPtr MakeStandardCompressorsPool(AlphabetDescription alphabet_description);
+CompressorsFacadeUPtr MakeStandardCompressorsPool();
 
 } // of namespace itp
 

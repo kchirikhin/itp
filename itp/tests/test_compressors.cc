@@ -12,7 +12,8 @@ using namespace testing;
 TEST(CompressorsPoolTest, InstanceCorrectlyCompressesSeveralTimes)
 {
 	unsigned char ts[]{0, 1, 1, 0, 1, 3, 0, 0, 0};
-	auto compressors = MakeStandardCompressorsPool({0, 3});
+	auto compressors = MakeStandardCompressorsPool();
+	compressors->SetAlphabetDescription({0, 3});
 
 	size_t expected_size = 18;
 	size_t obtained_size = compressors->Compress("zstd", ts, sizeof(ts));
@@ -36,24 +37,7 @@ TEST(CompressorsPoolTest, PassesSpecifiedAlphabetToInternalCompressor)
 	auto compressor_mock = std::make_unique<CompressorMock>();
 	EXPECT_CALL(*compressor_mock, SetTsParams(10, 20));
 
-	auto pool = std::make_unique<CompressorsPool>(AlphabetDescription{10, 20});
+	auto pool = std::make_unique<CompressorsPool>();
 	pool->RegisterCompressor("test", std::move(compressor_mock));
-}
-
-TEST(CompressorsPoolTest, ResetsAlphabetDescriptionForAllRegisteredCompressors)
-{
-	constexpr size_t compressors_number = 3;
-	std::array<std::unique_ptr<CompressorMock>, compressors_number> compressors;
-
-	auto pool = std::make_unique<CompressorsPool>(AlphabetDescription{10, 20});
-	for (size_t i = 0; i < compressors_number; ++i)
-	{
-		auto compressor = std::make_unique<CompressorMock>();
-		EXPECT_CALL(*compressor, SetTsParams(10, 20));
-		EXPECT_CALL(*compressor, SetTsParams(30, 40));
-
-		pool->RegisterCompressor(std::to_string(i), std::move(compressor));
-	}
-
-	pool->ResetAlphabetDescription(AlphabetDescription{30, 40});
+	pool->SetAlphabetDescription({10, 20});
 }

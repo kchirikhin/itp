@@ -132,7 +132,8 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
-  auto compressors = MakeStandardCompressorsPool({0, static_cast<Symbol>(alphabet - 1)});
+  auto compressors = MakeStandardCompressorsPool();
+  compressors->SetAlphabetDescription({0, static_cast<Symbol>(alphabet - 1)});
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                       std::begin(compressors_to_compute), std::end(compressors_to_compute));

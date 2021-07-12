@@ -382,7 +382,7 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 			auto correction = std::cbegin(corrections);
 			for (const auto& series : series_storage)
 			{
-				compressors_->ResetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
+				compressors_->SetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
 				code_lengths.push(
 						compressors_->Compress(compressor, reinterpret_cast<const unsigned char*>(series.data()),
 											   series.size() * sizeof(Symbol)) * 8 + *correction++);
@@ -496,7 +496,7 @@ itp::Names SelectBestCompressors(
 	const std::vector<T> shrinked_history{std::cbegin(history), std::next(std::cbegin(history), elems_to_consider)};
 
 	using namespace evaluation;
-	CodeLengthEvaluator<T> evaluator{MakeStandardCompressorsPool({0, 255})};
+	CodeLengthEvaluator<T> evaluator{MakeStandardCompressorsPool()};
 
 	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressors, difference, quanta_count),
 							  target_number);

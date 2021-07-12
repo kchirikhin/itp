@@ -623,7 +623,8 @@ TEST(CompressionMethodsTest, main)
     EXPECT_EQ(c5, c6);
     BOOST_CHECK(c1 < c4);*/
 
-  auto compressors = MakeStandardCompressorsPool({0, 255});
+  auto compressors = MakeStandardCompressorsPool();
+  compressors->SetAlphabetDescription({0, 255});
 
   auto c1 = compressors->Compress("rp", time_series1.data(), time_series1.size());
   auto c2 = compressors->Compress("rp", time_series1.data(), time_series1.size());
@@ -656,12 +657,13 @@ class CustomCompressionMehtodsTest : public ::testing::Test
 {
 protected:
   CustomCompressionMehtodsTest()
-      : ts1{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, ts2{1, 2, 3, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6},
-        ts3{1, 2, 3, 4, 5, 2, 1, 2, 3, 4, 2, 3, 129, 230, 2, 3, 1, 2, 3, 4, 2, 3, 4},
-        compressors_{MakeStandardCompressorsPool(AlphabetDescription{0, 255})}
-        {
-          // DO NOTHING
-        }
+  : ts1{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+  , ts2{1, 2, 3, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6}
+  , ts3{1, 2, 3, 4, 5, 2, 1, 2, 3, 4, 2, 3, 129, 230, 2, 3, 1, 2, 3, 4, 2, 3, 4}
+  , compressors_{MakeStandardCompressorsPool()}
+	{
+		compressors_->SetAlphabetDescription({0, 255});
+	}
 
   unsigned char ts1[12];
   unsigned char ts2[15];
