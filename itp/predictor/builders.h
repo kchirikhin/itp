@@ -58,7 +58,7 @@ std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InTyp
 		size_t horizon,
 		size_t difference,
 		int sparse) {
-  auto computer = std::make_shared<itp::CodeLengthsComputer<OutType>>();
+  auto computer = std::make_shared<itp::CodeLengthsComputer<OutType>>(itp::MakeStandardCompressorsPool());
   auto sampler = std::make_shared<itp::Sampler<InType>>();
   std::vector<itp::Names> compressors {
     itp::split_concatenated_names(compressors_groups)};

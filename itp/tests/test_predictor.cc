@@ -320,7 +320,7 @@ TEST(CodesLengthsComputerTest,
   size_t length_of_continuation {3};
   Names compressors_to_compute {"zstd", "ppmd"};
 
-  CodeLengthsComputer<Symbol> computer;
+  CodeLengthsComputer<Symbol> computer{MakeStandardCompressorsPool()};
   auto result = computer.AppendEachTrajectoryAndCompute(
   	history,
   	length_of_continuation,
@@ -722,7 +722,7 @@ TEST_F(CustomCompressionMehtodsTest, OneByOne)
 TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect)
 {
   PlainTimeSeries<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   auto partition_cardinality = 4u;
   auto horizont = 2u;
@@ -745,7 +745,7 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
 TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecast_predict_PredictionIsCorrect)
 {
   std::vector<unsigned char> ts {2, 0, 2, 3, 1, 1, 1, 3, 3, 1};
-  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Symbol>>();
   size_t horizont = 2u;
   std::vector<Names> compressors {{"zlib", "rp"}};
@@ -760,7 +760,7 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecas
 TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceOneStepForecast_predict_PredictionIsCorrect)
 {
 	std::vector<unsigned char> ts {0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2};
-	auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+	auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
 	auto sampler = std::make_shared<Sampler<Symbol>>();
 	size_t horizont = 1u;
 	std::vector<Names> compressors {{"ppmd"}};
@@ -774,7 +774,7 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceOneStepForecast
 TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_predict_PredictionIsCorrect)
 {
   std::vector<Double> ts {3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1};
-  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   auto max_partition_cardinality = 4u;
   auto horizont = 2u;
@@ -793,7 +793,7 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
 {
   std::vector<Double> ts{3.4, 2.5, 0.1, 0.5, 3.9, 4.0, 4.8, 2.8, 1.5, 1.3, 1.8, 2.1,
         2, 3.5, 4.9, 5.0, 5.1, 4.5, 2.1};
-  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   size_t horizont {4};
   std::vector<Names> compressors {{"zlib", "rp"}};
@@ -817,7 +817,7 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   PlainTimeSeries<Double> ts {940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15,
         2342.52, 2602.45, 2927.87, 3103.96, 3360.27, 3807.63, 4387.88, 4936.99};
 
-  auto computer = std::make_shared<CodeLengthsComputer<Double>>();
+  auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   size_t horizont = 6u;
   std::vector<Names> compressors {{"zlib", "rp"}};
@@ -850,7 +850,7 @@ TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData)
     {24569, 15871}, {23005, 13237}, {20863, 13034}, {21298, 13085}
   };
 
-  auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>();
+  auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<VectorDouble>>();
   size_t horizont = 2;
   std::vector<Names> compressors {{"zlib", "rp"}};
@@ -877,7 +877,7 @@ TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExce
     {24569, 15871}, {23005, 13237}, {20863, 13034}, {21298, 13085}
   };
 
-  auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>();
+  auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<VectorDouble>>();
   size_t horizont = 2;
   std::vector<Names> compressors {{"zlib", "rp"}};

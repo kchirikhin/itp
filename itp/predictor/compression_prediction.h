@@ -14,6 +14,7 @@ class CodeLengthsComputer {
  public:
   using Trajectories = std::vector<Continuation<Symbol>>;
 
+  explicit CodeLengthsComputer(CompressorsFacadeUPtr compressors);
   virtual ~CodeLengthsComputer() = default;
 
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
@@ -28,6 +29,7 @@ class CodeLengthsComputer {
   		const Names &compressors_to_compute) const;
 
  private:
+	CompressorsFacadeUPtr compressors_;
   static constexpr size_t kBitsInByte = 8;
 };
 
@@ -122,6 +124,13 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
 };
 
 template <typename T>
+CodeLengthsComputer<T>::CodeLengthsComputer(CompressorsFacadeUPtr compressors)
+		: compressors_{std::move(compressors)}
+{
+	// DO NOTHING
+}
+
+template <typename T>
 ContinuationsDistribution<T>
 CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
 	const Preprocessed_tseries<T, Symbol> &history,
@@ -132,8 +141,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
   assert(length_of_continuation <= 100);
   assert(alphabet > 0);
 
-  auto compressors = MakeStandardCompressorsPool();
-  compressors->SetAlphabetDescription({0, static_cast<Symbol>(alphabet - 1)});
+  compressors_->SetAlphabetDescription({0, static_cast<Symbol>(alphabet - 1)});
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                       std::begin(compressors_to_compute), std::end(compressors_to_compute));
@@ -145,7 +153,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
 
     for (size_t j = 0; j < result.factors_size(); ++j) {
       result(continuation, compressors_to_compute[j]) =
-			  compressors->Compress(compressors_to_compute[j], buffer.get(),
+			  compressors_->Compress(compressors_to_compute[j], buffer.get(),
                                            history.size() + length_of_continuation) * kBitsInByte;
     }
   }
