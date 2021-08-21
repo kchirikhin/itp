@@ -59,6 +59,10 @@ public:
 		// DO NOTHING
 	};
 
+	std::vector<SizeInBits> CompressEndings(
+		const std::vector<Symbol>& historical_values,
+		const Trajectories& possible_endings) override;
+
 protected:
 	/**
 	 * Allocates memory for output data if it's not enough.
@@ -80,7 +84,7 @@ public:
 	ZstdCompressor();
 	~ZstdCompressor() override;
 
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -92,7 +96,7 @@ private:
 class ZlibCompressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -101,7 +105,7 @@ public:
 class PpmCompressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -110,7 +114,7 @@ public:
 class RpCompressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -119,7 +123,7 @@ public:
 class Bzip2Compressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -128,7 +132,7 @@ public:
 class LcaCompressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -137,7 +141,7 @@ public:
 class ZpaqCompressor : public CompressorBase
 {
 public:
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -148,7 +152,7 @@ class AutomatonCompressor : public CompressorBase
 public:
 	AutomatonCompressor();
 
-	SizeInBits operator()(
+	SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
@@ -194,7 +198,12 @@ public:
 	virtual ICompressor::SizeInBits Compress(
 		const std::string& compressor_name,
 		const unsigned char* data,
-		size_t size) const = 0;
+		size_t size) = 0;
+
+	virtual std::vector<ICompressor::SizeInBits> CompressEndings(
+		const std::string& compressor_name,
+		const std::vector<Symbol>& historical_values,
+		const ICompressor::Trajectories& possible_endings) = 0;
 
 	/**
 	 * Some compressors need to know the size of the alphabet. This method allows to specify it before compressing
@@ -216,13 +225,18 @@ public:
 	ICompressor::SizeInBits Compress(
 		const std::string& compressor_name,
 		const unsigned char* data,
-		size_t size) const override;
+		size_t size) override;
+
+	std::vector<ICompressor::SizeInBits> CompressEndings(
+		const std::string& compressor_name,
+		const std::vector<Symbol>& historical_values,
+		const ICompressor::Trajectories& possible_endings) override;
 
 	void SetAlphabetDescription(AlphabetDescription alphabet_description) override;
 
 private:
 	std::unordered_map<std::string, std::unique_ptr<ICompressor>> compressor_instances_;
-	mutable std::vector<unsigned char> output_buffer_;
+	std::vector<unsigned char> output_buffer_;
 };
 
 CompressorsFacadePtr MakeStandardCompressorsPool();

@@ -89,7 +89,7 @@ add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR
 target_link_libraries(samplers_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB} ${Python_LIBRARIES})
 add_test(NAME samplers_tests COMMAND samplers_tests)
 
-set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc)
+set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc ${SOURCE_DIR}/continuation.cc)
 add_executable(selector_test ${SELECTOR_TESTS} ${SOURCE_DIR}/selector.h)
 target_link_libraries(selector_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME selector_test COMMAND selector_test)

@@ -312,7 +312,7 @@ TEST(ContinuationTest, main)
 }
 
 TEST(CodesLengthsComputerTest,
-     ComputeLengthsForAllContinuations_AppendEachTrajectoryAndCompute_ComputedCorrectly)
+	 ComputeLengthsForAllContinuations_ComputeContinuationsDistribution_ComputedCorrectly)
 {
   auto history = Preprocessed_tseries<Symbol, Symbol>{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
   history.set_sampling_alphabet(2);
@@ -321,7 +321,7 @@ TEST(CodesLengthsComputerTest,
   Names compressors_to_compute {"zstd", "ppmd"};
 
   CodeLengthsComputer<Symbol> computer{MakeStandardCompressorsPool()};
-  auto result = computer.AppendEachTrajectoryAndCompute(
+  auto result = computer.ComputeContinuationsDistribution(
   	history,
   	length_of_continuation,
   	compressors_to_compute);

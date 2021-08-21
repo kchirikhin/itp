@@ -19,7 +19,7 @@ NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAl
 	assert(non_compression_algorithm_ != nullptr);
 }
 
-NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::operator()(
+NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::Compress(
 	const unsigned char* data,
 	const size_t size,
 	std::vector<unsigned char>* /*output_buffer*/)
@@ -69,6 +69,30 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::opera
 	}
 
 	return static_cast<NonCompressionAlgorithmAdaptor::SizeInBits>(ceil(-log2(evaluated_probability_)));
+}
+
+std::vector<NonCompressionAlgorithmAdaptor::SizeInBits> NonCompressionAlgorithmAdaptor::CompressEndings(
+	const std::vector<Symbol>& historical_values,
+	const Trajectories& possible_endings)
+{
+	if (possible_endings.empty())
+	{
+		return {};
+	}
+
+	const auto full_series_length = std::size(historical_values) + std::size(possible_endings.front());
+	auto buffer = std::make_unique<Symbol[]>(full_series_length);
+	std::copy(std::cbegin(historical_values), std::cend(historical_values), buffer.get());
+
+	std::vector<unsigned char> output_buffer;
+	std::vector<SizeInBits> result(std::size(possible_endings));
+	for (size_t i = 0; i < std::size(possible_endings); ++i)
+	{
+		std::copy(possible_endings[i].cbegin(), possible_endings[i].cend(), buffer.get() + std::size(historical_values));
+		result[i] = Compress(buffer.get(), full_series_length, &output_buffer);
+	}
+
+	return result;
 }
 
 void NonCompressionAlgorithmAdaptor::ResetInternalData()

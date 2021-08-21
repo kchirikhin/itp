@@ -15,7 +15,11 @@ class CompressorsFacadeMock : public CompressorsFacade
 {
 public:
 	MOCK_METHOD2(RegisterCompressor, void(std::string name, std::unique_ptr<ICompressor> compressor));
-	MOCK_CONST_METHOD3(Compress, ICompressor::SizeInBits(const std::string&, const unsigned char *, size_t));
+	MOCK_METHOD3(Compress, ICompressor::SizeInBits(const std::string&, const unsigned char *, size_t));
+	MOCK_METHOD3(CompressEndings, std::vector<ICompressor::SizeInBits>(
+		const std::string&,
+		const std::vector<Symbol>&,
+		const ICompressor::Trajectories&));
 	MOCK_METHOD1(SetAlphabetDescription, void(AlphabetDescription));
 };
 

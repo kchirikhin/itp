@@ -11,13 +11,9 @@ namespace itp
 class CompressorMock : public ICompressor
 {
 public:
-	MOCK_METHOD3(CallOperator, size_t(const unsigned char*, size_t, std::vector<unsigned char>*));
+	MOCK_METHOD3(Compress, size_t(const unsigned char*, size_t, std::vector<unsigned char>*));
+	MOCK_METHOD2(CompressEndings, std::vector<size_t>(const std::vector<Symbol>&, const Trajectories&));
 	MOCK_METHOD2(SetTsParams, void(Symbol, Symbol));
-
-	size_t operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) override
-	{
-		return CallOperator(data, size, output_buffer);
-	}
 };
 
 } // namespace itp

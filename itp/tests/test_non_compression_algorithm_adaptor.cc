@@ -38,7 +38,7 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, ForwardsFullTimeSeries)
 	// In order to avoid forecasting process.
 	size_t size = 0;
 	EXPECT_CALL(*algorithm_, RegisterFullTimeSeries(data_, size));
-	(*adaptor_)(data_, size, &out_buffer_);
+	adaptor_->Compress(data_, size, &out_buffer_);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, ForwardsAlphabetInformation)
@@ -62,23 +62,23 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, CorrectlyEvaluatesCodeLength)
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident)));
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(7.0*9.0*11.0/2.0/4.0/4.0/6.0/8.0/2.0/4.0)));
-	EXPECT_EQ((*adaptor_)(data_, size_, &out_buffer_), expected_result);
+	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, ReturnsZeroForEmptyInput)
 {
-	EXPECT_EQ((*adaptor_)(data_, 0, &out_buffer_), 0);
+	EXPECT_EQ(adaptor_->Compress(data_, 0, &out_buffer_), 0);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, SignalsAboutErrorOnNullptrAsData)
 {
-	EXPECT_THROW((*adaptor_)(nullptr, size_, &out_buffer_), std::runtime_error);
+	EXPECT_THROW(adaptor_->Compress(nullptr, size_, &out_buffer_), std::runtime_error);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, AutomaticallyComputesUnsepcifiedMinAndMaxValues)
 {
 	EXPECT_CALL((*algorithm_), SetTsParams(1, 2));
-	(*adaptor_)(data_, size_, &out_buffer_);
+	adaptor_->Compress(data_, size_, &out_buffer_);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, NonConfidentPredictionResetsSeriesOfConfidentPredictions)
@@ -95,7 +95,7 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, NonConfidentPredictionResetsSeriesOfC
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident)));
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*3.0*3.0*5.0/2.0/4.0/4.0/6.0/10.0/4.0/6.0)));
-	EXPECT_EQ((*adaptor_)(data_, size_, &out_buffer_), expected_result);
+	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
 
 TEST_F(NonCompressionAlgorithmAdaptorTest, InNonConfidentPredictionCaseAlgorithmCountsAllPreviousSymbols)
@@ -109,5 +109,5 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, InNonConfidentPredictionCaseAlgorithm
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
 		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident)));
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*5.0/4.0/6.0/6.0)));
-	EXPECT_EQ((*adaptor_)(test_data, size, &out_buffer_), expected_result);
+	EXPECT_EQ(adaptor_->Compress(test_data, size, &out_buffer_), expected_result);
 }

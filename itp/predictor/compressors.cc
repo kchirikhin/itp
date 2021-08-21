@@ -9,6 +9,30 @@
 namespace itp
 {
 
+std::vector<CompressorBase::SizeInBits> CompressorBase::CompressEndings(
+	const std::vector<Symbol>& historical_values,
+	const Trajectories& possible_endings)
+{
+	if (possible_endings.empty())
+	{
+		return {};
+	}
+
+	const auto full_series_length = std::size(historical_values) + std::size(possible_endings.front());
+	auto buffer = std::make_unique<Symbol[]>(full_series_length);
+	std::copy(std::cbegin(historical_values), std::cend(historical_values), buffer.get());
+
+	std::vector<unsigned char> output_buffer;
+	std::vector<SizeInBits> result(std::size(possible_endings));
+	for (size_t i = 0; i < std::size(possible_endings); ++i)
+	{
+		std::copy(possible_endings[i].cbegin(), possible_endings[i].cend(), buffer.get() + std::size(historical_values));
+		result[i] = Compress(buffer.get(), full_series_length, &output_buffer);
+	}
+
+	return result;
+}
+
 ZstdCompressor::ZstdCompressor()
 {
 	if (context_ = ZSTD_createCCtx(); !context_)
@@ -23,7 +47,7 @@ ZstdCompressor::~ZstdCompressor()
 	ZSTD_freeCCtx(context_);
 }
 
-ZstdCompressor::SizeInBits ZstdCompressor::operator()(
+ZstdCompressor::SizeInBits ZstdCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>* output_buffer)
@@ -44,7 +68,7 @@ ZstdCompressor::SizeInBits ZstdCompressor::operator()(
 		ZSTD_maxCLevel()));
 }
 
-ZlibCompressor::SizeInBits ZlibCompressor::operator()(
+ZlibCompressor::SizeInBits ZlibCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>* output_buffer)
@@ -60,7 +84,7 @@ ZlibCompressor::SizeInBits ZlibCompressor::operator()(
 	return BytesToBits(dst_capacity);
 }
 
-PpmCompressor::SizeInBits PpmCompressor::operator()(
+PpmCompressor::SizeInBits PpmCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>* output_buffer)
@@ -71,7 +95,7 @@ PpmCompressor::SizeInBits PpmCompressor::operator()(
 	return BytesToBits(Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size));
 }
 
-RpCompressor::SizeInBits RpCompressor::operator()(
+RpCompressor::SizeInBits RpCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>*)
@@ -79,7 +103,7 @@ RpCompressor::SizeInBits RpCompressor::operator()(
 	return BytesToBits(Rp::rp_compress(data, size));
 }
 
-Bzip2Compressor::SizeInBits Bzip2Compressor::operator()(
+Bzip2Compressor::SizeInBits Bzip2Compressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>* output_buffer)
@@ -100,7 +124,7 @@ Bzip2Compressor::SizeInBits Bzip2Compressor::operator()(
 	return BytesToBits(dst_capacity);
 }
 
-LcaCompressor::SizeInBits LcaCompressor::operator()(
+LcaCompressor::SizeInBits LcaCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>*)
@@ -186,7 +210,7 @@ void libzpaq::error(const char* msg)
 namespace itp
 {
 
-ZpaqCompressor::SizeInBits ZpaqCompressor::operator()(
+ZpaqCompressor::SizeInBits ZpaqCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>*)
@@ -205,7 +229,7 @@ AutomatonCompressor::AutomatonCompressor()
 	// DO NOTHING
 }
 
-AutomatonCompressor::SizeInBits AutomatonCompressor::operator()(
+AutomatonCompressor::SizeInBits AutomatonCompressor::Compress(
 	const unsigned char* data,
 	size_t size,
 	std::vector<unsigned char>*)
@@ -245,11 +269,29 @@ void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<IComp
 	}
 }
 
-size_t CompressorsPool::Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const
+ICompressor::SizeInBits CompressorsPool::Compress(
+	const std::string& compressor_name,
+	const unsigned char* data,
+	size_t size)
 {
 	try
 	{
-		return compressor_instances_.at(compressor_name)->operator()(data, size, &output_buffer_);
+		return compressor_instances_.at(compressor_name)->Compress(data, size, &output_buffer_);
+	}
+	catch (const std::out_of_range& e)
+	{
+		throw CompressorsError{"Incorrect compressor name " + compressor_name};
+	}
+}
+
+std::vector<ICompressor::SizeInBits> CompressorsPool::CompressEndings(
+	const std::string& compressor_name,
+	const std::vector<Symbol>& historical_values,
+	const ICompressor::Trajectories& possible_endings)
+{
+	try
+	{
+		return compressor_instances_.at(compressor_name)->CompressEndings(historical_values, possible_endings);
 	}
 	catch (const std::out_of_range& e)
 	{

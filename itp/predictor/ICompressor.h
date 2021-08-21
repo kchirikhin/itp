@@ -13,27 +13,45 @@ class ICompressor
 {
 public:
 	using SizeInBits = size_t;
+	using Trajectories = std::vector<Continuation<Symbol>>;
 
 	virtual ~ICompressor() = default;
 
 	/**
 	 * Compresses data and returns size of the output sequence.
-	 * @param data Data to compress.
-	 * @param size Size of the data.
-	 * @param output_buffer Where to put the result.
-	 * @return Size of the compressed data in bits.
+	 *
+	 * \param[in] data Data to compress.
+	 * \param[in] size Size of the data.
+	 * \param[out] output_buffer Where to put the result.
+	 *
+	 * \return Size of the compressed data in bits.
 	 */
-	virtual SizeInBits operator()(
+	virtual SizeInBits Compress(
 		const unsigned char* data,
 		size_t size,
 		std::vector<unsigned char>* output_buffer) = 0;
 
 	/**
-	 * Inform algorithm about minimal and maximal possible values in data. It's important for automaton.
+	 * Compresses each passed trajectory after the historical values and returns the code lengths for each trajectory.
+	 *
+	 * \param[in] historical_values Time series.
+	 * \param[in] possible_endings Trajectories to compress.
+	 *
+	 * \return Code lengths in bits for each trajectory.
+	 */
+	virtual std::vector<SizeInBits> CompressEndings(
+		const std::vector<Symbol>& historical_values,
+		const Trajectories& possible_endings) = 0;
+
+	/**
+	 * Inform algorithm about the minimal and maximal possible values in data.
+	 *
+	 * \param[in] alphabet_min_symbol Minimal value in the data.
+	 * \param[in] alphabet_max_symbol Maximal value in the data.
 	 */
 	virtual void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) = 0;
 };
 
 } // namespace itp
 
-#endif //ITP_ICOMPRESSOR_H
+#endif // ITP_ICOMPRESSOR_H

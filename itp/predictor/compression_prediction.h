@@ -12,18 +12,18 @@ namespace itp {
 template <typename T>
 class CodeLengthsComputer {
  public:
-  using Trajectories = std::vector<Continuation<Symbol>>;
+	using Trajectories = ICompressor::Trajectories;
 
   explicit CodeLengthsComputer(CompressorsFacadePtr compressors);
   virtual ~CodeLengthsComputer() = default;
 
-  virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
+  virtual ContinuationsDistribution<T> ComputeContinuationsDistribution(
   		const Preprocessed_tseries<T, Symbol> &history,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute,
   		const Trajectories &possible_continuations) const;
   
-  virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
+  virtual ContinuationsDistribution<T> ComputeContinuationsDistribution(
   		const Preprocessed_tseries<T, Symbol> &history,
   		size_t length_of_continuation,
   		const Names &compressors_to_compute) const;
@@ -131,8 +131,7 @@ CodeLengthsComputer<T>::CodeLengthsComputer(CompressorsFacadePtr compressors)
 }
 
 template <typename T>
-ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
+ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistribution(
 	const Preprocessed_tseries<T, Symbol> &history,
 	size_t length_of_continuation,
 	const Names &compressors_to_compute,
@@ -145,27 +144,25 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
                                       std::begin(compressors_to_compute), std::end(compressors_to_compute));
-  size_t full_series_length = history.size() + length_of_continuation;
-  std::unique_ptr<Symbol[]> buffer(new Symbol[full_series_length]);
-  std::copy(history.cbegin(), history.cend(), buffer.get());
-  for (const auto &continuation : possible_continuations) {
-    std::copy(continuation.cbegin(), continuation.cend(), buffer.get() + history.size());
 
-    for (size_t j = 0; j < result.factors_size(); ++j) {
-      result(continuation, compressors_to_compute[j]) =
-			  compressors_->Compress(
-			  	compressors_to_compute[j],
-			  	buffer.get(),
-			  	history.size() + length_of_continuation);
-    }
-  }
+	const auto& plain_time_series = history.to_plain_tseries();
+	for (size_t i = 0; i < result.factors_size(); ++i) {
+		const auto code_lengths = compressors_->CompressEndings(
+			compressors_to_compute[i],
+			plain_time_series,
+			possible_continuations);
+
+		for (size_t j = 0; j < std::size(possible_continuations); ++j)
+		{
+			result(possible_continuations[j], compressors_to_compute[i]) = code_lengths[j];
+		}
+	}
 
   return result;
 }
 
 template <typename T>
-ContinuationsDistribution<T>
-CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
+ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistribution(
 	const Preprocessed_tseries<T, Symbol> &history,
 	size_t length_of_continuation,
 	const Names &compressors_to_compute) const {
@@ -178,7 +175,7 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
     possible_continuations.push_back(continuation++);
   }
 
-  return AppendEachTrajectoryAndCompute(
+  return ComputeContinuationsDistribution(
   	history,
   	length_of_continuation,
   	compressors_to_compute,
@@ -222,7 +219,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
 
     // In the vector case it will differ from 2^(i+1)!
     alphabets[i] = sampled_ts.get_sampling_alphabet();
-    tables[i] = codes_lengths_computer->AppendEachTrajectoryAndCompute(
+    tables[i] = codes_lengths_computer->ComputeContinuationsDistribution(
     	sampled_ts,
     	horizont,
     	archivers);
@@ -274,7 +271,7 @@ template <typename OrigType, typename NewType>
 ContinuationsDistribution<OrigType>
 Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const Names &compressors) const {
   auto sampled_tseries = sample(history);
-  auto table = codes_lengths_computer->AppendEachTrajectoryAndCompute(
+  auto table = codes_lengths_computer->ComputeContinuationsDistribution(
   	sampled_tseries,
   	horizont,
   	compressors);
