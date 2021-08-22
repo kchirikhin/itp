@@ -19,11 +19,11 @@ namespace py = pybind11;
 class PyINonCompressionAlgorithm : public itp::INonCompressionAlgorithm
 {
 public:
-	virtual void PyRegisterFullTimeSeries(const pybind11::bytes& bytes) = 0;
+	virtual Guess PyGiveNextPrediction(const pybind11::bytes& bytes) = 0;
 
-	void RegisterFullTimeSeries(const unsigned char* data, size_t size) final
+	Guess GiveNextPrediction(const unsigned char* data, size_t size) final
 	{
-		PyRegisterFullTimeSeries({reinterpret_cast<const char *>(data), size});
+		return PyGiveNextPrediction({reinterpret_cast<const char *>(data), size});
 	}
 };
 
@@ -32,14 +32,9 @@ class INonCompressionAlgorithm_ : public itp::INonCompressionAlgorithm
 public:
 	using INonCompressionAlgorithm::INonCompressionAlgorithm;
 
-	void RegisterFullTimeSeries(const unsigned char* data, size_t size) override
+	Guess GiveNextPrediction(const unsigned char* data, size_t size) override
 	{
-		PYBIND11_OVERRIDE_PURE(void, INonCompressionAlgorithm, RegisterFullTimeSeries, data, size);
-	}
-
-	Guess GiveNextPrediction() override
-	{
-		PYBIND11_OVERRIDE_PURE(Guess, INonCompressionAlgorithm, GiveNextPrediction, );
+		PYBIND11_OVERRIDE_PURE(Guess, INonCompressionAlgorithm, GiveNextPrediction, data, size);
 	}
 
 	void SetTsParams(itp::Symbol alphabet_min_symbol, itp::Symbol alphabet_max_symbol) override
@@ -53,14 +48,9 @@ class PyINonCompressionAlgorithm_ : public PyINonCompressionAlgorithm
 public:
 	using PyINonCompressionAlgorithm::PyINonCompressionAlgorithm;
 
-	void PyRegisterFullTimeSeries(const pybind11::bytes& bytes) override
+	Guess PyGiveNextPrediction(const pybind11::bytes& bytes) override
 	{
-		PYBIND11_OVERRIDE_PURE(void, PyINonCompressionAlgorithm, PyRegisterFullTimeSeries, bytes);
-	}
-
-	Guess GiveNextPrediction() override
-	{
-		PYBIND11_OVERRIDE_PURE(Guess, PyINonCompressionAlgorithm, GiveNextPrediction, );
+		PYBIND11_OVERRIDE_PURE(Guess, PyINonCompressionAlgorithm, PyGiveNextPrediction, bytes);
 	}
 
 	void SetTsParams(itp::Symbol alphabet_min_symbol, itp::Symbol alphabet_max_symbol) override
@@ -80,14 +70,12 @@ PYBIND11_MODULE(predictor, m) {
 
 	py::class_<itp::INonCompressionAlgorithm, INonCompressionAlgorithm_>(m, "INonCompressionAlgorithm")
 	        .def(py::init<>())
-	        .def("RegisterFullTimeSeries", &itp::INonCompressionAlgorithm::RegisterFullTimeSeries)
 	        .def("GiveNextPrediction", &itp::INonCompressionAlgorithm::GiveNextPrediction)
 	        .def("SetTsParams", &itp::INonCompressionAlgorithm::SetTsParams);
 	py::class_<PyINonCompressionAlgorithm, itp::INonCompressionAlgorithm, PyINonCompressionAlgorithm_>(
 			 m, "NonCompressionAlgorithm")
 			.def(py::init<>())
-			.def("PyRegisterFullTimeSeries", &PyINonCompressionAlgorithm::PyRegisterFullTimeSeries)
-			.def("GiveNextPrediction", &PyINonCompressionAlgorithm::GiveNextPrediction)
+			.def("PyGiveNextPrediction", &PyINonCompressionAlgorithm::PyGiveNextPrediction)
 			.def("SetTsParams", &PyINonCompressionAlgorithm::SetTsParams);
 
     py::class_<InformationTheoreticPredictor>(m, "InformationTheoreticPredictor")

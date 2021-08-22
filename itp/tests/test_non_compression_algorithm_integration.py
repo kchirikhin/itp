@@ -10,10 +10,7 @@ class FakeNonCompressionAlgorithm(NonCompressionAlgorithm):
         self._guesses = guesses
         self._guess_index = 0
 
-    def PyRegisterFullTimeSeries(self, time_series: bytes) -> None:
-        pass
-
-    def GiveNextPrediction(self) -> Tuple[int, ConfidenceLevel]:
+    def PyGiveNextPrediction(self, _) -> Tuple[int, ConfidenceLevel]:
         result = self._guesses[self._guess_index]
 
         self._guess_index += 1

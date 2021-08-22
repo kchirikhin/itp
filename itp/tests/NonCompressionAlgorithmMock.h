@@ -11,8 +11,7 @@ namespace itp::mocks
 class NonCompressionAlgorithmMock : public INonCompressionAlgorithm
 {
 public:
-	MOCK_METHOD(void, RegisterFullTimeSeries, (const unsigned char* data, size_t size), (override));
-	MOCK_METHOD((std::pair<Symbol, ConfidenceLevel>), GiveNextPrediction, (), (override));
+	MOCK_METHOD((std::pair<Symbol, ConfidenceLevel>), GiveNextPrediction, (const unsigned char* data, size_t size), (override));
 	MOCK_METHOD(void, SetTsParams, (Symbol alphabet_min_symbol, Symbol alphabet_max_symbol), (override));
 };
 

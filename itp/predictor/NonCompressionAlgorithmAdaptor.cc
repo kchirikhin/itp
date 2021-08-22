@@ -37,10 +37,9 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::Compr
 		SetTsParams(*min, *max);
 	}
 
-	non_compression_algorithm_->RegisterFullTimeSeries(data, size);
 	for (size_t current_pos = 0; current_pos < size; ++current_pos)
 	{
-		const auto [guessed_symbol, confidence] = non_compression_algorithm_->GiveNextPrediction();
+		const auto [guessed_symbol, confidence] = non_compression_algorithm_->GiveNextPrediction(data, current_pos);
 		const auto observed_symbol = data[current_pos];
 		switch (confidence)
 		{

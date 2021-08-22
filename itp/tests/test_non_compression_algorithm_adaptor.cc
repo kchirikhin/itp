@@ -33,14 +33,6 @@ protected:
 	std::vector<unsigned char> out_buffer_;
 };
 
-TEST_F(NonCompressionAlgorithmAdaptorTest, ForwardsFullTimeSeries)
-{
-	// In order to avoid forecasting process.
-	size_t size = 0;
-	EXPECT_CALL(*algorithm_, RegisterFullTimeSeries(data_, size));
-	adaptor_->Compress(data_, size, &out_buffer_);
-}
-
 TEST_F(NonCompressionAlgorithmAdaptorTest, ForwardsAlphabetInformation)
 {
 	const auto [min, max] = std::minmax_element(std::cbegin(data_), std::cend(data_));
@@ -53,14 +45,22 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, CorrectlyEvaluatesCodeLength)
 	const auto [min, max] = std::minmax_element(std::cbegin(data_), std::cend(data_));
 	adaptor_->SetTsParams(*min, *max);
 
-	EXPECT_CALL(*algorithm_, GiveNextPrediction()).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(2, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident)));
+	const std::array expected_return_values = {
+		Prediction(1, ConfidenceLevel::kNotConfident),
+		Prediction(1, ConfidenceLevel::kNotConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(2, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident)
+	};
+
+	testing::InSequence seq;
+	for (size_t i = 0; i < std::size(expected_return_values); ++i)
+	{
+		EXPECT_CALL(*algorithm_, GiveNextPrediction(data_, i)).WillOnce(Return(expected_return_values[i]));
+	}
+
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(7.0*9.0*11.0/2.0/4.0/4.0/6.0/8.0/2.0/4.0)));
 	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
@@ -86,14 +86,22 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, NonConfidentPredictionResetsSeriesOfC
 	const auto [min, max] = std::minmax_element(std::cbegin(data_), std::cend(data_));
 	adaptor_->SetTsParams(*min, *max);
 
-	EXPECT_CALL((*algorithm_), GiveNextPrediction()).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(2, ConfidenceLevel::kNotConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident)));
+	const std::array expected_return_values = {
+		Prediction(1, ConfidenceLevel::kNotConfident),
+		Prediction(1, ConfidenceLevel::kNotConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(2, ConfidenceLevel::kNotConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident)
+	};
+
+	testing::InSequence seq;
+	for (size_t i = 0; i < std::size(expected_return_values); ++i)
+	{
+		EXPECT_CALL(*algorithm_, GiveNextPrediction(data_, i)).WillOnce(Return(expected_return_values[i]));
+	}
+
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*3.0*3.0*5.0/2.0/4.0/4.0/6.0/10.0/4.0/6.0)));
 	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
@@ -104,10 +112,18 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, InNonConfidentPredictionCaseAlgorithm
 	const size_t size = ARRAY_SIZE(test_data);
 	adaptor_->SetTsParams(1, 2);
 
-	EXPECT_CALL((*algorithm_), GiveNextPrediction()).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kConfident))).
-		WillOnce(Return(Prediction(1, ConfidenceLevel::kNotConfident)));
+	const std::array expected_return_values = {
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kConfident),
+		Prediction(1, ConfidenceLevel::kNotConfident)
+	};
+
+	testing::InSequence seq;
+	for (size_t i = 0; i < std::size(expected_return_values); ++i)
+	{
+		EXPECT_CALL(*algorithm_, GiveNextPrediction(test_data, i)).WillOnce(Return(expected_return_values[i]));
+	}
+
 	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*5.0/4.0/6.0/6.0)));
 	EXPECT_EQ(adaptor_->Compress(test_data, size, &out_buffer_), expected_result);
 }

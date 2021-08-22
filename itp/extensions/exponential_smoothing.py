@@ -8,28 +8,20 @@ from statsmodels.tsa.api import SimpleExpSmoothing
 class ExponentialSmoothing(NonCompressionAlgorithm):
     def __init__(self):
         super(ExponentialSmoothing, self).__init__()
-        self._time_series = None
-        self._current_pos = 0
         self._alphabet_min_symbol = 0
         self._alphabet_max_symbol = 255
         self._minimal_history_length = 2
 
-    def PyRegisterFullTimeSeries(self, time_series: bytes):
-        self._time_series = time_series
-        self._current_pos = 0
-
-    def GiveNextPrediction(self):
-        if self._current_pos < self._minimal_history_length:
+    def PyGiveNextPrediction(self, time_series: bytes):
+        if len(time_series) < self._minimal_history_length:
             to_return = self._median(), ConfidenceLevel.NOT_CONFIDENT
         else:
             to_return = self._one_step_prediction(
-                np.frombuffer(self._time_series[:self._current_pos], dtype=np.uint8)), \
-                ConfidenceLevel.CONFIDENT
+                np.frombuffer(time_series, dtype=np.uint8)), ConfidenceLevel.CONFIDENT
 
-        self._current_pos += 1
         return to_return
 
-    def SetTsParams(self,  alphabet_min_symbol: int, alphabet_max_symbol: int):
+    def SetTsParams(self, alphabet_min_symbol: int, alphabet_max_symbol: int):
         self._alphabet_min_symbol = alphabet_min_symbol
         self._alphabet_max_symbol = alphabet_max_symbol
 
