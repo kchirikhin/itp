@@ -7,7 +7,6 @@
 
 #include "dtypes.h"
 #include "ICompressor.h"
-#include "PythonCompressor.h"
 
 #include <zstd.h>
 #include <bzlib.h>

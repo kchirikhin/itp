@@ -13,6 +13,7 @@
 #define ITP_BUILDERS_H_INCLUDED_
 
 #include "compression_prediction.h"
+#include "INonCompressionAlgorithm.h"
 
 #include <functional>
 #include <memory>
