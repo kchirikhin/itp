@@ -24,8 +24,6 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::Compr
 	const size_t size,
 	std::vector<unsigned char>* /*output_buffer*/)
 {
-	ResetInternalData();
-
 	if (data == nullptr)
 	{
 		throw std::runtime_error{"data is nullptr"};
@@ -37,37 +35,10 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::Compr
 		SetTsParams(*min, *max);
 	}
 
-	for (size_t current_pos = 0; current_pos < size; ++current_pos)
-	{
-		const auto [guessed_symbol, confidence] = non_compression_algorithm_->GiveNextPrediction(data, current_pos);
-		const auto observed_symbol = data[current_pos];
-		switch (confidence)
-		{
-			case ConfidenceLevel::kConfident:
-				{
-					++confident_estimations_series_len_;
-					confident_guess_freq_[guessed_symbol] = confident_estimations_series_len_;
-					const auto total_freq = confident_estimations_series_len_;
-					evaluated_probability_ *= KrichevskyPredictor(confident_guess_freq_[observed_symbol], total_freq,
-																  GetAlphabetRange());
-					confident_guess_freq_[guessed_symbol] = 0;
-				}
-				break;
-			case ConfidenceLevel::kNotConfident:
-				{
-					confident_estimations_series_len_ = 0;
-					const auto total_freq = current_pos;
-					evaluated_probability_ *= KrichevskyPredictor(letters_freq_[observed_symbol], total_freq,
-																  GetAlphabetRange());
-				}
-				break;
-			default:
-				assert(false);
-		}
-		letters_freq_[observed_symbol] += 1;
-	}
+	InternalState state{*alphabet_max_symbol_};
+	EvaluateProbability(data, size, &state);
 
-	return static_cast<NonCompressionAlgorithmAdaptor::SizeInBits>(ceil(-log2(evaluated_probability_)));
+	return static_cast<NonCompressionAlgorithmAdaptor::SizeInBits>(ceil(-log2(state.evaluated_probability)));
 }
 
 std::vector<NonCompressionAlgorithmAdaptor::SizeInBits> NonCompressionAlgorithmAdaptor::CompressEndings(
@@ -94,23 +65,54 @@ std::vector<NonCompressionAlgorithmAdaptor::SizeInBits> NonCompressionAlgorithmA
 	return result;
 }
 
-void NonCompressionAlgorithmAdaptor::ResetInternalData()
-{
-	evaluated_probability_ = 1.0;
-	confident_estimations_series_len_ = 0;
-
-	std::fill(std::begin(letters_freq_), std::end(letters_freq_), 0);
-	std::fill(std::begin(confident_guess_freq_), std::end(confident_guess_freq_), 0);
-}
-
 void NonCompressionAlgorithmAdaptor::SetTsParams(const Symbol alphabet_min_symbol, const Symbol alphabet_max_symbol)
 {
 	alphabet_min_symbol_ = alphabet_min_symbol;
 	alphabet_max_symbol_ = alphabet_max_symbol;
 
 	non_compression_algorithm_->SetTsParams(alphabet_min_symbol, alphabet_max_symbol);
-	letters_freq_.resize(alphabet_max_symbol + 1);
-	confident_guess_freq_.resize(alphabet_max_symbol + 1);
+}
+
+void NonCompressionAlgorithmAdaptor::EvaluateProbability(
+	const unsigned char* data,
+	size_t size,
+	InternalState* internal_state) const {
+	assert(internal_state != nullptr);
+
+	for (size_t current_pos = 0; current_pos < size; ++current_pos)
+	{
+		const auto [guessed_symbol, confidence] = non_compression_algorithm_->GiveNextPrediction(data, current_pos);
+		const auto observed_symbol = data[current_pos];
+		switch (confidence)
+		{
+			case ConfidenceLevel::kConfident:
+			{
+				++internal_state->confident_estimations_series_len;
+				internal_state->confident_guess_freq[guessed_symbol] =
+						internal_state->confident_estimations_series_len;
+				const auto total_freq = internal_state->confident_estimations_series_len;
+				internal_state->evaluated_probability *= KrichevskyPredictor(
+					internal_state->confident_guess_freq[observed_symbol],
+					total_freq,
+					GetAlphabetRange());
+				internal_state->confident_guess_freq[guessed_symbol] = 0;
+			}
+				break;
+			case ConfidenceLevel::kNotConfident:
+			{
+				internal_state->confident_estimations_series_len = 0;
+				const auto total_freq = current_pos;
+				internal_state->evaluated_probability *= KrichevskyPredictor(
+					internal_state->letters_freq[observed_symbol],
+					total_freq,
+					GetAlphabetRange());
+			}
+				break;
+			default:
+				assert(false);
+		}
+		internal_state->letters_freq[observed_symbol] += 1;
+	}
 }
 
 } // namespace itp

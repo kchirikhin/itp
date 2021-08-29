@@ -25,7 +25,21 @@ public:
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
 private:
-	void ResetInternalData();
+	struct InternalState
+	{
+		InternalState(Symbol alphabet_max_symbol)
+			: letters_freq(alphabet_max_symbol + 1)
+			, confident_guess_freq(alphabet_max_symbol + 1)
+		{
+			// DO NOTHING
+		}
+
+		size_t confident_estimations_series_len = 0;
+		HighPrecDouble evaluated_probability = 1.0;
+
+		std::vector<size_t> letters_freq;
+		std::vector<size_t> confident_guess_freq;
+	};
 
 	auto GetAlphabetRange() const
 	{
@@ -34,16 +48,12 @@ private:
 		return static_cast<size_t>(*alphabet_max_symbol_) - static_cast<size_t>(*alphabet_min_symbol_) + 1u;
 	}
 
+	void EvaluateProbability(const unsigned char* data, size_t size, InternalState* internal_state) const;
+
 	INonCompressionAlgorithm* non_compression_algorithm_;
 
 	std::optional<Symbol> alphabet_min_symbol_ = std::nullopt;
 	std::optional<Symbol> alphabet_max_symbol_ = std::nullopt;
-
-	HighPrecDouble evaluated_probability_ = 1.0;
-	size_t confident_estimations_series_len_ = 0;
-
-	std::vector<size_t> letters_freq_;
-	std::vector<size_t> confident_guess_freq_;
 };
 
 } // namespace itp
