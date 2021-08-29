@@ -29,6 +29,9 @@ class TestNonCompressionAlgorithmIntegration(unittest.TestCase):
 
         guesses = [(0, ConfidenceLevel.NOT_CONFIDENT), (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.CONFIDENT),
                    (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.NOT_CONFIDENT),
+                   (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.NOT_CONFIDENT),
+                   (0, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.NOT_CONFIDENT),
+                   (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.NOT_CONFIDENT),
                    (0, ConfidenceLevel.CONFIDENT)]
         self._non_compression_algorithm = FakeNonCompressionAlgorithm(guesses)
         self._itp = p.InformationTheoreticPredictor()
@@ -39,7 +42,7 @@ class TestNonCompressionAlgorithmIntegration(unittest.TestCase):
         self.assertTrue("mock" in res)
         self.assertEqual(len(res["mock"]), 2)
         self.assertAlmostEqual(res["mock"][0], 2.96823529411765)
-        self.assertAlmostEqual(res["mock"][1], 1.83176470588235)
+        self.assertAlmostEqual(res["mock"][1], 2.31882352941176)
 
 
 if __name__ == '__main__':

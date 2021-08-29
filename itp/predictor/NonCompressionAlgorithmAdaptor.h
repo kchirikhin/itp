@@ -36,6 +36,7 @@ private:
 
 		size_t confident_estimations_series_len = 0;
 		HighPrecDouble evaluated_probability = 1.0;
+		size_t current_pos = 0;
 
 		std::vector<size_t> letters_freq;
 		std::vector<size_t> confident_guess_freq;
@@ -49,6 +50,8 @@ private:
 	}
 
 	void EvaluateProbability(const unsigned char* data, size_t size, InternalState* internal_state) const;
+
+	static SizeInBits ToCodeLengths(const HighPrecDouble& probability);
 
 	INonCompressionAlgorithm* non_compression_algorithm_;
 

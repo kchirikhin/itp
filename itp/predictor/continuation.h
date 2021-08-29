@@ -47,6 +47,9 @@ class Continuation {
 
   void push_back(const T &item);
 
+  constexpr T* data() noexcept;
+  constexpr const T* data() const noexcept;
+
   typename std::vector<T>::const_iterator cbegin() const;
   typename std::vector<T>::const_iterator cend() const;
 
@@ -236,6 +239,18 @@ void itp::Continuation<T>::push_back(const T &item)
   }
 
   continuation.push_back(item);
+}
+
+template <typename T>
+constexpr T* itp::Continuation<T>::data() noexcept
+{
+	return continuation.data();
+}
+
+template <typename T>
+constexpr const T* itp::Continuation<T>::data() const noexcept
+{
+	return continuation.data();
 }
 
 template <typename T>
