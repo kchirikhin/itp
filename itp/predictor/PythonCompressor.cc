@@ -18,7 +18,7 @@ private:
 	~InterpreterSingleton() = default;
 };*/
 
-py::module CreateAlgorithmInstance(std::string_view module_name, std::string_view class_name)
+py::object CreateAlgorithmInstance(std::string_view module_name, std::string_view class_name)
 {
 	return py::module::import(module_name.data()).attr(class_name.data())();
 }

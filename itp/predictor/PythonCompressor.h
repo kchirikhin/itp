@@ -25,7 +25,7 @@ private:
 	std::string MakeClassName(std::string module_name) const;
 	void RegisterPathToExtensionsDirectory();
 
-	py::module algorithm_instance_;
+	py::object algorithm_instance_;
 };
 
 } // namespace itp
