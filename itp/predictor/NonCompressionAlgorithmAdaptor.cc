@@ -13,7 +13,7 @@ HighPrecDouble KrichevskyPredictor(const size_t sym_freq, const size_t total_fre
 
 } // namespace
 
-NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAlgorithmPtr non_compression_algorithm)
+NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAlgorithm* non_compression_algorithm)
 	: non_compression_algorithm_{std::move(non_compression_algorithm)}
 {
 	assert(non_compression_algorithm_ != nullptr);

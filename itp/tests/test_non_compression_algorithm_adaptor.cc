@@ -16,9 +16,8 @@ protected:
 	NonCompressionAlgorithmAdaptorTest()
 		: out_buffer_(10)
 	{
-		auto algorithm_ptr = std::make_unique<NiceMock<mocks::NonCompressionAlgorithmMock>>();
-		algorithm_ = algorithm_ptr.get();
-		adaptor_ = std::make_unique<NonCompressionAlgorithmAdaptor>(std::move(algorithm_ptr));
+		algorithm_ = std::make_unique<NiceMock<mocks::NonCompressionAlgorithmMock>>();
+		adaptor_ = std::make_unique<NonCompressionAlgorithmAdaptor>(algorithm_.get());
 	}
 
 	std::pair<Symbol, ConfidenceLevel> Prediction(const Symbol symbol, const ConfidenceLevel confidence_level)
@@ -26,7 +25,7 @@ protected:
 		return {symbol, confidence_level};
 	}
 
-	NiceMock<mocks::NonCompressionAlgorithmMock>* algorithm_;
+	std::unique_ptr<NiceMock<mocks::NonCompressionAlgorithmMock>> algorithm_;
 	std::unique_ptr<NonCompressionAlgorithmAdaptor> adaptor_;
 
 	const unsigned char data_[7] = {1, 2, 1, 1, 2, 1, 1};

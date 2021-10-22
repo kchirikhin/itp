@@ -99,8 +99,3 @@ set(NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS tests/test_non_compression_algorithm
 add_executable(non_compression_algorithm_adaptor_test ${NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS})
 target_link_libraries(non_compression_algorithm_adaptor_test ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME non_compression_algorithm_adaptor_test COMMAND non_compression_algorithm_adaptor_test)
-
-set(EXPONENTIAL_SMOOTHING_TESTS tests/test_exponential_smoothing.cc ${SOURCE_DIR}/PythonCompressor.cc)
-add_executable(exponential_smoothing_test ${EXPONENTIAL_SMOOTHING_TESTS})
-target_link_libraries(exponential_smoothing_test ${GTEST_LIB} ${GMOCK_LIB} ${Python_LIBRARIES} pybind11::embed)
-add_test(NAME exponential_smoothing_test COMMAND exponential_smoothing_test)

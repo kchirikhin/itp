@@ -669,7 +669,7 @@ protected:
   unsigned char ts2[15];
   unsigned char ts3[23];
 
-  std::unique_ptr<CompressorsFacade> compressors_;
+  CompressorsFacadePtr compressors_;
 };
 
 TEST_F(CustomCompressionMehtodsTest, RePair)

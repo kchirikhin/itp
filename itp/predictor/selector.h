@@ -53,7 +53,7 @@ public:
 	 * Inject interface to call compressors.
 	 * @param compressors An interface, which allows to call a compressor by its name.
 	 */
-	explicit CodeLengthEvaluator(std::unique_ptr<CompressorsFacade> compressors)
+	explicit CodeLengthEvaluator(CompressorsFacadePtr compressors)
 			: compressors_{std::move(compressors)}
 	{
 		// DO NOTHING
@@ -75,7 +75,7 @@ public:
 													 const std::vector<size_t>& quanta_count);
 
 private:
-	std::unique_ptr<CompressorsFacade> compressors_;
+	CompressorsFacadePtr compressors_;
 };
 
 /**

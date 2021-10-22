@@ -211,16 +211,14 @@ AutomatonCompressor::SizeInBits AutomatonCompressor::operator()(
 	std::vector<unsigned char>*)
 {
 	auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
-	auto res = ceil(-log2(automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size))));
+	const auto code_length = ceil(-log2(probability));
 
-	if (std::numeric_limits<AutomatonCompressor::SizeInBits>::max() < res)
+	if (HighPrecDouble(std::numeric_limits<AutomatonCompressor::SizeInBits>::max()) < code_length)
 	{
 		return std::numeric_limits<AutomatonCompressor::SizeInBits>::max();
 	}
-	else
-	{
-		return static_cast<AutomatonCompressor::SizeInBits>(res);
-	}
+
+	return static_cast<AutomatonCompressor::SizeInBits>(code_length);
 }
 
 void AutomatonCompressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
@@ -267,9 +265,9 @@ void CompressorsPool::SetAlphabetDescription(AlphabetDescription alphabet_descri
 	}
 }
 
-CompressorsFacadeUPtr MakeStandardCompressorsPool()
+CompressorsFacadePtr MakeStandardCompressorsPool()
 {
-	auto to_return = std::make_unique<CompressorsPool>();
+	auto to_return = std::make_shared<CompressorsPool>();
 
 	to_return->RegisterCompressor("lcacomp", std::make_unique<LcaCompressor>());
 	to_return->RegisterCompressor("rp", std::make_unique<RpCompressor>());
@@ -279,8 +277,6 @@ CompressorsFacadeUPtr MakeStandardCompressorsPool()
 	to_return->RegisterCompressor("ppmd", std::make_unique<PpmCompressor>());
 	to_return->RegisterCompressor("automation", std::make_unique<AutomatonCompressor>());
 	to_return->RegisterCompressor("zpaq", std::make_unique<ZpaqCompressor>());
-	to_return->RegisterCompressor("exponential", std::make_unique<NonCompressionAlgorithmAdaptor>(std::make_unique<PythonCompressor>("exponential_smoothing")));
-	to_return->RegisterCompressor("holt", std::make_unique<NonCompressionAlgorithmAdaptor>(std::make_unique<PythonCompressor>("holt")));
 
 	return to_return;
 }

@@ -1,37 +1,35 @@
-from typing import List
-from itp.extensions.itp_predictor import ItpPredictor
-import enum
+import numpy as np
+from predictor import NonCompressionAlgorithm, ConfidenceLevel
 
 import pandas as pd
 from statsmodels.tsa.api import SimpleExpSmoothing
 
 
-class ConfidenceLevel(enum.IntEnum):
-    confident = 0,
-    not_confident = 1
-
-
-class ExponentialSmoothing(ItpPredictor):
+class ExponentialSmoothing(NonCompressionAlgorithm):
     def __init__(self):
+        super(ExponentialSmoothing, self).__init__()
         self._time_series = None
         self._current_pos = 0
         self._alphabet_min_symbol = 0
         self._alphabet_max_symbol = 255
         self._minimal_history_length = 2
 
-    def register_full_time_series(self, time_series: List[int]):
+    def PyRegisterFullTimeSeries(self, time_series: bytes):
         self._time_series = time_series
+        self._current_pos = 0
 
-    def give_next_prediction(self):
+    def GiveNextPrediction(self):
         if self._current_pos < self._minimal_history_length:
-            to_return = self._median(), int(ConfidenceLevel.not_confident)
+            to_return = self._median(), ConfidenceLevel.NOT_CONFIDENT
         else:
-            to_return = self._one_step_prediction(self._time_series[:self._current_pos]), int(ConfidenceLevel.confident)
+            to_return = self._one_step_prediction(
+                np.frombuffer(self._time_series[:self._current_pos], dtype=np.uint8)), \
+                ConfidenceLevel.CONFIDENT
 
         self._current_pos += 1
         return to_return
 
-    def set_ts_params(self,  alphabet_min_symbol: int, alphabet_max_symbol: int):
+    def SetTsParams(self,  alphabet_min_symbol: int, alphabet_max_symbol: int):
         self._alphabet_min_symbol = alphabet_min_symbol
         self._alphabet_max_symbol = alphabet_max_symbol
 
@@ -39,7 +37,7 @@ class ExponentialSmoothing(ItpPredictor):
         return int((self._alphabet_max_symbol + self._alphabet_min_symbol) / 2)
 
     @staticmethod
-    def _one_step_prediction(history: List[int]):
+    def _one_step_prediction(history: np.array):
         index = pd.date_range(start='1/1/2015', periods=len(history), freq='H')
         history_ts = pd.Series(history, index)
         fit = SimpleExpSmoothing(history_ts).fit()

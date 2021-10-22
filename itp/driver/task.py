@@ -56,28 +56,36 @@ class Task:
 
 
 class ItpPredictorInterface:
+    def __init__(self, itp=None):
+        self._itp = itp
+        if not self._itp:
+            self._itp = p.InformationTheoreticPredictor()
+
+        self._registered_algorithms = {}
+
     """
     A wrapper for itp predictor functions to enable mocking.
     """
-    @staticmethod
-    def forecast_multialphabet_vec(time_series, compressors, horizon, difference,
+    def forecast_multialphabet_vec(self, time_series, compressors, horizon, difference,
                                    max_quanta_count, sparse) -> Dict[str, MultivariateTimeSeries]:
-        result = p.make_forecast_multialphabet_vec(time_series.to_list(), compressors, horizon, difference,
-                                                   max_quanta_count, sparse)
+        result = self._itp.make_forecast_multialphabet_vec(time_series.to_list(), compressors, horizon, difference,
+                                                           max_quanta_count, sparse)
         return {key: MultivariateTimeSeries(value, time_series.frequency(), time_series.dtype())
                 for key, value in result.items()}
 
-    @staticmethod
-    def forecast_discrete(time_series, compressors, horizon, difference, sparse) -> Dict[str, TimeSeries]:
-        result = p.make_forecast_discrete(time_series.to_list(), compressors, horizon, difference, sparse)
+    def forecast_discrete(self, time_series, compressors, horizon, difference, sparse) -> Dict[str, TimeSeries]:
+        result = self._itp.make_forecast_discrete(time_series.to_list(), compressors, horizon, difference, sparse)
         return {key: TimeSeries([round(x) for x in value], time_series.frequency(), time_series.dtype()) for key, value in result.items()}
 
-    @staticmethod
-    def forecast_multialphabet(time_series, compressors, horizon, difference, max_quanta_count,
+    def forecast_multialphabet(self, time_series, compressors, horizon, difference, max_quanta_count,
                                sparse) -> Dict[str, TimeSeries]:
-        result = p.make_forecast_multialphabet(time_series.to_list(), compressors, horizon, difference,
-                                               max_quanta_count, sparse)
+        result = self._itp.make_forecast_multialphabet(time_series.to_list(), compressors, horizon, difference,
+                                                       max_quanta_count, sparse)
         return {key: TimeSeries(value, time_series.frequency(), time_series.dtype()) for key, value in result.items()}
+
+    def register_non_compression_algorithm(self, name: str, algorithm: p.NonCompressionAlgorithm):
+        self._registered_algorithms[name] = algorithm
+        self._itp.RegisterNonCompressionAlgorithm(name, algorithm)
 
 
 class DiscreteUnivariateElemetaryTask(ElementaryTask):

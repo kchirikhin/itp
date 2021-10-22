@@ -36,12 +36,14 @@ protected:
 	const int sparse_ = 8;
 	const size_t difference_ = 0;
 	const size_t horizon_ = 24;
+
+	InformationTheoreticPredictor predictor_;
 };
 
 TEST_F(KIndexDataTest, PureAutomaton)
 {
 	const itp::Names groups{"automation"};
-	const auto res = make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
 
 	ASSERT_EQ(res.size(), groups.size());
 	EXPECT_EQ(res.at("automation").size(), horizon_);
@@ -50,7 +52,7 @@ TEST_F(KIndexDataTest, PureAutomaton)
 TEST_F(KIndexDataTest, PureCompressor)
 {
 	itp::Names groups{"zlib"};
-	const auto res = make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
 
 	ASSERT_EQ(res.size(), groups.size());
 	EXPECT_EQ(res.at("zlib").size(), horizon_);
@@ -79,12 +81,14 @@ protected:
 	const int sparse_ = -1;
 	const size_t difference_ = 0;
 	const size_t horizon_ = 2;
+
+	InformationTheoreticPredictor predictor_;
 };
 
 TEST_F(BasicDataTest, PureCompressor)
 {
 	std::vector<unsigned char> ts{1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0};
-	const auto res = make_forecast_discrete(ts, groups_, horizon_, difference_, sparse_);
+	const auto res = predictor_.make_forecast_discrete(ts, groups_, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), groups_.size());
 	EXPECT_EQ(res.at("zlib").size(), horizon_);
@@ -100,7 +104,7 @@ TEST_F(BasicDataTest, AllowsToForecastMultivariateSeries)
 							39078, 38185, 34448, 32673}
 			};
 	const auto max_quanta_count = 8u;
-	const auto res = make_forecast_multialphabet_vec(ts, groups_, horizon_, difference_, max_quanta_count, sparse_);
+	const auto res = predictor_.make_forecast_multialphabet_vec(ts, groups_, horizon_, difference_, max_quanta_count, sparse_);
 
 	ASSERT_EQ(res.size(), groups_.size());
 	ASSERT_EQ(res.at("zlib").size(), ts.size());

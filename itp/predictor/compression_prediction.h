@@ -14,7 +14,7 @@ class CodeLengthsComputer {
  public:
   using Trajectories = std::vector<Continuation<Symbol>>;
 
-  explicit CodeLengthsComputer(CompressorsFacadeUPtr compressors);
+  explicit CodeLengthsComputer(CompressorsFacadePtr compressors);
   virtual ~CodeLengthsComputer() = default;
 
   virtual ContinuationsDistribution<T> AppendEachTrajectoryAndCompute(
@@ -29,7 +29,7 @@ class CodeLengthsComputer {
   		const Names &compressors_to_compute) const;
 
  private:
-	CompressorsFacadeUPtr compressors_;
+	CompressorsFacadePtr compressors_;
   static constexpr size_t kBitsInByte = 8;
 };
 
@@ -124,7 +124,7 @@ class Discrete_distribution_predictor : public Single_alphabet_distribution_pred
 };
 
 template <typename T>
-CodeLengthsComputer<T>::CodeLengthsComputer(CompressorsFacadeUPtr compressors)
+CodeLengthsComputer<T>::CodeLengthsComputer(CompressorsFacadePtr compressors)
 		: compressors_{std::move(compressors)}
 {
 	// DO NOTHING

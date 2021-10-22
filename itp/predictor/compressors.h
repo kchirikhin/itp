@@ -178,6 +178,14 @@ public:
 	virtual ~CompressorsFacade() = default;
 
 	/**
+	 * Adds new compressor to the set.
+	 *
+	 * \param[in] name The name which will be used for later access.
+	 * \param[in] compressor The instance of the new compressor.
+	 */
+	virtual void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor) = 0;
+
+	/**
 	 * Returns code length, obtained by compression of data by the specified compressor.
 	 * @param compressor_name The name of data compression algorithm to use.
 	 * @param data Buffer with data to compress.
@@ -196,7 +204,7 @@ public:
 	 */
 	virtual void SetAlphabetDescription(AlphabetDescription alphabet_description) = 0;
 };
-using CompressorsFacadeUPtr = std::unique_ptr<CompressorsFacade>;
+using CompressorsFacadePtr = std::shared_ptr<CompressorsFacade>;
 
 /**
  * Implementation of CompressorsFacade, which avoids unnecessary allocations of memory to improve efficiency.
@@ -204,7 +212,7 @@ using CompressorsFacadeUPtr = std::unique_ptr<CompressorsFacade>;
 class CompressorsPool : public CompressorsFacade
 {
 public:
-	void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor);
+	void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor) override;
 
 	ICompressor::SizeInBits Compress(
 		const std::string& compressor_name,
@@ -218,7 +226,7 @@ private:
 	mutable std::vector<unsigned char> output_buffer_;
 };
 
-CompressorsFacadeUPtr MakeStandardCompressorsPool();
+CompressorsFacadePtr MakeStandardCompressorsPool();
 
 } // of namespace itp
 

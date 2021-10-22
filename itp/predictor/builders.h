@@ -32,6 +32,8 @@ template <typename OutType, typename InType>
 class Forecasting_algorithm {
   // static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
  public:
+	explicit Forecasting_algorithm(itp::CompressorsFacadePtr compressors);
+
   std::map<std::string, std::vector<OutType>> operator () (
   		const std::vector<InType> &time_series,
   		const itp::Names &compressors_groups,
@@ -49,7 +51,16 @@ class Forecasting_algorithm {
   		itp::CodeLengthsComputerPtr<OutType> computer,
   		itp::SamplerPtr<InType> sampler,
   		size_t difference) const = 0;
+
+  itp::CompressorsFacadePtr compressors_;
 };
+
+template <typename OutType, typename InType>
+Forecasting_algorithm<OutType, InType>::Forecasting_algorithm(itp::CompressorsFacadePtr compressors)
+	: compressors_{std::move(compressors)}
+{
+	// DO NOTHING
+}
 
 template <typename OutType, typename InType>
 std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InType>::operator () (
@@ -58,7 +69,7 @@ std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InTyp
 		size_t horizon,
 		size_t difference,
 		int sparse) {
-  auto computer = std::make_shared<itp::CodeLengthsComputer<OutType>>(itp::MakeStandardCompressorsPool());
+  auto computer = std::make_shared<itp::CodeLengthsComputer<OutType>>(compressors_);
   auto sampler = std::make_shared<itp::Sampler<InType>>();
   std::vector<itp::Names> compressors {
     itp::split_concatenated_names(compressors_groups)};
@@ -88,6 +99,9 @@ std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InTyp
  */
 template <typename DoubleT, typename SymbolT>
 class Forecasting_algorithm_discrete : public Forecasting_algorithm<DoubleT, SymbolT> {
+public:
+	using Forecasting_algorithm<DoubleT, SymbolT>::Forecasting_algorithm;
+
  protected:
   itp::Pointwise_predictor_ptr<DoubleT, SymbolT> make_predictor(
   		itp::CodeLengthsComputerPtr<DoubleT> computer,
@@ -97,7 +111,10 @@ class Forecasting_algorithm_discrete : public Forecasting_algorithm<DoubleT, Sym
 
 template <typename DoubleT, typename SymbolT>
 class Forecasting_algorithm_discrete_automation : public Forecasting_algorithm<DoubleT, SymbolT> {
- protected:
+public:
+	using Forecasting_algorithm<DoubleT, SymbolT>::Forecasting_algorithm;
+
+protected:
   itp::Pointwise_predictor_ptr<DoubleT, SymbolT> make_predictor(
   		itp::CodeLengthsComputerPtr<DoubleT> computer,
   		itp::SamplerPtr<SymbolT> sampler,
@@ -111,8 +128,10 @@ class Forecasting_algorithm_discrete_automation : public Forecasting_algorithm<D
  */
 template <typename DoubleT>
 class Forecasting_algorithm_real : public Forecasting_algorithm<DoubleT, DoubleT> {
- public:
-  void set_quants_count(size_t n);
+public:
+	using Forecasting_algorithm<DoubleT, DoubleT>::Forecasting_algorithm;
+
+	void set_quants_count(size_t n);
 
 protected:
   itp::Pointwise_predictor_ptr<DoubleT, DoubleT> make_predictor(
@@ -126,7 +145,10 @@ protected:
 
 template <typename DoubleT>
 class Forecasting_algorithm_real_automation : public Forecasting_algorithm_real<DoubleT> {
- protected:
+public:
+	using Forecasting_algorithm<DoubleT, DoubleT>::Forecasting_algorithm;
+
+protected:
   itp::Pointwise_predictor_ptr<DoubleT, DoubleT> make_predictor(
   		itp::CodeLengthsComputerPtr<DoubleT> computer,
   		itp::SamplerPtr<DoubleT> sampler,
@@ -135,7 +157,10 @@ class Forecasting_algorithm_real_automation : public Forecasting_algorithm_real<
 
 template <typename DoubleT>
 class Forecasting_algorithm_multialphabet : public Forecasting_algorithm_real<DoubleT> {
- protected:
+public:
+	using Forecasting_algorithm_real<DoubleT>::Forecasting_algorithm_real;
+
+protected:
   itp::Pointwise_predictor_ptr<DoubleT, DoubleT> make_predictor(
   		itp::CodeLengthsComputerPtr<DoubleT> computer,
   		itp::SamplerPtr<DoubleT> sampler,
@@ -144,7 +169,10 @@ class Forecasting_algorithm_multialphabet : public Forecasting_algorithm_real<Do
 
 template <typename DoubleT>
 class Forecasting_algorithm_multialphabet_automation : public Forecasting_algorithm_real_automation<DoubleT> {
- protected:
+public:
+	using Forecasting_algorithm<DoubleT, DoubleT>::Forecasting_algorithm;
+
+protected:
   itp::Pointwise_predictor_ptr<DoubleT, DoubleT> make_predictor(
   		itp::CodeLengthsComputerPtr<DoubleT> computer,
   		itp::SamplerPtr<DoubleT> sampler,
@@ -153,8 +181,11 @@ class Forecasting_algorithm_multialphabet_automation : public Forecasting_algori
 
 void check_args(size_t horizont, size_t difference, size_t quants_count, int sparse);
 
-std::map<std::string, std::vector<itp::Double>>
-make_forecast_real(
+class InformationTheoreticPredictor
+{
+public:
+	InformationTheoreticPredictor();
+	std::map<std::string, std::vector<itp::Double>> make_forecast_real(
 		const std::vector<itp::Double> &time_series,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -162,8 +193,7 @@ make_forecast_real(
 		size_t quanta_count,
 		int sparse);
 
-std::map<std::string, std::vector<itp::Double>>
-make_forecast_multialphabet(
+	std::map<std::string, std::vector<itp::Double>> make_forecast_multialphabet(
 		const std::vector<double> &history,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -171,8 +201,7 @@ make_forecast_multialphabet(
 		size_t max_quanta_count,
 		int sparse);
 
-std::map<std::string, std::vector<std::vector<double>>>
-make_forecast_multialphabet_vec(
+	std::map<std::string, std::vector<std::vector<double>>> make_forecast_multialphabet_vec(
 		const std::vector<std::vector<double>> &history,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -180,21 +209,27 @@ make_forecast_multialphabet_vec(
 		size_t max_quanta_count,
 		int sparse);
 
-std::map<std::string, std::vector<itp::Double>>
-make_forecast_discrete(
+	std::map<std::string, std::vector<itp::Double>> make_forecast_discrete(
 		const std::vector<itp::Symbol> &history,
 		const std::vector<std::string> &compressors_groups,
 		size_t horizon,
 		size_t difference,
 		int sparse);
 
-std::map<std::string, std::vector<itp::VectorDouble>>
-make_forecast_discrete_vec(
+	std::map<std::string, std::vector<itp::VectorDouble>> make_forecast_discrete_vec(
 		const std::vector<itp::VectorSymbol> &history,
 		const std::vector<std::string> &compressors_groups,
 		size_t horizon,
 		size_t difference,
 		int sparse);
+
+	void RegisterNonCompressionAlgorithm(
+		const std::string& name,
+		itp::INonCompressionAlgorithm* non_compression_algorithm);
+
+private:
+	itp::CompressorsFacadePtr compressors_;
+};
 
 template <typename DoubleT, typename SymbolT>
 itp::Pointwise_predictor_ptr<DoubleT, SymbolT>
