@@ -385,7 +385,7 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 				compressors_->SetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
 				code_lengths.push(
 						compressors_->Compress(compressor, reinterpret_cast<const unsigned char*>(series.data()),
-											   series.size() * sizeof(Symbol)) * 8 + *correction++);
+											   series.size() * sizeof(Symbol)) + *correction++);
 			}
 			to_return[compressor] = code_lengths.top();
 		}

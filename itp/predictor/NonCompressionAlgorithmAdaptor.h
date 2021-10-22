@@ -13,7 +13,7 @@ class NonCompressionAlgorithmAdaptor : public ICompressor
 public:
 	explicit NonCompressionAlgorithmAdaptor(INonCompressionAlgorithmPtr non_compression_algorithm);
 
-	size_t operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) override;
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
 private:

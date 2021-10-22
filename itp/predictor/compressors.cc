@@ -23,7 +23,10 @@ ZstdCompressor::~ZstdCompressor()
 	ZSTD_freeCCtx(context_);
 }
 
-size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
+ZstdCompressor::SizeInBits ZstdCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>* output_buffer)
 {
 	assert(context_);
 	assert(data);
@@ -32,10 +35,19 @@ size_t ZstdCompressor::operator()(const unsigned char* data, size_t size, std::v
 	size_t dst_capacity = ZSTD_compressBound(size);
 	FitBuffer(dst_capacity, output_buffer);
 
-	return ZSTD_compressCCtx(context_, output_buffer->data(), output_buffer->size(), data, size, ZSTD_maxCLevel());
+	return BytesToBits(ZSTD_compressCCtx(
+		context_,
+		output_buffer->data(),
+		output_buffer->size(),
+		data,
+		size,
+		ZSTD_maxCLevel()));
 }
 
-size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
+ZlibCompressor::SizeInBits ZlibCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>* output_buffer)
 {
 	size_t dst_capacity = compressBound(size * sizeof(Symbol));
 	FitBuffer(dst_capacity, output_buffer);
@@ -45,23 +57,32 @@ size_t ZlibCompressor::operator()(const unsigned char* data, size_t size, std::v
 		throw CompressorsError{"zlib: an error is occured"};
 	}
 
-	return dst_capacity;
+	return BytesToBits(dst_capacity);
 }
 
-size_t PpmCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
+PpmCompressor::SizeInBits PpmCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>* output_buffer)
 {
 	size_t dst_capacity = Ppmd::compress_bound(size);
 	FitBuffer(dst_capacity, output_buffer);
 
-	return Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size);
+	return BytesToBits(Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size));
 }
 
-size_t RpCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
+RpCompressor::SizeInBits RpCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>*)
 {
-	return Rp::rp_compress(data, size);
+	return BytesToBits(Rp::rp_compress(data, size));
 }
 
-size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer)
+Bzip2Compressor::SizeInBits Bzip2Compressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>* output_buffer)
 {
 	assert(output_buffer != nullptr);
 
@@ -76,12 +97,15 @@ size_t Bzip2Compressor::operator()(const unsigned char* data, size_t size, std::
 		throw CompressorsError{"bzip2: an error occured"};
 	}
 
-	return dst_capacity;
+	return BytesToBits(dst_capacity);
 }
 
-size_t LcaCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
+LcaCompressor::SizeInBits LcaCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>*)
 {
-	return Lcacomp::lcacomp_compress(data, size);
+	return BytesToBits(Lcacomp::lcacomp_compress(data, size));
 }
 
 namespace
@@ -162,14 +186,17 @@ void libzpaq::error(const char* msg)
 namespace itp
 {
 
-size_t ZpaqCompressor::operator()(const unsigned char* data, size_t size, std::vector<unsigned char>*)
+ZpaqCompressor::SizeInBits ZpaqCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>*)
 {
 	const char* kMaxCompressionLevel = "5";
 	ZpaqReader reader{data, size};
 	ZpaqWriter writer;
 	libzpaq::compress(&reader, &writer, kMaxCompressionLevel);
 
-	return writer.GetCompressedSize();
+	return BytesToBits(writer.GetCompressedSize());
 }
 
 AutomatonCompressor::AutomatonCompressor()
@@ -178,19 +205,21 @@ AutomatonCompressor::AutomatonCompressor()
 	// DO NOTHING
 }
 
-size_t AutomatonCompressor::operator()(const unsigned char* data, size_t size,
-									   std::vector<unsigned char>*)
+AutomatonCompressor::SizeInBits AutomatonCompressor::operator()(
+	const unsigned char* data,
+	size_t size,
+	std::vector<unsigned char>*)
 {
 	auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
 	auto res = ceil(-log2(automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size))));
 
-	if (std::numeric_limits<size_t>::max() < res)
+	if (std::numeric_limits<AutomatonCompressor::SizeInBits>::max() < res)
 	{
-		return std::numeric_limits<size_t>::max();
+		return std::numeric_limits<AutomatonCompressor::SizeInBits>::max();
 	}
 	else
 	{
-		return static_cast<size_t>(res);
+		return static_cast<AutomatonCompressor::SizeInBits>(res);
 	}
 }
 

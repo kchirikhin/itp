@@ -675,48 +675,48 @@ protected:
 TEST_F(CustomCompressionMehtodsTest, RePair)
 {
   // The sequences were compressed manually by the original Re-Pair program.
-  EXPECT_EQ(compressors_->Compress("rp", ts1, 12), 9);
-  EXPECT_EQ(compressors_->Compress("rp", ts2, 15), 17);
-  EXPECT_EQ(compressors_->Compress("rp", ts3, 23), 25);
+  EXPECT_EQ(compressors_->Compress("rp", ts1, 12), BytesToBits(9));
+  EXPECT_EQ(compressors_->Compress("rp", ts2, 15), BytesToBits(17));
+  EXPECT_EQ(compressors_->Compress("rp", ts3, 23), BytesToBits(25));
 }
 
 TEST_F(CustomCompressionMehtodsTest, Ppmd)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(compressors_->Compress("ppmd", ts1, 12), 10);
-  EXPECT_EQ(compressors_->Compress("ppmd", ts2, 15), 17);
-  EXPECT_EQ(compressors_->Compress("ppmd", ts3, 23), 21);
+  EXPECT_EQ(compressors_->Compress("ppmd", ts1, 12), BytesToBits(10));
+  EXPECT_EQ(compressors_->Compress("ppmd", ts2, 15), BytesToBits(17));
+  EXPECT_EQ(compressors_->Compress("ppmd", ts3, 23), BytesToBits(21));
 }
 
 TEST_F(CustomCompressionMehtodsTest, Lcacomp)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(compressors_->Compress("lcacomp", ts1, 12), 16);
-  EXPECT_EQ(compressors_->Compress("lcacomp", ts2, 15), 28);
-  EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), 32);
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts1, 12), BytesToBits(16));
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts2, 15), BytesToBits(28));
+  EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), BytesToBits(32));
 }
 
 TEST_F(CustomCompressionMehtodsTest, Zstd)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), 16);
-  EXPECT_EQ(compressors_->Compress("zstd", ts2, 15), 24);
-  EXPECT_EQ(compressors_->Compress("zstd", ts3, 23), 32);
+  EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), BytesToBits(16));
+  EXPECT_EQ(compressors_->Compress("zstd", ts2, 15), BytesToBits(24));
+  EXPECT_EQ(compressors_->Compress("zstd", ts3, 23), BytesToBits(32));
 }
 
 TEST_F(CustomCompressionMehtodsTest, Bzip2)
 {
   // The sequences were compressed manually by the original ppmd program.
-  EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), 37);
-  EXPECT_EQ(compressors_->Compress("bzip2", ts2, 15), 43);
-  EXPECT_EQ(compressors_->Compress("bzip2", ts3, 23), 50);
+  EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), BytesToBits(37));
+  EXPECT_EQ(compressors_->Compress("bzip2", ts2, 15), BytesToBits(43));
+  EXPECT_EQ(compressors_->Compress("bzip2", ts3, 23), BytesToBits(50));
 }
 
 TEST_F(CustomCompressionMehtodsTest, OneByOne)
 {
-  EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), 37);
-  EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), 16);
-  EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), 32);
+	EXPECT_EQ(compressors_->Compress("bzip2", ts1, 12), BytesToBits(37));
+	EXPECT_EQ(compressors_->Compress("zstd", ts1, 12), BytesToBits(16));
+	EXPECT_EQ(compressors_->Compress("lcacomp", ts3, 23), BytesToBits(32));
 }
 
 TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_predict_PredictionIsCorrect)

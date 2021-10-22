@@ -153,8 +153,10 @@ CodeLengthsComputer<T>::AppendEachTrajectoryAndCompute(
 
     for (size_t j = 0; j < result.factors_size(); ++j) {
       result(continuation, compressors_to_compute[j]) =
-			  compressors_->Compress(compressors_to_compute[j], buffer.get(),
-                                           history.size() + length_of_continuation) * kBitsInByte;
+			  compressors_->Compress(
+			  	compressors_to_compute[j],
+			  	buffer.get(),
+			  	history.size() + length_of_continuation);
     }
   }
 

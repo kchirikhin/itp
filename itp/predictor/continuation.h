@@ -9,8 +9,6 @@
 
 namespace itp {
 
-static const unsigned int bits_in_byte = 8;
-
 template<typename T>
 struct Forecast_point {
   T point;

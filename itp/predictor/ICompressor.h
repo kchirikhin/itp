@@ -12,17 +12,21 @@ namespace itp
 class ICompressor
 {
 public:
+	using SizeInBits = size_t;
+
 	virtual ~ICompressor() = default;
 
 	/**
 	 * Compresses data and returns size of the output sequence.
 	 * @param data Data to compress.
-	 * @param size Size of data.
-	 * @param output_buffer Where to put result.
-	 * @return Size of the compressed data in bytes.
+	 * @param size Size of the data.
+	 * @param output_buffer Where to put the result.
+	 * @return Size of the compressed data in bits.
 	 */
-	virtual size_t operator()(const unsigned char* data, size_t size,
-							  std::vector<unsigned char>* output_buffer) = 0;
+	virtual SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) = 0;
 
 	/**
 	 * Inform algorithm about minimal and maximal possible values in data. It's important for automaton.

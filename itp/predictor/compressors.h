@@ -28,6 +28,18 @@ namespace itp
 {
 
 /**
+ * Converts size in bytes to size in bits.
+ *
+ * \param n_bytes Size in bytes.
+ *
+ * \return Size in bits.
+ */
+constexpr size_t BytesToBits(size_t n_bytes)
+{
+	return 8 * n_bytes;
+}
+
+/**
  * The only excpetion type can be thrown in this module.
  */
 class CompressorsError : public std::runtime_error
@@ -69,8 +81,10 @@ public:
 	ZstdCompressor();
 	~ZstdCompressor() override;
 
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 
 private:
 	ZSTD_CCtx* context_ = nullptr;
@@ -79,43 +93,55 @@ private:
 class ZlibCompressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class PpmCompressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class RpCompressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class Bzip2Compressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class LcaCompressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class ZpaqCompressor : public CompressorBase
 {
 public:
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 };
 
 class AutomatonCompressor : public CompressorBase
@@ -123,8 +149,10 @@ class AutomatonCompressor : public CompressorBase
 public:
 	AutomatonCompressor();
 
-	size_t operator()(const unsigned char* data, size_t size,
-					  std::vector<unsigned char>* output_buffer) override;
+	SizeInBits operator()(
+		const unsigned char* data,
+		size_t size,
+		std::vector<unsigned char>* output_buffer) override;
 
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
@@ -154,9 +182,12 @@ public:
 	 * @param compressor_name The name of data compression algorithm to use.
 	 * @param data Buffer with data to compress.
 	 * @param size Size of the data in the buffer.
-	 * @return The obtain code length in bytes.
+	 * @return The obtained code length in bits.
 	 */
-	virtual size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const = 0;
+	virtual ICompressor::SizeInBits Compress(
+		const std::string& compressor_name,
+		const unsigned char* data,
+		size_t size) const = 0;
 
 	/**
 	 * Some compressors need to know the size of the alphabet. This method allows to specify it before compressing
@@ -175,7 +206,10 @@ class CompressorsPool : public CompressorsFacade
 public:
 	void RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor);
 
-	size_t Compress(const std::string& compressor_name, const unsigned char* data, size_t size) const override;
+	ICompressor::SizeInBits Compress(
+		const std::string& compressor_name,
+		const unsigned char* data,
+		size_t size) const override;
 
 	void SetAlphabetDescription(AlphabetDescription alphabet_description) override;
 

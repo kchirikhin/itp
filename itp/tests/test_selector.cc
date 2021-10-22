@@ -217,8 +217,10 @@ TEST_F(SelectorRealCaseTest, ReturnsCodeLengthForEachCompressor)
 	EXPECT_CALL(*compressors_, Compress(Eq("ppmd"), _, _)).Times(2).WillOnce(Return(40)).WillOnce(Return(25));
 
 	const auto result = evaluator_->Evaluate(test_real_ts_, {"zlib", "ppmd"}, 0, {2, 4});
-	EXPECT_EQ(result.at("zlib"), 204);
-	EXPECT_EQ(result.at("ppmd"), 200);
+
+	// We must add 4 bits because log_2 4 - log_2 2 = 1 and test_real_ts_.size() == 4.
+	EXPECT_EQ(result.at("zlib"), 29);
+	EXPECT_EQ(result.at("ppmd"), 25);
 }
 
 TEST_F(SelectorRealCaseTest, ReturnsEmptyMapIfNoCompressorsSpecified)
@@ -234,7 +236,7 @@ TEST_F(SelectorRealCaseTest, SelectsMaxPartitionInCaseOfEqualCodeLengths)
 	}
 
 	auto result = evaluator_->Evaluate(test_real_ts_, {"zlib"}, 0, {4, 2, 16, 8});
-	EXPECT_EQ(result["zlib"], 800);
+	EXPECT_EQ(result["zlib"], 100);
 }
 
 TEST_F(SelectorRealCaseTest, PaysAttentionToReducedSeriesLengthsAfterDifferentiation)
@@ -246,7 +248,7 @@ TEST_F(SelectorRealCaseTest, PaysAttentionToReducedSeriesLengthsAfterDifferentia
 	}
 
 	auto result = evaluator_->Evaluate(test_real_ts_, {"zlib"}, 1, {2, 4});
-	EXPECT_EQ(result["zlib"], 203);
+	EXPECT_EQ(result["zlib"], 28);
 }
 
 TEST(SelectBestCompressorsTest, ThrowsIfResultsOfComputationsAreEmpty)

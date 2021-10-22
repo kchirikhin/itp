@@ -19,7 +19,7 @@ NonCompressionAlgorithmAdaptor::NonCompressionAlgorithmAdaptor(INonCompressionAl
 	assert(non_compression_algorithm_ != nullptr);
 }
 
-size_t NonCompressionAlgorithmAdaptor::operator()(
+NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::operator()(
 	const unsigned char* data,
 	const size_t size,
 	std::vector<unsigned char>* /*output_buffer*/)
@@ -67,8 +67,8 @@ size_t NonCompressionAlgorithmAdaptor::operator()(
 		letters_freq_[observed_symbol] += 1;
 	}
 
-	constexpr size_t kBitsInByte = 8;
-	return ceil(-log2(evaluated_probability_) / kBitsInByte);
+	return static_cast<NonCompressionAlgorithmAdaptor::SizeInBits>(ceil(-log2(evaluated_probability_)));
+}
 }
 
 void NonCompressionAlgorithmAdaptor::SetTsParams(const Symbol alphabet_min_symbol, const Symbol alphabet_max_symbol)
