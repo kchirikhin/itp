@@ -17,6 +17,8 @@ public:
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
 private:
+	void ResetInternalData();
+
 	auto GetAlphabetRange() const
 	{
 		static_assert(std::is_unsigned_v<Symbol>, "Symbol must be an unsigned integer");

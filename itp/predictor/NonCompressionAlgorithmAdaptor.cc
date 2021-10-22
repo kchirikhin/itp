@@ -24,7 +24,8 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::opera
 	const size_t size,
 	std::vector<unsigned char>* /*output_buffer*/)
 {
-	evaluated_probability_ = 1.0;
+	ResetInternalData();
+
 	if (data == nullptr)
 	{
 		throw std::runtime_error{"data is nullptr"};
@@ -69,6 +70,14 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::opera
 
 	return static_cast<NonCompressionAlgorithmAdaptor::SizeInBits>(ceil(-log2(evaluated_probability_)));
 }
+
+void NonCompressionAlgorithmAdaptor::ResetInternalData()
+{
+	evaluated_probability_ = 1.0;
+	confident_estimations_series_len_ = 0;
+
+	std::fill(std::begin(letters_freq_), std::end(letters_freq_), 0);
+	std::fill(std::begin(confident_guess_freq_), std::end(confident_guess_freq_), 0);
 }
 
 void NonCompressionAlgorithmAdaptor::SetTsParams(const Symbol alphabet_min_symbol, const Symbol alphabet_max_symbol)
