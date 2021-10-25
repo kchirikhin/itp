@@ -1,9 +1,9 @@
 [submodule "itp/lib/googletest"]
-	path = itp/lib/googletest
+	path = lib/itp_core/external/googletest
 	url = https://github.com/google/googletest.git
 [submodule "itp/lib/pybind11"]
-	path = itp/lib/pybind11
+	path = external/pybind11
 	url = https://github.com/pybind/pybind11
 [submodule "itp/lib/zpaq"]
-	path = itp/lib/zpaq
+	path = lib/itp_core/external/zpaq
 	url = https://github.com/zpaq/zpaq
