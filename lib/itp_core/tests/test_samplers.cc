@@ -1,6 +1,5 @@
 #include "../src/itp_exceptions.h"
 #include "../src/sampler.h"
-#include "../src/tseries.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

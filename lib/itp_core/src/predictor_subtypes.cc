@@ -1,7 +1,7 @@
 #include "predictor.h"
 #include "sampler.h"
 #include "compressors.h"
-#include "auxilary.h"
+//#include "auxilary.h"
 
 #include <cassert>
 #include <fstream>
@@ -10,12 +10,7 @@
 
 namespace itp {
 
-std::pair<Symbol, Symbol> find_confidence_interval(const SymbolsDistributions &d,
-                                                   double confidence_probability) {
-  return std::make_pair(0, 0);
-}
-
-Double mean(const SymbolsDistributions &d,
+/*Double mean(const SymbolsDistributions &d,
             const SymbolsDistributions::Factor_type &compressor,
             Sampler_ptr sampler, const Desample_info &info) {
   Double sum {0};
@@ -24,9 +19,9 @@ Double mean(const SymbolsDistributions &d,
   }
 
   return sum;
-}
+}*/
 
-std::ostream & operator << (std::ostream &ost, const ContinuationsDistribution &table) {
+/*std::ostream & operator << (std::ostream &ost, const ContinuationsDistribution &table) {
   ost << "-\t";
   for (const auto &compressor : table.get_factors()) {
     ost << compressor << '\t';
@@ -41,9 +36,9 @@ std::ostream & operator << (std::ostream &ost, const ContinuationsDistribution &
   }
 
   return ost;
-}
+}*/
 
-Names split_concatenated_names(std::string concatenated_names, char separator) {
+/*Names split_concatenated_names(std::string concatenated_names, char separator) {
   std::istringstream iss(concatenated_names);
   Names result;
   std::string name;
@@ -109,5 +104,5 @@ std::vector<Double> Countable_weights_generator::generate(size_t n) const {
   result[n - 1] = 1. / n;
 
   return result;
-}
+}*/
 } // itp

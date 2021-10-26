@@ -1,6 +1,7 @@
 #ifndef ITP_NONCOMPRESSIONALGORITHMADAPTOR_H
 #define ITP_NONCOMPRESSIONALGORITHMADAPTOR_H
 
+#include "ICompressor.h"
 #include "INonCompressionAlgorithm.h"
 
 #include <optional>

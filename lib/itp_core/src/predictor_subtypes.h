@@ -13,14 +13,14 @@
 
 // Interface of the library.
 namespace itp {
-template
+
 template <typename T>
 std::ostream& operator << (std::ostream &ost, const ContinuationsDistribution<T> &table);
 
 inline bool IsPowerOfTwo(std::size_t n) {
   return (n > 0 && ((n & (n - 1)) == 0));
 }
-  
+
 template <typename OrigType, typename NewType>
 class Distribution_predictor {
   // static_assert(std::is_arithmetic<NewType>::value, "NewType should be an arithmetic type");

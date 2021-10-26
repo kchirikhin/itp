@@ -7,7 +7,7 @@
  *
  *
  */
-#include <itp_core/builders.h>
+#include <itp_core/predictor.h>
 #include <itp_core/INonCompressionAlgorithm.h>
 #include <itp_core/selector.h>
 

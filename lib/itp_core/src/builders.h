@@ -18,17 +18,6 @@
 #include <functional>
 #include <memory>
 
-/**
- * Removes empty symbols from start and end of a line.
- *
- * @param line String in which empty symbols should be removed.
- * @param is_empty_char Function to determine which character is empty or not
- * (return not zero if empty).
- *
- * @return Trimmed line.
- */
-std::string trim_line(const std::string &line, const std::function<int(int)> &is_empty_char);
-
 template <typename OutType, typename InType>
 class Forecasting_algorithm {
   // static_assert(std::is_arithmetic<T>::value, "T should be an arithmetic type");
@@ -218,8 +207,5 @@ Forecasting_algorithm_multialphabet<DoubleT>::make_predictor(
                                                                                          difference);
   return std::make_shared<itp::Basic_pointwise_predictor<DoubleT, DoubleT>>(dpredictor);
 }
-
-std::vector<itp::VectorDouble> Convert(const std::vector<std::vector<double>> &series);
-std::vector<std::vector<double>> Convert(const std::vector<itp::VectorDouble> &res);
 
 #endif // ITP_BUILDERS_H_INCLUDED_

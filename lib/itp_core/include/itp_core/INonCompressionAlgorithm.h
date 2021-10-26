@@ -1,7 +1,7 @@
 #ifndef ITP_INONCOMPRESSIONALGORITHM_H
 #define ITP_INONCOMPRESSIONALGORITHM_H
 
-#include "../../src/ICompressor.h"
+#include "../../src/primitive_dtypes.h"
 
 #include <memory>
 

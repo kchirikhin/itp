@@ -8,6 +8,8 @@
 #include "../../src/primitive_dtypes.h"
 #include "INonCompressionAlgorithm.h"
 
+#include <map>
+
 namespace itp
 {
 

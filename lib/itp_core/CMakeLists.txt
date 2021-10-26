@@ -12,7 +12,7 @@ include_directories(${INCLUDE_DIR})
 # All source files developed in the scope of that project.
 set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
   ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
-  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/builders.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc
+  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc
   ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc
   ${SOURCE_DIR}/predictor_subtypes.cc ${SOURCE_DIR}/predictor.cc)
 file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h" "${INCLUDE_DIR}/*.h")
@@ -40,7 +40,13 @@ add_subdirectory(external/rp)
 add_subdirectory(external/zlib)
 add_subdirectory(external/zstd)
 add_subdirectory(external/zpaq)
-set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd zpaq PARENT_SCOPE)
+
+set(COMPRESSION_LIBRARIES bz2 lca ppmd rp z zstd zpaq)
+
+get_directory_property(HAS_PARENT PARENT_DIRECTORY)
+if (HAS_PARENT)
+    set(COMPRESSION_LIBRARIES ${COMPRESSION_LIBRARIES} PARENT_SCOPE)
+endif()
 
 add_library(itp_core STATIC ${PREDICTOR_SOURCES})
 
