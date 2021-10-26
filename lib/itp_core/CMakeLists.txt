@@ -14,7 +14,7 @@ set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
   ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
   ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc
   ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc
-  ${SOURCE_DIR}/predictor_subtypes.cc ${SOURCE_DIR}/predictor.cc)
+  ${SOURCE_DIR}/predictor_subtypes.cc ${SOURCE_DIR}/predictor.cc ${SOURCE_DIR}/selector.cc)
 file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h" "${INCLUDE_DIR}/*.h")
 
 # Include third-party library for high-precision floating-point arithmetic.
@@ -49,6 +49,7 @@ if (HAS_PARENT)
 endif()
 
 add_library(itp_core STATIC ${PREDICTOR_SOURCES})
+target_compile_options(itp_core PUBLIC -fPIC -Wall -pedantic)
 
 enable_testing()
 

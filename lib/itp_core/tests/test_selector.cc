@@ -2,7 +2,7 @@
 // Created by kon on 06.01.2020.
 //
 
-#include <selector.h>
+#include "../src/selector_private.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
