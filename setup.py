@@ -17,9 +17,9 @@ def my_test_suite():
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, sourcedir=''):
+    def __init__(self, name, source_dir=''):
         Extension.__init__(self, name, sources=[])
-        self.sourcedir = os.path.abspath(sourcedir)
+        self.source_dir = os.path.abspath(source_dir)
 
 
 class CMakeBuild(build_ext):
@@ -39,15 +39,15 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+        ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + ext_dir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
+            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), ext_dir)]
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
@@ -60,20 +60,21 @@ class CMakeBuild(build_ext):
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
+        subprocess.check_call(['cmake', ext.source_dir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+
 setup(
-    name='predictor',
-    version='0.0.3',
+    name='itp',
+    version='0.0.4',
     author='Konstantin Chirikhin',
     author_email='chirihin@gmail.com',
-    description='Compression-based predictor',
+    description='An information-theoretic predictor for time series',
     long_description='',
-    packages=find_packages(),
+    packages=find_packages(include=['src', 'src/*']),
     package_data={'': ['tests/*.dat']},
     install_requires=['numpy', 'pandas', 'matplotlib'],
-    ext_modules=[CMakeExtension('predictor', './itp')],
+    ext_modules=[CMakeExtension('itp_core_bindings')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, Union, List
-from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
+from .time_series import TimeSeries, MultivariateTimeSeries
 
 import numpy as np
 import copy

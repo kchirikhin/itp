@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from itp.driver.statistics_handler import IStatisticsHandler
+from .statistics_handler import IStatisticsHandler
 
 
 class Visualizer:

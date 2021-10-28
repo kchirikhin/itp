@@ -3,7 +3,7 @@ Hooks provide a mechanism of injection of time series preprocessing techniques.
 """
 
 from abc import abstractmethod
-from itp.driver.time_series import TimeSeries
+from .time_series import TimeSeries
 from typing import Dict
 
 

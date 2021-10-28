@@ -3,7 +3,7 @@ A parallel task executor based on MPI (Message Passing Interface)
 and intended to be used on a supercomputer.
 """
 
-from itp.driver.task_pool import SequentialTaskPool
+from .task_pool import SequentialTaskPool
 from mpi4py import MPI
 import math
 import itertools as it

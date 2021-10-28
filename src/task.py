@@ -3,10 +3,10 @@ from collections import namedtuple
 import copy
 
 import predictor as p
-from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
-from itp.driver.statistics_handler import ISimpleTaskStatisticsHandler, SimpleTaskStatisticsHandler
-from itp.driver.statistics_handler import IComplexTaskStatisticsHandler, ComplexTaskStatisticsHandler
-from itp.driver.hooks import IHook, EmptyHook
+from .time_series import TimeSeries, MultivariateTimeSeries
+from .statistics_handler import ISimpleTaskStatisticsHandler, SimpleTaskStatisticsHandler
+from .statistics_handler import IComplexTaskStatisticsHandler, ComplexTaskStatisticsHandler
+from .hooks import IHook, EmptyHook
 
 from typing import Dict
 
