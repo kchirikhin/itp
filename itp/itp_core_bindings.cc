@@ -59,7 +59,7 @@ public:
 	}
 };
 
-PYBIND11_MODULE(predictor, m) {
+PYBIND11_MODULE(itp_core_bindings, m) {
     m.doc() = "Information-theoretic predictor for time series with real or discrete values.";
 
     py::class_<itp::Share>(m, "Share").def(py::init<double>());

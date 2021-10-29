@@ -2,7 +2,7 @@ from abc import abstractmethod
 from collections import namedtuple
 import copy
 
-import predictor as p
+from .itp_core_bindings import InformationTheoreticPredictor, NonCompressionAlgorithm
 from .time_series import TimeSeries, MultivariateTimeSeries
 from .statistics_handler import ISimpleTaskStatisticsHandler, SimpleTaskStatisticsHandler
 from .statistics_handler import IComplexTaskStatisticsHandler, ComplexTaskStatisticsHandler
@@ -59,7 +59,7 @@ class ItpPredictorInterface:
     def __init__(self, itp=None):
         self._itp = itp
         if not self._itp:
-            self._itp = p.InformationTheoreticPredictor()
+            self._itp = InformationTheoreticPredictor()
 
         self._registered_algorithms = {}
 
@@ -83,7 +83,7 @@ class ItpPredictorInterface:
                                                        max_quanta_count, sparse)
         return {key: TimeSeries(value, time_series.frequency(), time_series.dtype()) for key, value in result.items()}
 
-    def register_non_compression_algorithm(self, name: str, algorithm: p.NonCompressionAlgorithm):
+    def register_non_compression_algorithm(self, name: str, algorithm: NonCompressionAlgorithm):
         self._registered_algorithms[name] = algorithm
         self._itp.RegisterNonCompressionAlgorithm(name, algorithm)
 

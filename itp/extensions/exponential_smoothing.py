@@ -1,20 +1,16 @@
 import numpy as np
-from predictor import NonCompressionAlgorithm, ConfidenceLevel
+from itp.itp_core_bindings import NonCompressionAlgorithm, ConfidenceLevel
 
 import pandas as pd
-from statsmodels.tsa.api import ExponentialSmoothing
+from statsmodels.tsa.api import SimpleExpSmoothing
 
 
-frequency = 4
-skip_initial = frequency
-
-
-class Holt(NonCompressionAlgorithm):
+class ExponentialSmoothing(NonCompressionAlgorithm):
     def __init__(self):
-        super(Holt, self).__init__()
+        super(ExponentialSmoothing, self).__init__()
         self._alphabet_min_symbol = 0
         self._alphabet_max_symbol = 255
-        self._minimal_history_length = skip_initial
+        self._minimal_history_length = 2
 
     def PyGiveNextPrediction(self, time_series: bytes):
         if len(time_series) < self._minimal_history_length:
@@ -32,17 +28,9 @@ class Holt(NonCompressionAlgorithm):
     def _median(self):
         return int((self._alphabet_max_symbol + self._alphabet_min_symbol) / 2)
 
-    def _one_step_prediction(self, history: np.array):
-        index = pd.date_range(start="1/1/2015", periods=len(history), freq='H')
+    @staticmethod
+    def _one_step_prediction(history: np.array):
+        index = pd.date_range(start='1/1/2015', periods=len(history), freq='H')
         history_ts = pd.Series(history, index)
-        fit = ExponentialSmoothing(history_ts, trend='add').fit(optimized=True)
-        return self._bound(int(round(fit.forecast(1).values[0])))
-
-    def _bound(self, prediction):
-        if prediction < self._alphabet_min_symbol:
-            return self._alphabet_min_symbol
-
-        if prediction > self._alphabet_max_symbol:
-            return self._alphabet_max_symbol
-
-        return prediction
+        fit = SimpleExpSmoothing(history_ts).fit()
+        return int(round(fit.forecast(1).values[0]))

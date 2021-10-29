@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(itp_core_bindings LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(SOURCE_DIR src)
+set(SOURCE_DIR itp)
 
 set(ITP_CORE_BINDINGS_SOURCES ${SOURCE_DIR}/itp_core_bindings.cc)
 
