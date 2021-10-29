@@ -12,7 +12,7 @@ from distutils.version import LooseVersion
 
 def my_test_suite():
     test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover('itp/tests', pattern='test_*.py')
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
     return test_suite
 
 
@@ -78,4 +78,5 @@ setup(
     ext_modules=[CMakeExtension('itp_core_bindings')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    test_suite='tests',
 )
