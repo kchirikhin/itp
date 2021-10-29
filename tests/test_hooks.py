@@ -1,5 +1,4 @@
-from itp.driver.hooks import LagDifferencingHook, CombinedHook, BasicSmoothingHook, HookError
-from itp.driver.time_series import TimeSeries
+from itp import LagDifferencingHook, CombinedHook, BasicSmoothingHook, HookError, TimeSeries
 import unittest
 
 

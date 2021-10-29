@@ -1,4 +1,4 @@
-from itp.driver.task_pool import SequentialTaskPool
+from itp import SequentialTaskPool
 
 import unittest
 from unittest.mock import MagicMock

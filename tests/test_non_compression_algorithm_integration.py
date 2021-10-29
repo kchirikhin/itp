@@ -1,5 +1,4 @@
-from predictor import ConfidenceLevel, NonCompressionAlgorithm
-import predictor as p
+from itp.itp_core_bindings import ConfidenceLevel, NonCompressionAlgorithm, InformationTheoreticPredictor
 from typing import List, Tuple
 import unittest
 
@@ -34,7 +33,7 @@ class TestNonCompressionAlgorithmIntegration(unittest.TestCase):
                    (1, ConfidenceLevel.CONFIDENT), (1, ConfidenceLevel.NOT_CONFIDENT),
                    (0, ConfidenceLevel.CONFIDENT)]
         self._non_compression_algorithm = FakeNonCompressionAlgorithm(guesses)
-        self._itp = p.InformationTheoreticPredictor()
+        self._itp = InformationTheoreticPredictor()
         self._itp.RegisterNonCompressionAlgorithm("mock", self._non_compression_algorithm)
 
     def test_computes_right_prediction(self):

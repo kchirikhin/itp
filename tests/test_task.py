@@ -1,5 +1,4 @@
-from itp.driver.task import DiscreteUnivariateElemetaryTask, SimpleTask, Types, ComplexTask
-from itp.driver.time_series import TimeSeries
+from itp import DiscreteUnivariateElemetaryTask, SimpleTask, Types, ComplexTask, TimeSeries
 
 import unittest
 from unittest.mock import MagicMock

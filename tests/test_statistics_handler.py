@@ -1,5 +1,5 @@
-import itp.driver.statistics_handler as sut
-from itp.driver.time_series import TimeSeries, MultivariateTimeSeries
+from itp import TimeSeries, MultivariateTimeSeries
+import itp.statistics_handler as sut
 
 import numpy as np
 import unittest

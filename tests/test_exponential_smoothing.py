@@ -1,5 +1,5 @@
 from itp.extensions.exponential_smoothing import ExponentialSmoothing
-from predictor import ConfidenceLevel, NonCompressionAlgorithm
+from itp.itp_core_bindings import ConfidenceLevel
 import unittest
 
 

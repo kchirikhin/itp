@@ -2,14 +2,14 @@
 
 import unittest
 import numpy as np
-import predictor as p
+from itp.itp_core_bindings import InformationTheoreticPredictor
 
 
 class TestPredictor(unittest.TestCase):
     """Tests for main module"""
 
     def setUp(self):
-        self._itp = p.InformationTheoreticPredictor()
+        self._itp = InformationTheoreticPredictor()
 
     def test_basic_forecast(self):
         ts = np.array([3.4, 0.1, 3.9, 4.8, 1.5, 1.8, 2.0, 4.9, 5.1, 2.1])
