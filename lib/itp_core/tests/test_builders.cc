@@ -1,4 +1,4 @@
-#include <builders.h>
+#include "../src/predictor_private.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -37,7 +37,7 @@ protected:
 	const size_t difference_ = 0;
 	const size_t horizon_ = 24;
 
-	InformationTheoreticPredictor predictor_;
+	itp::InformationTheoreticPredictor predictor_;
 };
 
 TEST_F(KIndexDataTest, PureAutomaton)
@@ -82,7 +82,7 @@ protected:
 	const size_t difference_ = 0;
 	const size_t horizon_ = 2;
 
-	InformationTheoreticPredictor predictor_;
+	itp::InformationTheoreticPredictor predictor_;
 };
 
 TEST_F(BasicDataTest, PureCompressor)
@@ -147,15 +147,15 @@ protected:
 
 TEST(ConvertorsOfMultivariateSeriesTest, ReturnsEmptySeriesOnEmptyInput)
 {
-	EXPECT_THAT(Convert(std::vector<std::vector<double>>{}), IsEmpty());
-	EXPECT_THAT(Convert(std::vector<itp::VectorDouble>{}), IsEmpty());
+	EXPECT_THAT(itp::Convert(std::vector<std::vector<double>>{}), IsEmpty());
+	EXPECT_THAT(itp::Convert(std::vector<itp::VectorDouble>{}), IsEmpty());
 }
 
 TEST(ConvertorsOfMultivariateSeriesTest, ConvertsFromInputFormatToInternalFormat)
 {
 	const std::vector<std::vector<itp::Double>> input_data{{1., 2., 3.}, {4., 5., 6.}};
 	const std::vector<itp::VectorDouble> output_data{{1., 4.}, {2., 5.}, {3., 6.}};
-	const auto res = Convert(input_data);
+	const auto res = itp::Convert(input_data);
 
 	ASSERT_EQ(output_data.size(), res.size());
 	for (size_t i = 0; i < res.size(); ++i)

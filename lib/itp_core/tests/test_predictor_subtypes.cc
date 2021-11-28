@@ -1,6 +1,5 @@
-#include <compressors.h>
-#include <compression_prediction.h>
-#include <continuation.h>
+#include "../src/compressors.h"
+#include "../src/compression_prediction.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

@@ -1,4 +1,4 @@
-#include <tseries.h>
+#include "../src/tseries.h"
 
 #include <gtest/gtest.h>
 

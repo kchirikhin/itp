@@ -62,33 +62,9 @@ set(GMOCK_LIB gmock_main gmock)
 include_directories(${GTEST_INCLUDE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 
-set(ITP_CORE_TESTS tests/test_predictor_subtypes.cc tests/test_compressors.cc tests/test_builders.cc tests/test_tseries.cc)
-add_executable(itp_core_tests ${PREDICTOR_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
+set(ITP_CORE_TESTS tests/test_predictor_subtypes.cc tests/test_compressors.cc tests/test_builders.cc
+        tests/test_tseries.cc tests/test_bignums.cc tests/test_automaton.cc tests/test_samplers.cc
+        tests/test_selector.cc tests/test_non_compression_algorithm_adaptor.cc)
+add_executable(itp_core_tests ${ITP_CORE_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
 target_link_libraries(itp_core_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME itp_core_tests COMMAND itp_core_tests)
-
-set(BIGNUMS_TESTS tests/test_bignums.cc)
-add_executable(bignums_tests ${BIGNUMS_TESTS} ${SOURCE_DIR}/bignums.h)
-target_link_libraries(bignums_tests ${GTEST_LIB} ${GMOCK_LIB})
-add_test(NAME bignums_tests COMMAND bignums_tests)
-
-set(AUTOMATON_TESTS tests/test_automaton.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/head.cc)
-add_executable(automaton_tests ${AUTOMATON_TESTS} ${SOURCE_DIR}/automaton.h ${SOURCE_DIR}/sdfa.h
-  ${SOURCE_DIR}/head.h)
-target_link_libraries(automaton_tests ${GTEST_LIB} ${GMOCK_LIB})
-add_test(NAME automaton_tests COMMAND automaton_tests)
-
-set(SAMPLERS_TESTS tests/test_samplers.cc ${SOURCE_DIR}/sampler.cc)
-add_executable(samplers_tests ${SAMPLERS_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
-target_link_libraries(samplers_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
-add_test(NAME samplers_tests COMMAND samplers_tests)
-
-set(SELECTOR_TESTS tests/test_selector.cc ${SOURCE_DIR}/sampler.cc ${SOURCE_DIR}/continuation.cc)
-add_executable(selector_tests ${SELECTOR_TESTS} ${INCLUDE_DIR}/selector.h)
-target_link_libraries(selector_tests ${GTEST_LIB} ${GMOCK_LIB})
-add_test(NAME selector_tests COMMAND selector_tests)
-
-set(NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS tests/test_non_compression_algorithm_adaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc)
-add_executable(non_compression_algorithm_adaptor_tests ${NON_COMPRESSION_ALGORITHM_ADAPTER_TESTS})
-target_link_libraries(non_compression_algorithm_adaptor_tests ${GTEST_LIB} ${GMOCK_LIB})
-add_test(NAME non_compression_algorithm_adaptor_tests COMMAND non_compression_algorithm_adaptor_tests)

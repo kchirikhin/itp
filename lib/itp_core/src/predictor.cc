@@ -1,4 +1,4 @@
-#include <predictor.h>
+#include "predictor_private.h"
 
 #include "compression_prediction.h"
 #include "builders.h"
@@ -29,6 +29,8 @@ void check_quants_count_range(size_t quants_count) {
 		throw std::invalid_argument("Quants count should be greater than zero and not greater than 256");
 	}
 }
+
+} // namespace
 
 std::vector<itp::VectorDouble> Convert(const std::vector<std::vector<double>> &series) {
 	if (series.empty()) {
@@ -83,8 +85,6 @@ std::map<std::string, std::vector<std::vector<double>>> Convert(
 
 	return to_return;
 }
-
-} // namespace
 
 InformationTheoreticPredictor::InformationTheoreticPredictor()
 		: compressors_(itp::MakeStandardCompressorsPool())

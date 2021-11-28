@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <compressors.h>
+#include "../src/compressors.h"
 #include "compressor_mock.h"
 
 #include <array>

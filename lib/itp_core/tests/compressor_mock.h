@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include <ICompressor.h>
+#include "../src/ICompressor.h"
 
 namespace itp
 {

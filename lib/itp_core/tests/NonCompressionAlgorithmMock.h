@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include "INonCompressionAlgorithm.h"
+#include <INonCompressionAlgorithm.h>
 
 namespace itp::mocks
 {

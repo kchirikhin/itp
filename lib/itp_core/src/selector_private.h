@@ -312,16 +312,10 @@ std::vector<size_t> ComputeCorrections(const std::vector<size_t>& quanta_counts,
 }
 
 template<>
-std::vector<size_t> ComputeCorrections<Symbol>(const std::vector<size_t>& quanta_counts, const size_t)
-{
-	return {0};
-}
+std::vector<size_t> ComputeCorrections<Symbol>(const std::vector<size_t>& quanta_counts, const size_t);
 
 template<>
-std::vector<size_t> ComputeCorrections<VectorSymbol>(const std::vector<size_t>& quanta_counts, const size_t)
-{
-	return {0};
-}
+std::vector<size_t> ComputeCorrections<VectorSymbol>(const std::vector<size_t>& quanta_counts, const size_t);
 
 template<typename T>
 void CheckQuantaCounts(const std::vector<size_t>& quanta_counts)
@@ -333,14 +327,10 @@ void CheckQuantaCounts(const std::vector<size_t>& quanta_counts)
 }
 
 template<>
-void CheckQuantaCounts<Symbol>(const std::vector<size_t>&)
-{
-}
+void CheckQuantaCounts<Symbol>(const std::vector<size_t>&);
 
 template<>
-void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&)
-{
-}
+void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&);
 
 template<typename T>
 std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const std::vector<T>& history,
@@ -378,20 +368,6 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 	return to_return;
 }
 
-bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, const std::pair<std::string, size_t>& rhs)
-{
-	if (lhs.second < rhs.second)
-	{
-		return true;
-	}
-	else if (rhs.second < lhs.second)
-	{
-		return false;
-	}
-
-	return lhs.first <= rhs.first;
-}
-
 // std::for_each_n was not implemented in the libstdc++ at the moment of writing this code.
 namespace ad_hoc
 {
@@ -405,35 +381,11 @@ InputIt for_each_n(InputIt first, Size n, UnaryFunction f)
 
 } // namespace ad_hoc
 
-itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& results_of_computations,
-							  const size_t target_number)
-{
-	if (results_of_computations.size() < target_number)
-	{
-		throw SelectorError("results_of_computations's size is less than the target_number of compressors");
-	}
+bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, const std::pair<std::string, size_t>& rhs);
 
-	std::cout << "Results:\n";
-	for (const auto& [name, size] : results_of_computations)
-	{
-		std::cout << name << ' ' << size << "\n";
-	}
-
-
-	std::vector<std::pair<std::string, size_t>> results_sorted_by_file_size{std::cbegin(results_of_computations),
-																			std::cend(results_of_computations)};
-	std::sort(std::begin(results_sorted_by_file_size), std::end(results_sorted_by_file_size),
-			  CompressionResultComparator);
-
-
-	itp::Names to_return;
-	ad_hoc::for_each_n(std::cbegin(results_sorted_by_file_size), target_number, [&](const auto& name_size_pair)
-	{
-		to_return.push_back(name_size_pair.first);
-	});
-
-	return to_return;
-}
+itp::Names GetBestCompressors(
+	const std::unordered_map<std::string, size_t>& results_of_computations,
+	const size_t target_number);
 
 } // itp::evaluation
 

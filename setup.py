@@ -8,6 +8,7 @@ import unittest
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+from shutil import copyfile, copymode
 
 
 def my_test_suite():
@@ -16,6 +17,9 @@ def my_test_suite():
     return test_suite
 
 
+# Adapted from:
+# 1. https://www.benjack.io/2018/02/02/python-cpp-revisited.html
+# 2. https://python.plainenglish.io/building-hybrid-python-c-packages-8985fa1c5b1d
 class CMakeExtension(Extension):
     def __init__(self, name, source_dir=''):
         Extension.__init__(self, name, sources=[])
@@ -62,6 +66,31 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.source_dir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+
+        # Copy itp_core_tests to tests directory.
+        test_bin = os.path.join(self.build_temp, 'lib', 'itp_core', 'itp_core_tests')
+        self.copy_test_file(test_bin)
+        print()
+
+    @staticmethod
+    def copy_test_file(src_file):
+        """
+        Copy ``src_file`` to `tests/bin` directory, ensuring parent directory
+        exists. Messages like `creating directory /path/to/package` and
+        `copying directory /src/path/to/package -> path/to/package` are
+        displayed on standard output. Adapted from scikit-build.
+        """
+        # Create directory if needed.
+        dest_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests', 'bin')
+        if dest_dir != "" and not os.path.exists(dest_dir):
+            print("Creating directory {}...".format(dest_dir))
+            os.makedirs(dest_dir)
+
+        # Copy file.
+        dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+        print("Copying {} -> {}...".format(src_file, dest_file))
+        copyfile(src_file, dest_file)
+        copymode(src_file, dest_file)
 
 
 setup(
