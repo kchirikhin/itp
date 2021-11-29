@@ -63,16 +63,19 @@ TEST_F(KIndexDataTest, PureCompressor)
 	}
 }
 
-// Recalculate
-/*TEST_F(KIndexDataTest, CompressorWithAutomation) {
-  itp::Names groups = {"zlib_automation"};
-  auto res = make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
-  EXPECT_EQ(res.size(), 1);
-  EXPECT_EQ(res["zlib_automation"].size(), 24);
-  for (size_t i = 0; i < horizon_; ++i) {
-    EXPECT_FALSE(std::isnan(res["zlib_automation"][i]));
-  }
-  }*/
+TEST_F(KIndexDataTest, CompressorWithAutomation)
+{
+	itp::Names groups = {"zlib_automation"};
+	auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+
+	EXPECT_EQ(res.size(), 3);
+	EXPECT_EQ(res["zlib_automation"].size(), 24);
+
+	for (size_t i = 0; i < horizon_; ++i)
+	{
+		EXPECT_FALSE(std::isnan(res["zlib_automation"][i]));
+	}
+}
 
 class BasicDataTest : public Test
 {
