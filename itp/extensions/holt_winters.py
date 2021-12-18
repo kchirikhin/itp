@@ -4,13 +4,13 @@ from itp.itp_core_bindings import NonCompressionAlgorithm, ConfidenceLevel
 from statsmodels.tsa.api import ExponentialSmoothing
 
 
-class Holt(NonCompressionAlgorithm):
+class HoltWinters(NonCompressionAlgorithm):
     def __init__(self, skip_initial, trend=None, damped_trend=False, seasonal=None, seasonal_periods=None,
                  initialization_method=None, initial_level=None, initial_trend=None, initial_seasonal=None,
                  use_boxcox=None, bounds=None, dates=None, freq=None, missing='none', smoothing_level=None,
                  smoothing_trend=None, smoothing_seasonal=None, damping_trend=None, optimized=True, remove_bias=False,
                  start_params=None, method=None, minimize_kwargs=None, use_brute=True):
-        super(Holt, self).__init__()
+        super(HoltWinters, self).__init__()
 
         self._skip_initial = skip_initial
 
