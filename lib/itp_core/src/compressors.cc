@@ -9,9 +9,9 @@
 namespace itp
 {
 
-std::vector<CompressorBase::SizeInBits> CompressorBase::CompressEndings(
+std::vector<CompressorBase::SizeInBits> CompressorBase::CompressContinuations(
 	const std::vector<Symbol>& historical_values,
-	const Trajectories& possible_endings)
+	const Continuations& possible_endings)
 {
 	if (possible_endings.empty())
 	{
@@ -284,14 +284,14 @@ ICompressor::SizeInBits CompressorsPool::Compress(
 	}
 }
 
-std::vector<ICompressor::SizeInBits> CompressorsPool::CompressEndings(
+std::vector<ICompressor::SizeInBits> CompressorsPool::CompressContinuations(
 	const std::string& compressor_name,
 	const std::vector<Symbol>& historical_values,
-	const ICompressor::Trajectories& possible_endings)
+	const ICompressor::Continuations& possible_continuations)
 {
 	try
 	{
-		return compressor_instances_.at(compressor_name)->CompressEndings(historical_values, possible_endings);
+		return compressor_instances_.at(compressor_name)->CompressContinuations(historical_values, possible_continuations);
 	}
 	catch (const std::out_of_range& e)
 	{

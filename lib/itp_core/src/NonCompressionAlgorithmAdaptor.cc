@@ -42,9 +42,9 @@ NonCompressionAlgorithmAdaptor::SizeInBits NonCompressionAlgorithmAdaptor::Compr
 	return ToCodeLengths(state.evaluated_probability);
 }
 
-std::vector<NonCompressionAlgorithmAdaptor::SizeInBits> NonCompressionAlgorithmAdaptor::CompressEndings(
+std::vector<NonCompressionAlgorithmAdaptor::SizeInBits> NonCompressionAlgorithmAdaptor::CompressContinuations(
 	const std::vector<Symbol>& historical_values,
-	const Trajectories& possible_endings)
+	const Continuations& possible_endings)
 {
 	if (possible_endings.empty())
 	{

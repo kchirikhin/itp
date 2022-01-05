@@ -253,7 +253,7 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, RequestsPredictionsPassingRightData)
 	auto adaptor = std::make_unique<NonCompressionAlgorithmAdaptor>(&algorithm);
 	adaptor->SetTsParams(0, 1);
 
-	adaptor->CompressEndings(test_data, continuations);
+	adaptor->CompressContinuations(test_data, continuations);
 
 	EXPECT_TRUE(algorithm.AllCallsAreAsExpected()) << algorithm.GetErrorsDescription();
 }

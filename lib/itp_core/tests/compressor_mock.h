@@ -12,7 +12,7 @@ class CompressorMock : public ICompressor
 {
 public:
 	MOCK_METHOD3(Compress, size_t(const unsigned char*, size_t, std::vector<unsigned char>*));
-	MOCK_METHOD2(CompressEndings, std::vector<size_t>(const std::vector<Symbol>&, const Trajectories&));
+	MOCK_METHOD2(CompressContinuations, std::vector<size_t>(const std::vector<Symbol>&, const Continuations&));
 	MOCK_METHOD2(SetTsParams, void(Symbol, Symbol));
 };
 

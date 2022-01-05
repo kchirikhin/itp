@@ -13,7 +13,7 @@ class ICompressor
 {
 public:
 	using SizeInBits = size_t;
-	using Trajectories = std::vector<Continuation<Symbol>>;
+	using Continuations = std::vector<Continuation<Symbol>>;
 
 	virtual ~ICompressor() = default;
 
@@ -35,13 +35,13 @@ public:
 	 * Compresses each passed trajectory after the historical values and returns the code lengths for each trajectory.
 	 *
 	 * \param[in] historical_values Time series.
-	 * \param[in] possible_endings Trajectories to compress.
+	 * \param[in] possible_endings Continuations to compress.
 	 *
 	 * \return Code lengths in bits for each trajectory.
 	 */
-	virtual std::vector<SizeInBits> CompressEndings(
+	virtual std::vector<SizeInBits> CompressContinuations(
 		const std::vector<Symbol>& historical_values,
-		const Trajectories& possible_endings) = 0;
+		const Continuations& possible_endings) = 0;
 
 	/**
 	 * Inform algorithm about the minimal and maximal possible values in data.

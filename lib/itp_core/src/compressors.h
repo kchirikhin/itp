@@ -59,9 +59,9 @@ public:
 		// DO NOTHING
 	};
 
-	std::vector<SizeInBits> CompressEndings(
+	std::vector<SizeInBits> CompressContinuations(
 		const std::vector<Symbol>& historical_values,
-		const Trajectories& possible_endings) override;
+		const Continuations& possible_endings) override;
 
 protected:
 	/**
@@ -200,10 +200,10 @@ public:
 		const unsigned char* data,
 		size_t size) = 0;
 
-	virtual std::vector<ICompressor::SizeInBits> CompressEndings(
+	virtual std::vector<ICompressor::SizeInBits> CompressContinuations(
 		const std::string& compressor_name,
 		const std::vector<Symbol>& historical_values,
-		const ICompressor::Trajectories& possible_endings) = 0;
+		const ICompressor::Continuations& possible_continuations) = 0;
 
 	/**
 	 * Some compressors need to know the size of the alphabet. This method allows to specify it before compressing
@@ -227,10 +227,10 @@ public:
 		const unsigned char* data,
 		size_t size) override;
 
-	std::vector<ICompressor::SizeInBits> CompressEndings(
+	std::vector<ICompressor::SizeInBits> CompressContinuations(
 		const std::string& compressor_name,
 		const std::vector<Symbol>& historical_values,
-		const ICompressor::Trajectories& possible_endings) override;
+		const ICompressor::Continuations& possible_continuations) override;
 
 	void SetAlphabetDescription(AlphabetDescription alphabet_description) override;
 

@@ -15,7 +15,6 @@ namespace itp
 
 class CompressorsFacade;
 
-
 class InformationTheoreticPredictor
 {
 public:

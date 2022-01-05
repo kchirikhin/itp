@@ -12,7 +12,7 @@ namespace itp {
 template <typename T>
 class CodeLengthsComputer {
  public:
-	using Trajectories = ICompressor::Trajectories;
+	using Trajectories = ICompressor::Continuations;
 
   explicit CodeLengthsComputer(CompressorsFacadePtr compressors);
   virtual ~CodeLengthsComputer() = default;
@@ -147,10 +147,10 @@ ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistrib
 
 	const auto& plain_time_series = history.to_plain_tseries();
 	for (size_t i = 0; i < result.factors_size(); ++i) {
-		const auto code_lengths = compressors_->CompressEndings(
-			compressors_to_compute[i],
-			plain_time_series,
-			possible_continuations);
+		const auto code_lengths = compressors_->CompressContinuations(
+				compressors_to_compute[i],
+				plain_time_series,
+				possible_continuations);
 
 		for (size_t j = 0; j < std::size(possible_continuations); ++j)
 		{

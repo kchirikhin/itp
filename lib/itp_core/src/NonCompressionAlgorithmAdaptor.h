@@ -1,5 +1,5 @@
-#ifndef ITP_NONCOMPRESSIONALGORITHMADAPTOR_H
-#define ITP_NONCOMPRESSIONALGORITHMADAPTOR_H
+#ifndef ITP_NON_COMPRESSION_ALGORITHM_ADAPTOR_H
+#define ITP_NON_COMPRESSION_ALGORITHM_ADAPTOR_H
 
 #include "ICompressor.h"
 #include "INonCompressionAlgorithm.h"
@@ -19,16 +19,16 @@ public:
 		size_t size,
 		std::vector<unsigned char>* output_buffer) override;
 
-	std::vector<SizeInBits> CompressEndings(
+	std::vector<SizeInBits> CompressContinuations(
 		const std::vector<Symbol>& historical_values,
-		const Trajectories& possible_endings) override;
+		const Continuations& possible_endings) override;
 
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
 private:
 	struct InternalState
 	{
-		InternalState(Symbol alphabet_max_symbol)
+		explicit InternalState(Symbol alphabet_max_symbol)
 			: letters_freq(alphabet_max_symbol + 1)
 			, confident_guess_freq(alphabet_max_symbol + 1)
 		{
@@ -43,7 +43,7 @@ private:
 		std::vector<size_t> confident_guess_freq;
 	};
 
-	auto GetAlphabetRange() const
+	[[nodiscard]] auto GetAlphabetRange() const
 	{
 		static_assert(std::is_unsigned_v<Symbol>, "Symbol must be an unsigned integer");
 		assert(alphabet_min_symbol_ && alphabet_max_symbol_);
@@ -62,4 +62,4 @@ private:
 
 } // namespace itp
 
-#endif //ITP_NONCOMPRESSIONALGORITHMADAPTOR_H
+#endif // ITP_NON_COMPRESSION_ALGORITHM_ADAPTOR_H
