@@ -7,9 +7,9 @@
  *
  *
  */
-#include <itp_core/predictor.h>
+#include <itp_core/Predictor.h>
 #include <itp_core/INonCompressionAlgorithm.h>
-#include <itp_core/selector.h>
+#include <itp_core/Selector.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

@@ -10,11 +10,11 @@ set(INCLUDE_DIR include/itp_core)
 include_directories(${INCLUDE_DIR})
 
 # All source files developed in the scope of that project.
-set(PREDICTOR_SOURCES ${SOURCE_DIR}/compnames.cc ${SOURCE_DIR}/sampler.cc
-  ${SOURCE_DIR}/continuation.cc ${SOURCE_DIR}/compressors.cc ${SOURCE_DIR}/head.cc
-  ${SOURCE_DIR}/sdfa.cc ${SOURCE_DIR}/automaton.cc ${SOURCE_DIR}/ttransformations.cc
-  ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cc
-  ${SOURCE_DIR}/predictor_subtypes.cc ${SOURCE_DIR}/predictor.cc ${SOURCE_DIR}/selector.cc)
+set(PREDICTOR_SOURCES ${SOURCE_DIR}/Compnames.cpp ${SOURCE_DIR}/Sampler.cpp
+  ${SOURCE_DIR}/Continuation.cpp ${SOURCE_DIR}/Compressors.cpp ${SOURCE_DIR}/Head.cpp
+  ${SOURCE_DIR}/Sdfa.cpp ${SOURCE_DIR}/Automaton.cpp ${SOURCE_DIR}/TableTransformations.cpp
+  ${SOURCE_DIR}/NonCompressionAlgorithmAdaptor.cpp ${SOURCE_DIR}/PredictorSubtypes.cpp
+  ${SOURCE_DIR}/Predictor.cpp ${SOURCE_DIR}/Selector.cpp)
 file(GLOB PREDICTOR_HEADERS "${SOURCE_DIR}/*.h" "${INCLUDE_DIR}/*.h")
 
 # Include third-party library for high-precision floating-point arithmetic.
@@ -62,9 +62,9 @@ set(GMOCK_LIB gmock_main gmock)
 include_directories(${GTEST_INCLUDE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 
-set(ITP_CORE_TESTS tests/test_predictor_subtypes.cc tests/test_compressors.cc tests/test_builders.cc
-        tests/test_tseries.cc tests/test_bignums.cc tests/test_automaton.cc tests/test_samplers.cc
-        tests/test_selector.cc tests/test_non_compression_algorithm_adaptor.cc)
+set(ITP_CORE_TESTS tests/PredictorSubtypesTest.cpp tests/CompressorsTest.cpp tests/BuildersTest.cpp
+        tests/TimeSeriesTest.cpp tests/BignumsTest.cpp tests/AutomatonTest.cpp tests/SamplersTest.cpp
+        tests/SelectorTest.cpp tests/NonCompressionAlgorithmAdaptorTest.cpp)
 add_executable(itp_core_tests ${ITP_CORE_TESTS} ${PREDICTOR_SOURCES} ${PREDICTOR_HEADERS} ${EXTERNAL_HEADERS})
 target_link_libraries(itp_core_tests PRIVATE ${COMPRESSION_LIBRARIES} ${GTEST_LIB} ${GMOCK_LIB})
 add_test(NAME itp_core_tests COMMAND itp_core_tests)

@@ -1,7 +1,7 @@
 #ifndef ITP_ICOMPRESSOR_H
 #define ITP_ICOMPRESSOR_H
 
-#include "dtypes.h"
+#include "Types.h"
 
 namespace itp
 {
