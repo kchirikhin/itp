@@ -80,30 +80,30 @@ PYBIND11_MODULE(itp_core_bindings, m) {
 
     py::class_<itp::InformationTheoreticPredictor>(m, "InformationTheoreticPredictor")
             .def(py::init<>())
-            .def("make_forecast_real", &itp::InformationTheoreticPredictor::make_forecast_real,
+            .def("forecast_real", &itp::InformationTheoreticPredictor::ForecastReal,
 				 "Forecast real-valued time series with single partition on discretization",
 				 py::arg("time_series"), py::arg("groups"), py::arg("h") = 1,
 				 py::arg("difference") = 0, py::arg("quants_count") = 8,
 				 py::arg("sparse") = -1)
-			.def("make_forecast_multialphabet", &itp::InformationTheoreticPredictor::make_forecast_multialphabet,
+			.def("forecast_multialphabet", &itp::InformationTheoreticPredictor::ForecastMultialphabet,
 				 "Make forecast with multiple partitions for real-valued time series",
 				 py::arg("time_series"), py::arg("groups"), py::arg("h") = 1,
 				 py::arg("difference") = 0, py::arg("max_quants_count") = 8,
 				 py::arg("sparse") = -1)
-			.def("make_forecast_multialphabet_vec", &itp::InformationTheoreticPredictor::make_forecast_multialphabet_vec,
+			.def("forecast_multialphabet_vec", &itp::InformationTheoreticPredictor::ForecastMultialphabetVec,
 				 "Make forecast with multiple partitions for real-valued vector time series",
 				 py::arg("time_series"), py::arg("groups"), py::arg("h") = 1,
 				 py::arg("difference") = 0, py::arg("max_quants_count") = 8,
 				 py::arg("sparse") = -1)
-			.def("make_forecast_discrete", &itp::InformationTheoreticPredictor::make_forecast_discrete,
+			.def("forecast_discrete", &itp::InformationTheoreticPredictor::ForecastDiscrete,
 				 "Make forecast without quantization for discrete time series", py::arg("time_series"),
 				 py::arg("groups"), py::arg("h") = 1, py::arg("difference") = 0,
 				 py::arg("sparse") = -1)
-			.def("make_forecast_discrete_vec", &itp::InformationTheoreticPredictor::make_forecast_discrete_vec,
+			.def("forecast_discrete_vec", &itp::InformationTheoreticPredictor::ForecastDiscreteVec,
 				 "Make forecast without quantization for discrete vector time series",
 				 py::arg("time_series"), py::arg("groups"), py::arg("h") = 1,
 				 py::arg("difference") = 0, py::arg("sparse") = -1)
-			.def("RegisterNonCompressionAlgorithm", &itp::InformationTheoreticPredictor::RegisterNonCompressionAlgorithm,
+			.def("register_non_compression_algorithm", &itp::InformationTheoreticPredictor::RegisterNonCompressionAlgorithm,
 				 "Adds an algorithm written in Python to the set of available algorithms",
 				 py::arg("name"), py::arg("algorithm"));
 

@@ -92,7 +92,7 @@ InformationTheoreticPredictor::InformationTheoreticPredictor()
 	// DO NOTHING
 }
 
-std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::make_forecast_real(
+std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastReal(
 		const std::vector<itp::Double> &time_series,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -107,7 +107,7 @@ std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::m
 	return make_forecast(time_series, compressors_groups, horizon, difference, sparse);
 }
 
-std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::make_forecast_multialphabet(
+std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastMultialphabet(
 		const std::vector<double> &history,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -129,7 +129,7 @@ std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::m
 	return make_forecast(transformed_history, compressors_groups, horizon, difference, sparse);
 }
 
-std::map<std::string, std::vector<std::vector<double>>> InformationTheoreticPredictor::make_forecast_multialphabet_vec(
+std::map<std::string, std::vector<std::vector<double>>> InformationTheoreticPredictor::ForecastMultialphabetVec(
 		const std::vector<std::vector<double>> &history,
 		const itp::Names &compressors_groups,
 		size_t horizon,
@@ -148,7 +148,7 @@ std::map<std::string, std::vector<std::vector<double>>> InformationTheoreticPred
 	return Convert(make_forecast(Convert(history), compressors_groups, horizon, difference, sparse));
 }
 
-std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::make_forecast_discrete(
+std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastDiscrete(
 		const std::vector<itp::Symbol> &history,
 		const std::vector<std::string> &compressors_groups,
 		size_t horizon,
@@ -161,7 +161,7 @@ std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::m
 	return res;
 }
 
-std::map<std::string, std::vector<itp::VectorDouble>> InformationTheoreticPredictor::make_forecast_discrete_vec(
+std::map<std::string, std::vector<itp::VectorDouble>> InformationTheoreticPredictor::ForecastDiscreteVec(
 		const std::vector<itp::VectorSymbol> &history,
 		const std::vector<std::string> &compressors_groups,
 		size_t horizon,

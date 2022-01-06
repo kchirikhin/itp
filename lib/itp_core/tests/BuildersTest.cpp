@@ -43,7 +43,7 @@ protected:
 TEST_F(KIndexDataTest, PureAutomaton)
 {
 	const itp::Names groups{"automation"};
-	const auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	ASSERT_EQ(res.size(), groups.size());
 	EXPECT_EQ(res.at("automation").size(), horizon_);
@@ -52,7 +52,7 @@ TEST_F(KIndexDataTest, PureAutomaton)
 TEST_F(KIndexDataTest, PureCompressor)
 {
 	itp::Names groups{"zlib"};
-	const auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	ASSERT_EQ(res.size(), groups.size());
 	EXPECT_EQ(res.at("zlib").size(), horizon_);
@@ -66,7 +66,7 @@ TEST_F(KIndexDataTest, PureCompressor)
 TEST_F(KIndexDataTest, CompressorWithAutomation)
 {
 	itp::Names groups = {"zlib_automation"};
-	auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), 3);
 	EXPECT_EQ(res["zlib_automation"].size(), 24);
@@ -91,7 +91,7 @@ protected:
 TEST_F(BasicDataTest, PureCompressor)
 {
 	std::vector<unsigned char> ts{1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0};
-	const auto res = predictor_.make_forecast_discrete(ts, groups_, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(ts, groups_, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), groups_.size());
 	EXPECT_EQ(res.at("zlib").size(), horizon_);
@@ -107,7 +107,7 @@ TEST_F(BasicDataTest, AllowsToForecastMultivariateSeries)
 							39078, 38185, 34448, 32673}
 			};
 	const auto max_quanta_count = 8u;
-	const auto res = predictor_.make_forecast_multialphabet_vec(ts, groups_, horizon_, difference_, max_quanta_count, sparse_);
+	const auto res = predictor_.ForecastMultialphabetVec(ts, groups_, horizon_, difference_, max_quanta_count, sparse_);
 
 	ASSERT_EQ(res.size(), groups_.size());
 	ASSERT_EQ(res.at("zlib").size(), ts.size());
@@ -130,7 +130,7 @@ TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibTogether)
 {
 	itp::Names groups = {"automation_zlib"};
 
-	auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), 3);
 	EXPECT_EQ(res["automation"].size(), 24);
@@ -142,7 +142,7 @@ TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibSeparately)
 {
 	itp::Names groups = {"zlib", "automation"};
 
-	auto res = predictor_.make_forecast_discrete(ts_, groups, horizon_, difference_, sparse_);
+	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), 2);
 	EXPECT_EQ(res["automation"].size(), 24);
