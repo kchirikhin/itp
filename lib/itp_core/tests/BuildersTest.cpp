@@ -5,6 +5,7 @@
 
 #include "GtestExtensions.h"
 
+using itp::ConcatenatedCompressorNamesVec;
 using namespace testing;
 
 class KIndexDataTest : public Test
@@ -42,20 +43,30 @@ protected:
 
 TEST_F(KIndexDataTest, PureAutomaton)
 {
-	const itp::Names groups{"automation"};
-	const auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
+	const ConcatenatedCompressorNamesVec compressor_groups_vec{"automation"};
+	const auto res = predictor_.ForecastDiscrete(
+		ts_,
+		compressor_groups_vec,
+		horizon_,
+		difference_,
+		sparse_);
 
-	ASSERT_EQ(res.size(), groups.size());
-	EXPECT_EQ(res.at("automation").size(), horizon_);
+	ASSERT_EQ(std::size(res), std::size(compressor_groups_vec));
+	EXPECT_EQ(std::size(res.at("automation")), horizon_);
 }
 
 TEST_F(KIndexDataTest, PureCompressor)
 {
-	itp::Names groups{"zlib"};
-	const auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
+	ConcatenatedCompressorNamesVec compressor_groups_vec{"zlib"};
+	const auto res = predictor_.ForecastDiscrete(
+		ts_,
+		compressor_groups_vec,
+		horizon_,
+		difference_,
+		sparse_);
 
-	ASSERT_EQ(res.size(), groups.size());
-	EXPECT_EQ(res.at("zlib").size(), horizon_);
+	ASSERT_EQ(std::size(res), std::size(compressor_groups_vec));
+	EXPECT_EQ(std::size(res.at("zlib")), horizon_);
 
 	for (size_t i = 0; i < horizon_; ++i)
 	{
@@ -65,7 +76,7 @@ TEST_F(KIndexDataTest, PureCompressor)
 
 TEST_F(KIndexDataTest, CompressorWithAutomation)
 {
-	itp::Names groups = {"zlib_automation"};
+	ConcatenatedCompressorNamesVec groups = {"zlib_automation"};
 	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), 3);
@@ -80,7 +91,7 @@ TEST_F(KIndexDataTest, CompressorWithAutomation)
 class BasicDataTest : public Test
 {
 protected:
-	const itp::Names groups_{"zlib"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec_{"zlib"};
 	const int sparse_ = -1;
 	const size_t difference_ = 0;
 	const size_t horizon_ = 2;
@@ -91,10 +102,15 @@ protected:
 TEST_F(BasicDataTest, PureCompressor)
 {
 	std::vector<unsigned char> ts{1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0};
-	const auto res = predictor_.ForecastDiscrete(ts, groups_, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(
+		ts,
+		compressor_groups_vec_,
+		horizon_,
+		difference_,
+		sparse_);
 
-	EXPECT_EQ(res.size(), groups_.size());
-	EXPECT_EQ(res.at("zlib").size(), horizon_);
+	EXPECT_EQ(std::size(res), std::size(compressor_groups_vec_));
+	EXPECT_EQ(std::size(res.at("zlib")), horizon_);
 }
 
 TEST_F(BasicDataTest, AllowsToForecastMultivariateSeries)
@@ -107,12 +123,18 @@ TEST_F(BasicDataTest, AllowsToForecastMultivariateSeries)
 							39078, 38185, 34448, 32673}
 			};
 	const auto max_quanta_count = 8u;
-	const auto res = predictor_.ForecastMultialphabetVec(ts, groups_, horizon_, difference_, max_quanta_count, sparse_);
+	const auto res = predictor_.ForecastMultialphabetVec(
+		ts,
+		compressor_groups_vec_,
+		horizon_,
+		difference_,
+		max_quanta_count,
+		sparse_);
 
-	ASSERT_EQ(res.size(), groups_.size());
-	ASSERT_EQ(res.at("zlib").size(), ts.size());
-	EXPECT_EQ(res.at("zlib")[0].size(), horizon_);
-	EXPECT_EQ(res.at("zlib")[1].size(), horizon_);
+	ASSERT_EQ(std::size(res), std::size(compressor_groups_vec_));
+	ASSERT_EQ(std::size(res.at("zlib")), std::size(ts));
+	EXPECT_EQ(std::size(res.at("zlib")[0]), horizon_);
+	EXPECT_EQ(std::size(res.at("zlib")[1]), horizon_);
 }
 
 class MakeForecastDiscreteTest : public Test
@@ -128,25 +150,30 @@ protected:
 
 TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibTogether)
 {
-	itp::Names groups = {"automation_zlib"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"automation_zlib"};
 
-	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(
+		ts_,
+		compressor_groups_vec,
+		horizon_,
+		difference_,
+		sparse_);
 
-	EXPECT_EQ(res.size(), 3);
-	EXPECT_EQ(res["automation"].size(), 24);
-	EXPECT_EQ(res["zlib"].size(), 24);
-	EXPECT_EQ(res["automation_zlib"].size(), 24);
+	EXPECT_EQ(std::size(res), 3);
+	EXPECT_EQ(std::size(res.at("automation")), 24);
+	EXPECT_EQ(std::size(res.at("zlib")), 24);
+	EXPECT_EQ(std::size(res.at("automation_zlib")), 24);
 }
 
 TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibSeparately)
 {
-	itp::Names groups = {"zlib", "automation"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"zlib", "automation"};
 
-	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
+	const auto res = predictor_.ForecastDiscrete(ts_, compressor_groups_vec, horizon_, difference_, sparse_);
 
-	EXPECT_EQ(res.size(), 2);
-	EXPECT_EQ(res["automation"].size(), 24);
-	EXPECT_EQ(res["zlib"].size(), 24);
+	EXPECT_EQ(std::size(res), 2);
+	EXPECT_EQ(std::size(res.at("automation")), 24);
+	EXPECT_EQ(std::size(res.at("zlib")), 24);
 }
 
 TEST(ConvertorsOfMultivariateSeriesTest, ReturnsEmptySeriesOnEmptyInput)

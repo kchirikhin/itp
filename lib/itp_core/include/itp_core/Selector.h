@@ -54,9 +54,9 @@ public:
 };
 
 template<typename T>
-itp::Names SelectBestCompressors(
+itp::CompressorNames SelectBestCompressors(
 	const std::vector<T>& history,
-	const std::set<std::string>& compressors,
+	const itp::CompressorNames& compressor_names,
 	const size_t difference,
 	const std::vector<size_t>& quanta_count,
 	const Share part_to_consider,

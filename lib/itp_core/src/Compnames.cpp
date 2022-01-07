@@ -1,58 +1,70 @@
 #include "Compnames.h"
 
-#include <cassert>
-#include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <unordered_set>
 
-namespace itp {
+namespace itp
+{
 
-Names split_concatenated_names(std::string concatenated_names, char separator) {
-  std::istringstream iss(concatenated_names);
-  Names result;
-  std::string name;
-  while (std::getline(iss, name, separator)) {
-    result.push_back(name);
-  }
+CompressorNames SplitConcatenatedNames(const ConcatenatedCompressorNames& concatenated_names, char separator)
+{
+	CompressorNames result;
+	std::string name;
 
-  return result;
+	std::istringstream iss(concatenated_names);
+	while (std::getline(iss, name, separator))
+	{
+		result.push_back(name);
+	}
+
+	return result;
 }
 
-std::vector<Names> split_concatenated_names(const std::vector<std::string>
-                                            &concatenated_names,
-                                            char separator) {
-  std::vector<Names> result;
-  for (const auto &names : concatenated_names) {
-    result.push_back(split_concatenated_names(names));
-  }
+CompressorNamesVec SplitConcatenatedNames(
+	const ConcatenatedCompressorNamesVec& concatenated_names_vec,
+	char separator)
+{
+	const auto transformator = [separator](const auto& concatenated_names)
+	{ return SplitConcatenatedNames(concatenated_names, separator); };
 
-  return result;
+	std::vector<CompressorNames> result;
+	std::transform(
+		std::cbegin(concatenated_names_vec),
+		std::cend(concatenated_names_vec),
+		std::back_inserter(result),
+		transformator);
+
+	return result;
 }
 
-std::string concatenate(const Names &compressors, char separator) {
-  if (compressors.size() == 0) {
-    return std::string {};
-  }
-  std::ostringstream oss;
-  oss << compressors[0];
-  for (size_t i = 1; i < compressors.size(); ++i) {
-    oss << separator << compressors[i];
-  }
+ConcatenatedCompressorNames ToConcatenatedCompressorNames(const CompressorNames& compressors, char separator)
+{
+	if (compressors.empty())
+	{
+		return std::string{};
+	}
 
-  return oss.str();
+	std::ostringstream oss;
+	oss << compressors[0];
+	for (size_t i = 1; i < compressors.size(); ++i)
+	{
+		oss << separator << compressors[i];
+	}
+
+	return oss.str();
 }
 
-Names find_all_distinct_names(const std::vector<Names> &compressors) {
-  Names list_of_all_names;
-  std::for_each(begin(compressors), end(compressors), [&list_of_all_names](Names names) {
-      std::copy(std::begin(names), std::end(names),
-                std::back_inserter(list_of_all_names));
-    });
-  std::sort(begin(list_of_all_names), end(list_of_all_names));
+CompressorNames FindAllDistinctNames(const CompressorNamesVec& compressor_names_vec)
+{
+	std::unordered_set<CompressorName> unique_names;
+	std::for_each(
+		std::cbegin(compressor_names_vec),
+		std::cend(compressor_names_vec),
+		[&unique_names](const auto& compressor_names)
+		{ unique_names.insert(std::cbegin(compressor_names), std::cend(compressor_names)); });
 
-  Names unique_names;
-  std::unique_copy(begin(list_of_all_names), end(list_of_all_names), std::back_inserter(unique_names));
-
-  return unique_names;
+	return {std::make_move_iterator(std::begin(unique_names)), std::make_move_iterator(std::end(unique_names))};
 }
-} // itp
+
+} // namespace itp

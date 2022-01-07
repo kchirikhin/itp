@@ -26,7 +26,7 @@ class Forecasting_algorithm {
 
   std::map<std::string, std::vector<OutType>> operator () (
   		const std::vector<InType> &time_series,
-  		const itp::Names &compressors_groups,
+  		const itp::ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
   		size_t horizon,
   		size_t difference,
   		int sparse);
@@ -55,14 +55,13 @@ Forecasting_algorithm<OutType, InType>::Forecasting_algorithm(itp::CompressorsFa
 template <typename OutType, typename InType>
 std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InType>::operator () (
 		const std::vector<InType> &time_series,
-		const itp::Names &compressors_groups,
+		const itp::ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
 		size_t horizon,
 		size_t difference,
 		int sparse) {
   auto computer = std::make_shared<itp::CodeLengthsComputer<OutType>>(compressors_);
   auto sampler = std::make_shared<itp::Sampler<InType>>();
-  std::vector<itp::Names> compressors {
-    itp::split_concatenated_names(compressors_groups)};
+  const auto compressor_groups = itp::SplitConcatenatedNames(concatenated_compressor_groups);
   itp::Pointwise_predictor_ptr<OutType, InType> pointwise_predictor = make_predictor(
   		computer,
   		sampler,
@@ -71,7 +70,7 @@ std::map<std::string, std::vector<OutType>> Forecasting_algorithm<OutType, InTyp
     pointwise_predictor = std::make_shared<itp::Sparse_predictor<OutType, InType>>(pointwise_predictor, sparse);
   }
 
-  itp::Forecast<OutType> res = pointwise_predictor->Predict(itp::InitPreprocessedTs(time_series), horizon, compressors);
+  itp::Forecast<OutType> res = pointwise_predictor->Predict(itp::InitPreprocessedTs(time_series), horizon, compressor_groups);
   std::map<std::string, std::vector<OutType>> ret;
   for (const auto &compressor : res.get_index()) {
     ret[compressor] = std::vector<OutType>(horizon);

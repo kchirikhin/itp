@@ -55,9 +55,12 @@ inline std::ostream& operator << (std::ostream &ost, const VectorDouble &vd) {
 
 template <typename T>
 using PlainTimeSeries = std::vector<T>;
-    
-using Group = std::vector<std::string>;
-using Names = std::vector<std::string>;
+
+using CompressorName = std::string;
+using CompressorNames = std::vector<CompressorName>;
+using CompressorNamesVec = std::vector<CompressorNames>;
+using ConcatenatedCompressorNames = std::string;
+using ConcatenatedCompressorNamesVec = std::vector<ConcatenatedCompressorNames>;
 
 inline std::string operator "" _s(const char *str, size_t size) {
   return std::string(str, size);

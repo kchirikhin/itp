@@ -94,7 +94,7 @@ InformationTheoreticPredictor::InformationTheoreticPredictor()
 
 std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastReal(
 		const std::vector<itp::Double> &time_series,
-		const itp::Names &compressors_groups,
+		const itp::ConcatenatedCompressorNamesVec& compressors_groups,
 		size_t horizon,
 		size_t difference,
 		size_t quanta_count, int sparse)
@@ -109,7 +109,7 @@ std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::F
 
 std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastMultialphabet(
 		const std::vector<double> &history,
-		const itp::Names &compressors_groups,
+		const itp::ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
 		size_t horizon,
 		size_t difference,
 		size_t max_quanta_count,
@@ -126,12 +126,12 @@ std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::F
 
 	std::vector<itp::Double> transformed_history;
 	std::copy(begin(history), end(history), std::back_inserter(transformed_history));
-	return make_forecast(transformed_history, compressors_groups, horizon, difference, sparse);
+	return make_forecast(transformed_history, concatenated_compressor_groups, horizon, difference, sparse);
 }
 
 std::map<std::string, std::vector<std::vector<double>>> InformationTheoreticPredictor::ForecastMultialphabetVec(
 		const std::vector<std::vector<double>> &history,
-		const itp::Names &compressors_groups,
+		const itp::ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
 		size_t horizon,
 		size_t difference,
 		size_t max_quanta_count,
@@ -145,32 +145,32 @@ std::map<std::string, std::vector<std::vector<double>>> InformationTheoreticPred
 	Forecasting_algorithm_multialphabet<itp::VectorDouble> make_forecast{compressors_};
 	make_forecast.set_quants_count(max_quanta_count);
 
-	return Convert(make_forecast(Convert(history), compressors_groups, horizon, difference, sparse));
+	return Convert(make_forecast(Convert(history), concatenated_compressor_groups, horizon, difference, sparse));
 }
 
 std::map<std::string, std::vector<itp::Double>> InformationTheoreticPredictor::ForecastDiscrete(
 		const std::vector<itp::Symbol> &history,
-		const std::vector<std::string> &compressors_groups,
+		const ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
 		size_t horizon,
 		size_t difference,
 		int sparse) {
 	check_args(horizon, difference, sparse);
 
 	Forecasting_algorithm_discrete<itp::Double, itp::Symbol> make_forecast{compressors_};
-	auto res = make_forecast(history, compressors_groups, horizon, difference, sparse);
+	auto res = make_forecast(history, concatenated_compressor_groups, horizon, difference, sparse);
 	return res;
 }
 
 std::map<std::string, std::vector<itp::VectorDouble>> InformationTheoreticPredictor::ForecastDiscreteVec(
 		const std::vector<itp::VectorSymbol> &history,
-		const std::vector<std::string> &compressors_groups,
+		const ConcatenatedCompressorNamesVec& concatenated_compressor_groups,
 		size_t horizon,
 		size_t difference,
 		int sparse) {
 	check_args(horizon, difference, sparse);
 
 	Forecasting_algorithm_discrete<itp::VectorDouble, itp::VectorSymbol> make_forecast{compressors_};
-	auto res = make_forecast(history, compressors_groups, horizon, difference, sparse);
+	auto res = make_forecast(history, concatenated_compressor_groups, horizon, difference, sparse);
 
 	return res;
 }

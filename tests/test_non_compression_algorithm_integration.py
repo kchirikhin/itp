@@ -34,10 +34,10 @@ class TestNonCompressionAlgorithmIntegration(unittest.TestCase):
                    (0, ConfidenceLevel.CONFIDENT)]
         self._non_compression_algorithm = FakeNonCompressionAlgorithm(guesses)
         self._itp = InformationTheoreticPredictor()
-        self._itp.RegisterNonCompressionAlgorithm("mock", self._non_compression_algorithm)
+        self._itp.register_non_compression_algorithm("mock", self._non_compression_algorithm)
 
     def test_computes_right_prediction(self):
-        res = self._itp.make_forecast_real(self._data, ["mock"], h=2, quants_count=2)
+        res = self._itp.forecast_real(self._data, ["mock"], h=2, quants_count=2)
         self.assertTrue("mock" in res)
         self.assertEqual(len(res["mock"]), 2)
         self.assertAlmostEqual(res["mock"][0], 2.96823529411765)

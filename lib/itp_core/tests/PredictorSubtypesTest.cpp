@@ -317,13 +317,13 @@ TEST(CodesLengthsComputerTest,
   history.set_sampling_alphabet(2);
 
   size_t length_of_continuation {3};
-  Names compressors_to_compute {"zstd", "ppmd"};
+  const CompressorNames compressor_names = {"zstd", "ppmd"};
 
   CodeLengthsComputer<Symbol> computer{MakeStandardCompressorsPool()};
-  auto result = computer.ComputeContinuationsDistribution(
+  const auto result = computer.ComputeContinuationsDistribution(
   	history,
   	length_of_continuation,
-  	compressors_to_compute);
+	  compressor_names);
 
   ASSERT_EQ(8, result.index_size());
 
@@ -466,7 +466,7 @@ TEST_F(TablesConvertersTest, CodeProbabilitiesForTwoCompressorsIsGiven_max_with_
 {
   to_code_probabilities(begin(test_table), end(test_table));
   Weights_generator_ptr generator = std::make_shared<Weights_generator>();
-  form_group_forecasts(test_table, std::vector<Names>{{compressor1, compressor2}}, generator);
+  form_group_forecasts(test_table, {{compressor1, compressor2}}, generator);
 
   auto compressors = test_table.get_factors();
   EXPECT_EQ(compressors.size(), 3);
@@ -640,11 +640,11 @@ TEST(RealPointwisePredictorTest, RealTsWithZeroDifferenceThreeStepsForecast_pred
   auto sampler = std::make_shared<Sampler<Double>>();
   auto partition_cardinality = 4u;
   auto horizont = 2u;
-  std::vector<Names> compressors {{"zlib"}, {"rp"}, {"zlib", "rp"}};
+  CompressorNamesVec compressor_groups {{"zlib"}, {"rp"}, {"zlib", "rp"}};
   auto dpredictor = std::make_shared<Real_distribution_predictor<Double>> (computer, sampler, partition_cardinality);
   dpredictor->set_difference_order(0);
   Basic_pointwise_predictor<Double, Double> ppredictor{dpredictor};
-  const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
 
   EXPECT_NEAR(forecast("zlib", 0).point, 1.8615389823, 1e-5);
   EXPECT_NEAR(forecast("zlib", 1).point, 1.8730772603, 1e-5);
@@ -662,10 +662,10 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceTwoStepsForecas
   auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Symbol>>();
   size_t horizont = 2u;
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   auto dpredictor = std::make_shared<Discrete_distribution_predictor<Double, Symbol>>(computer, sampler);
   Basic_pointwise_predictor<Double, Symbol> ppredictor {dpredictor};
-  const auto forecast = ppredictor.Predict(itp::InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = ppredictor.Predict(itp::InitPreprocessedTs(ts), horizont, compressor_groups);
   std::vector<double> expected_forecast{1.0264274976, 1.0151519618};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -677,10 +677,10 @@ TEST(DiscretePointwisePredictorTest, DiscreteTsWithZeroDifferenceOneStepForecast
 	auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
 	auto sampler = std::make_shared<Sampler<Symbol>>();
 	size_t horizont = 1u;
-	std::vector<Names> compressors {{"ppmd"}};
+	const CompressorNamesVec compressor_groups {{"ppmd"}};
 	auto dpredictor = std::make_shared<Discrete_distribution_predictor<Double, Symbol>>(computer, sampler);
 	Basic_pointwise_predictor<Double, Symbol> ppredictor {dpredictor};
-	const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+	const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
 	std::vector<double> expected_forecast{1.9922028179};
 	EXPECT_NEAR(forecast("ppmd", 0).point, expected_forecast[0], 1e-5);
 }
@@ -692,12 +692,12 @@ TEST(MultialphabetSparsePredictorTest, RealTsWithZeroDifferenceAndTwoPartitions_
   auto sampler = std::make_shared<Sampler<Double>>();
   auto max_partition_cardinality = 4u;
   auto horizont = 2u;
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<Double>>(computer, sampler,
                                                                                    max_partition_cardinality);
   dpredictor->set_difference_order(0);
   Basic_pointwise_predictor<Double, Double> ppredictor {dpredictor};
-  const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = ppredictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
   std::vector<double> expected_forecast {3.0934987622, 3.0934080567};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -710,7 +710,7 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
   auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   size_t horizont {4};
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   size_t max_quants_count = 4;
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<Double>>(computer,
                                                                                    sampler,
@@ -718,7 +718,7 @@ TEST(SparseMultialphabetPredictorTest, RealTimeSeriesWithZeroDifference_predict_
   size_t sparse = 2;
   auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
   Sparse_predictor<Double, Double> sparse_predictor {ppredictor, sparse};
-  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
   std::vector<double> expected_forecast {3.7364683941, 3.8542121847, 3.0934080567, 2.75};
   EXPECT_NEAR(forecast("zlib_rp", 0).point, expected_forecast[0], 1e-5);
   EXPECT_NEAR(forecast("zlib_rp", 1).point, expected_forecast[1], 1e-5);
@@ -734,7 +734,7 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   auto computer = std::make_shared<CodeLengthsComputer<Double>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<Double>>();
   size_t horizont = 6u;
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   size_t max_quants_count = 4;
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<Double>>(computer,
                                                                                    sampler,
@@ -743,7 +743,7 @@ TEST(SparseMultialphabetPredictorTest, SparseM3CYear_predict_PredictionIsCorrect
   auto ppredictor = std::make_shared<Basic_pointwise_predictor<Double, Double>>(dpredictor);
   size_t sparse = 2;
   Sparse_predictor<Double, Double> sparse_predictor{ppredictor, sparse};
-  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
 
   PlainTimeSeries<Double> expected_forecast {5427.0124308808, 5917.0363290153,
         6407.0594768841, 6262.0988838384, 6165.6275143097, 6999.809906989};
@@ -767,7 +767,7 @@ TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData)
   auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<VectorDouble>>();
   size_t horizont = 2;
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   size_t max_quants_count = 4;
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<VectorDouble>>(computer, sampler,
                                                                                          max_quants_count);
@@ -776,7 +776,7 @@ TEST(RealMultialphabetVectorisedPredictorTest, WorksOnCorrectData)
   auto ppredictor = std::make_shared<Basic_pointwise_predictor<VectorDouble, VectorDouble>>(dpredictor);
   size_t sparse = 2;
   Sparse_predictor<VectorDouble, VectorDouble> sparse_predictor{ppredictor, sparse};
-  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressors);
+  const auto forecast = sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups);
 
   EXPECT_EQ(forecast("zlib_rp", 0).point.size(), 2);
   EXPECT_EQ(forecast("zlib_rp", 1).point.size(), 2);
@@ -794,7 +794,7 @@ TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExce
   auto computer = std::make_shared<CodeLengthsComputer<VectorDouble>>(MakeStandardCompressorsPool());
   auto sampler = std::make_shared<Sampler<VectorDouble>>();
   size_t horizont = 2;
-  std::vector<Names> compressors {{"zlib", "rp"}};
+  const CompressorNamesVec compressor_groups {{"zlib", "rp"}};
   size_t max_quants_count = 64;
   auto dpredictor = std::make_shared<Multialphabet_distribution_predictor<VectorDouble>>(computer, sampler,
                                                                                          max_quants_count);
@@ -804,5 +804,5 @@ TEST(RealMultialphabetVectorisedPredictorTest, ThrowsIfMaximalIntervalsCountExce
   size_t sparse = 2;
   Sparse_predictor<VectorDouble, VectorDouble> sparse_predictor{ppredictor, sparse};
 
-  EXPECT_THROW(sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressors), IntervalsCountError);
+  EXPECT_THROW(sparse_predictor.Predict(InitPreprocessedTs(ts), horizont, compressor_groups), IntervalsCountError);
 }

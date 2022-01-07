@@ -99,15 +99,15 @@ inline void to_code_probabilities(Forward_iterator first, Forward_iterator last)
 
 template <typename T>
 void form_group_forecasts(ContinuationsDistribution<T> &code_probabilities,
-                          const std::vector<Names> &compressors_groups, Weights_generator_ptr weights_generator) {
-  for (const auto &group : compressors_groups) {
+                          const CompressorNamesVec& compressors_groups, Weights_generator_ptr weights_generator) {
+  for (const auto& group : compressors_groups) {
     if (group.size() > 1) {
-      auto group_composite_name = concatenate(group);
+      auto group_concatenated_name = ToConcatenatedCompressorNames(group);
       auto weights = weights_generator->generate(group.size());
       for (const auto &continuation : code_probabilities.get_index()) {
-        code_probabilities(continuation, group_composite_name) = 0;
+        code_probabilities(continuation, group_concatenated_name) = 0;
         for (size_t i = 0; i < group.size(); ++i) {
-          code_probabilities(continuation, group_composite_name) +=
+          code_probabilities(continuation, group_concatenated_name) +=
               code_probabilities(continuation, group[i]) * weights[i];
         }
       }

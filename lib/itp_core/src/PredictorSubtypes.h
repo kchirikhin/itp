@@ -28,7 +28,7 @@ class Distribution_predictor {
   virtual ~Distribution_predictor() = default;
 
   virtual ContinuationsDistribution<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history,
-                                                      size_t horizont, const std::vector<Names> &compressors) const = 0;
+                                                      size_t horizont, const CompressorNamesVec &compressor_groups) const = 0;
 };
 
 template <typename OrigType, typename NewType>
@@ -41,7 +41,7 @@ class Pointwise_predictor {
   virtual ~Pointwise_predictor() = default;
 
   virtual Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                                     const std::vector<Names> &compressors) const = 0;
+                                     const CompressorNamesVec &compressor_groups) const = 0;
 };
 
 template <typename OrigType, typename NewType>
@@ -52,7 +52,7 @@ class Basic_pointwise_predictor : public Pointwise_predictor<OrigType, NewType> 
  public:
   Basic_pointwise_predictor(Distribution_predictor_ptr<OrigType, NewType> distribution_predictor);
   Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                              const std::vector<Names> &compressors) const override;
+                              const CompressorNamesVec &compressor_groups) const override;
  private:
   Distribution_predictor_ptr<OrigType, NewType> distribution_predictor;
 };
@@ -67,7 +67,7 @@ class Sparse_predictor : public Pointwise_predictor<OrigType, NewType> {
   Sparse_predictor(Pointwise_predictor_ptr<OrigType, NewType> pointwise_predictor, size_t sparse);
 
   Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                              const std::vector<Names> &compressors) const override final;
+                              const CompressorNamesVec &compressor_groups) const override final;
  private:
   Pointwise_predictor_ptr<OrigType, NewType> pointwise_predictor;
   size_t sparse;
@@ -100,7 +100,7 @@ std::ostream & itp::operator << (std::ostream &ost, const ContinuationsDistribut
 }
 
 template <typename OrigType, typename NewType>
-itp::Forecast<OrigType> itp::Sparse_predictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont, const std::vector<Names> &compressors) const {
+itp::Forecast<OrigType> itp::Sparse_predictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont, const CompressorNamesVec& compressor_groups) const {
   std::vector<Forecast<OrigType>> results(sparse);
   size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse));
   for (size_t i = 0; i < sparse; ++i) {
@@ -109,12 +109,12 @@ itp::Forecast<OrigType> itp::Sparse_predictor<OrigType, NewType>::Predict(Prepro
     for (size_t j = i; j < history.size(); j += sparse) {
       sparse_ts_data.push_back(history[j]);
     }
-    results[i] = pointwise_predictor->Predict(sparse_ts_data, sparsed_horizont, compressors);
+    results[i] = pointwise_predictor->Predict(sparse_ts_data, sparsed_horizont, compressor_groups);
   }
 
   Forecast<OrigType> result;
   Forecast<OrigType> full_first_steps =
-      pointwise_predictor->Predict(history, sparsed_horizont, compressors);
+      pointwise_predictor->Predict(history, sparsed_horizont, compressor_groups);
   for (size_t i = 0; i < sparsed_horizont; ++i) {
     for (const auto &compressor : full_first_steps.get_index()) {
       result(compressor, i) = full_first_steps(compressor, i);
@@ -141,8 +141,8 @@ itp::Basic_pointwise_predictor<OrigType, NewType>::Basic_pointwise_predictor(Dis
 
 template <typename OrigType, typename NewType>
 itp::Forecast<OrigType> itp::Basic_pointwise_predictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> ts, size_t horizont,
-                                                                                      const std::vector<Names> &compressors) const {
-  auto distribution = distribution_predictor->Predict(ts, horizont, compressors);
+                                                                                      const CompressorNamesVec& compressor_groups) const {
+  auto distribution = distribution_predictor->Predict(ts, horizont, compressor_groups);
   auto forecasts = to_pointwise_forecasts(distribution, horizont);
   integrate(forecasts);
   return forecasts;

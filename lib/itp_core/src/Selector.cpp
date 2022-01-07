@@ -46,8 +46,8 @@ bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, cons
 	return lhs.first <= rhs.first;
 }
 
-itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& results_of_computations,
-							  const size_t target_number)
+itp::CompressorNames GetBestCompressors(const std::unordered_map<std::string, size_t>& results_of_computations,
+										const size_t target_number)
 {
 	if (results_of_computations.size() < target_number)
 	{
@@ -67,7 +67,7 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 			  CompressionResultComparator);
 
 
-	itp::Names to_return;
+	itp::CompressorNames to_return;
 	ad_hoc::for_each_n(std::cbegin(results_sorted_by_file_size), target_number, [&](const auto& name_size_pair)
 	{
 		to_return.push_back(name_size_pair.first);
@@ -79,9 +79,9 @@ itp::Names GetBestCompressors(const std::unordered_map<std::string, size_t>& res
 } // evaluation
 
 template<typename T>
-Names SelectBestCompressors(
+CompressorNames SelectBestCompressors(
 	const std::vector<T>& history,
-	const std::set<std::string>& compressors,
+	const CompressorNames& compressor_names,
 	const size_t difference,
 	const std::vector<size_t>& quanta_count,
 	const Share part_to_consider,
@@ -93,21 +93,21 @@ Names SelectBestCompressors(
 	using namespace evaluation;
 	CodeLengthEvaluator<T> evaluator{MakeStandardCompressorsPool()};
 
-	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressors, difference, quanta_count),
+	return GetBestCompressors(evaluator.Evaluate(shrinked_history, compressor_names, difference, quanta_count),
 							  target_number);
 }
 
-template Names SelectBestCompressors<Symbol>(
+template CompressorNames SelectBestCompressors<Symbol>(
 	const std::vector<Symbol>& history,
-	const std::set<std::string>& compressors,
+	const CompressorNames& compressor_names,
 	const size_t difference,
 	const std::vector<size_t>& quanta_count,
 	const Share part_to_consider,
 	const size_t target_number);
 
-template Names SelectBestCompressors<Double>(
+template CompressorNames SelectBestCompressors<Double>(
 	const std::vector<Double>& history,
-	const std::set<std::string>& compressors,
+	const CompressorNames& compressor_names,
 	const size_t difference,
 	const std::vector<size_t>& quanta_count,
 	const Share part_to_consider,

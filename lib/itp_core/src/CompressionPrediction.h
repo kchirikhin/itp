@@ -20,13 +20,13 @@ class CodeLengthsComputer {
   virtual ContinuationsDistribution<T> ComputeContinuationsDistribution(
   		const Preprocessed_tseries<T, Symbol> &history,
   		size_t length_of_continuation,
-  		const Names &compressors_to_compute,
+  		const CompressorNames& compressor_names,
   		const Trajectories &possible_continuations) const;
   
   virtual ContinuationsDistribution<T> ComputeContinuationsDistribution(
   		const Preprocessed_tseries<T, Symbol> &history,
   		size_t length_of_continuation,
-  		const Names &compressors_to_compute) const;
+  		const CompressorNames& compressor_names) const;
 
  private:
 	CompressorsFacadePtr compressors_;
@@ -44,7 +44,7 @@ class CompressionBasedPredictor : public Distribution_predictor<OrigType, NewTyp
                                      size_t difference_order = 0);
 
   ContinuationsDistribution<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                                              const std::vector<Names> &compressors) const override final;
+                                              const CompressorNamesVec& compressor_groups) const final;
 
   void set_difference_order(size_t n);
   size_t get_difference_order() const;
@@ -52,7 +52,7 @@ class CompressionBasedPredictor : public Distribution_predictor<OrigType, NewTyp
  protected:
   virtual ContinuationsDistribution<OrigType>
   obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont,
-                            const Names &compressors) const = 0;
+                            const CompressorNames& compressor_names) const = 0;
 
  private:
   Weights_generator_ptr weights_generator;
@@ -68,7 +68,7 @@ class Multialphabet_distribution_predictor : public CompressionBasedPredictor<Do
 
   ContinuationsDistribution<DoubleT>
   obtain_code_probabilities(const Preprocessed_tseries<DoubleT, DoubleT> &ts, size_t horizont,
-                            const Group &compressors) const override;
+                            const CompressorNames& compressor_names) const override;
   
  private:
   CodeLengthsComputerPtr<DoubleT> codes_lengths_computer;
@@ -85,7 +85,7 @@ class Single_alphabet_distribution_predictor : public CompressionBasedPredictor<
  protected:
   ContinuationsDistribution<OrigType>
   obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &, size_t,
-                            const Names &) const override final;
+                            const CompressorNames&) const override final;
   virtual Preprocessed_tseries<OrigType, Symbol>
   sample(const Preprocessed_tseries<OrigType,NewType> &) const = 0;
 
@@ -134,7 +134,7 @@ template <typename T>
 ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistribution(
 	const Preprocessed_tseries<T, Symbol> &history,
 	size_t length_of_continuation,
-	const Names &compressors_to_compute,
+	const CompressorNames& compressor_names,
 	const Trajectories &possible_continuations) const {
   const auto alphabet = history.get_sampling_alphabet();
   assert(length_of_continuation <= 100);
@@ -143,18 +143,18 @@ ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistrib
   compressors_->SetAlphabetDescription({0, static_cast<Symbol>(alphabet - 1)});
 
   ContinuationsDistribution<T> result(std::begin(possible_continuations), std::end(possible_continuations),
-                                      std::begin(compressors_to_compute), std::end(compressors_to_compute));
+                                      std::begin(compressor_names), std::end(compressor_names));
 
 	const auto& plain_time_series = history.to_plain_tseries();
 	for (size_t i = 0; i < result.factors_size(); ++i) {
 		const auto code_lengths = compressors_->CompressContinuations(
-				compressors_to_compute[i],
-				plain_time_series,
-				possible_continuations);
+			compressor_names[i],
+			plain_time_series,
+			possible_continuations);
 
 		for (size_t j = 0; j < std::size(possible_continuations); ++j)
 		{
-			result(possible_continuations[j], compressors_to_compute[i]) = code_lengths[j];
+			result(possible_continuations[j], compressor_names[i]) = code_lengths[j];
 		}
 	}
 
@@ -165,7 +165,7 @@ template <typename T>
 ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistribution(
 	const Preprocessed_tseries<T, Symbol> &history,
 	size_t length_of_continuation,
-	const Names &compressors_to_compute) const {
+	const CompressorNames& compressor_names) const {
   const auto alphabet = history.get_sampling_alphabet();
   assert(0 < alphabet);
 
@@ -178,7 +178,7 @@ ContinuationsDistribution<T> CodeLengthsComputer<T>::ComputeContinuationsDistrib
   return ComputeContinuationsDistribution(
   	history,
   	length_of_continuation,
-  	compressors_to_compute,
+	compressor_names,
   	possible_continuations);
 }
 
@@ -186,13 +186,12 @@ template <typename OrigType, typename NewType>
 ContinuationsDistribution<OrigType>
 CompressionBasedPredictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> history,
                                                       size_t horizont,
-                                                      const std::vector<Names> &compressors) const  {
+                                                      const CompressorNamesVec& compressor_groups) const  {
   auto differentized_history = diff_n(history, difference_order);
-  auto distinct_single_compressors = find_all_distinct_names(compressors);
+  const auto distinct_single_compressors = FindAllDistinctNames(compressor_groups);
   auto code_probabilities_result =
-      obtain_code_probabilities(differentized_history, horizont,
-                                distinct_single_compressors);
-  form_group_forecasts(code_probabilities_result, compressors, weights_generator);
+      obtain_code_probabilities(differentized_history, horizont, distinct_single_compressors);
+  form_group_forecasts(code_probabilities_result, compressor_groups, weights_generator);
   return to_probabilities(code_probabilities_result);
 }
 
@@ -210,7 +209,7 @@ Multialphabet_distribution_predictor<DoubleT>::Multialphabet_distribution_predic
 
 template <typename DoubleT>
 ContinuationsDistribution<DoubleT>
-Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const Preprocessed_tseries<DoubleT, DoubleT> &history, size_t horizont, const Group &archivers) const {
+Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const Preprocessed_tseries<DoubleT, DoubleT> &history, size_t horizont, const CompressorNames& compressor_names) const {
   size_t N = log2_max_partition_cardinality;
   std::vector<ContinuationsDistribution<DoubleT>> tables(N);
   std::vector<size_t> alphabets(N);
@@ -222,7 +221,7 @@ Multialphabet_distribution_predictor<DoubleT>::obtain_code_probabilities(const P
     tables[i] = codes_lengths_computer->ComputeContinuationsDistribution(
     	sampled_ts,
     	horizont,
-    	archivers);
+    	compressor_names);
     tables[i].copy_preprocessing_info_from(sampled_ts);
   }
 
@@ -269,12 +268,12 @@ Discrete_distribution_predictor<DoubleT, SymbolT>::sample(const Preprocessed_tse
 
 template <typename OrigType, typename NewType>
 ContinuationsDistribution<OrigType>
-Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const Names &compressors) const {
+Single_alphabet_distribution_predictor<OrigType, NewType>::obtain_code_probabilities(const Preprocessed_tseries<OrigType, NewType> &history, size_t horizont, const CompressorNames& compressor_names) const {
   auto sampled_tseries = sample(history);
   auto table = codes_lengths_computer->ComputeContinuationsDistribution(
   	sampled_tseries,
   	horizont,
-  	compressors);
+  	compressor_names);
   auto min = *std::min_element(begin(table), end(table));
   add_value_to_each(begin(table), end(table), -min);
   to_code_probabilities(begin(table), end(table));

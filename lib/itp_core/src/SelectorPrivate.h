@@ -47,7 +47,7 @@ public:
 	 * Compresses the specified series with the specified compressors and returns the obtained code lengths. All
 	 * valid preliminary transformations are applied.
 	 * @param history The series (data) to compress.
-	 * @param compressors Names of compressors to use. The compressors must be available via CompressorsFacade object
+	 * @param compressor_names Names of compressors to use. The compressors must be available via CompressorsFacade object
 	 * injected via constructor.
 	 * @param difference Order of difference.
 	 * @param quanta_count For a real-valued time series, all specified quanta count will be considered at the same
@@ -55,7 +55,7 @@ public:
 	 * @return For each compressor its best code length (in the form of <name -> length> mapping).
 	 */
 	std::unordered_map<std::string, size_t> Evaluate(const std::vector<T>& history,
-													 const std::set<std::string>& compressors, size_t difference,
+													 const CompressorNames& compressor_names, size_t difference,
 													 const std::vector<size_t>& quanta_count);
 
 private:
@@ -334,7 +334,7 @@ void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&);
 
 template<typename T>
 std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const std::vector<T>& history,
-																		 const std::set<std::string>& compressors,
+																		 const CompressorNames& compressor_names,
 																		 const size_t difference,
 																		 const std::vector<size_t>& quanta_counts)
 {
@@ -344,11 +344,11 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 	const auto corrections = ComputeCorrections<T>(quanta_counts, diff_history.size());
 	std::unordered_map<std::string, size_t> to_return;
 	const SampledSeriesStorage<T> series_storage{diff_history, quanta_counts};
-	for (const auto& compressor : compressors)
+	for (const auto& compressor_name : compressor_names)
 	{
 		if (diff_history.empty())
 		{
-			to_return[compressor] = 0;
+			to_return[compressor_name] = 0;
 		}
 		else
 		{
@@ -358,10 +358,10 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 			{
 				compressors_->SetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
 				code_lengths.push(
-						compressors_->Compress(compressor, reinterpret_cast<const unsigned char*>(series.data()),
+						compressors_->Compress(compressor_name, reinterpret_cast<const unsigned char*>(series.data()),
 											   series.size() * sizeof(Symbol)) + *correction++);
 			}
-			to_return[compressor] = code_lengths.top();
+			to_return[compressor_name] = code_lengths.top();
 		}
 	}
 
@@ -383,7 +383,7 @@ InputIt for_each_n(InputIt first, Size n, UnaryFunction f)
 
 bool CompressionResultComparator(const std::pair<std::string, size_t>& lhs, const std::pair<std::string, size_t>& rhs);
 
-itp::Names GetBestCompressors(
+itp::CompressorNames GetBestCompressors(
 	const std::unordered_map<std::string, size_t>& results_of_computations,
 	const size_t target_number);
 
