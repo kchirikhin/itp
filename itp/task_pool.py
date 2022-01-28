@@ -1,12 +1,15 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
+from .task import ITask
+from typing import Tuple
+from ivisualizer import IVisualizer
 
 
-class TaskPool:
+class TaskPool(ABC):
     """
     General interface to different task pools.
     """
     @abstractmethod
-    def add_task(self, task, *visualizers):
+    def add_task(self, task: ITask, *visualizers: Tuple[IVisualizer]):
         """
         Registers task to be executed on the execute() call.
 
@@ -31,7 +34,7 @@ class SequentialTaskPool(TaskPool):
         self._tasks = []
         self._visualizers = []
 
-    def add_task(self, task, *visualizers):
+    def add_task(self, task: ITask, *visualizers: Tuple[IVisualizer]):
         self._tasks.append(task)
         self._visualizers.append(visualizers)
 
@@ -51,7 +54,8 @@ class SequentialTaskPool(TaskPool):
 
         return elementary_tasks, task_number_to_elem_tasks_range
 
-    def _run_tasks(self, elementary_tasks):
+    @staticmethod
+    def _run_tasks(elementary_tasks):
         elementary_results = []
         for elementary_task in elementary_tasks:
             elementary_results.append(elementary_task.run())
@@ -60,6 +64,6 @@ class SequentialTaskPool(TaskPool):
     @staticmethod
     def _call_visualizers(tasks, visualizers, elementary_results, task_number_to_elem_tasks_range):
         for task_number, elem_tasks_range in task_number_to_elem_tasks_range.items():
-            result = tasks[task_number].handle_results_of_computations(elementary_results[elem_tasks_range])
+            result = tasks[task_number].set_results_of_computations(elementary_results[elem_tasks_range])
             for visualizer in visualizers[task_number]:
                 visualizer.visualize(result)

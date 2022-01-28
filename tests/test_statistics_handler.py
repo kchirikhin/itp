@@ -63,7 +63,7 @@ class TestComplexTaskStatisticsHandler(unittest.TestCase):
                            {'zlib': TimeSeries([1.4, 1.6, 1.8], dtype=float)}]
         self._observed = [TimeSeries([1.1, 1.4, 1.8], dtype=float), TimeSeries([1.4, 1.8, 2.0], dtype=float)]
         self._forecast = {'zlib': TimeSeries([1, 1.5, 2], dtype=float)}
-        self._statistics = sut.ComplexTaskStatisticsHandler()
+        self._statistics = sut.TrainingTaskStatisticsHandler()
         self._statistics.set_results_of_computations(self._history, self._forecast, self._predicted,
                                                      self._observed, self._horizon)
 

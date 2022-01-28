@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from basic_types import ConcatenatedCompressorGroup
 from typing import Dict, Union, List
 from .time_series import TimeSeries, MultivariateTimeSeries
 
@@ -13,22 +14,22 @@ class StatisticsHandlerError(Exception):
     pass
 
 
-class IStatisticsHandler:
+class ITaskResult:
     """
-    A minimal interface which any statistics handler must implement.
+    A minimal interface to which result of any task must conform.
     """
     @abstractmethod
-    def forecast(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
+    def forecast(self, compressors_group: ConcatenatedCompressorGroup) -> TimeSeries:
         """
         Returns result of forecasting.
 
-        :param compressor: The name of compressor which forecast should be returned.
+        :param compressors_group: The name of compressor group which forecast should be returned.
         :return: The result of forecasting.
         """
         pass
 
     @abstractmethod
-    def history(self) -> Union[TimeSeries, MultivariateTimeSeries]:
+    def history(self) -> TimeSeries:
         """
         Returns the time series for which the forecast was built.
 
@@ -37,7 +38,7 @@ class IStatisticsHandler:
         pass
 
 
-class ISimpleTaskStatisticsHandler(IStatisticsHandler):
+class IBasicTaskResult(ITaskResult):
     """
     An interface every statistics handler for simple tasks must implement.
     """
@@ -53,7 +54,7 @@ class ISimpleTaskStatisticsHandler(IStatisticsHandler):
         pass
 
 
-class IComplexTaskStatisticsHandler(IStatisticsHandler):
+class ITrainingTaskResult(ITaskResult):
     """
     An interface every statistics handler for complex tasks must implement.
     """
@@ -86,7 +87,7 @@ def _raise_if_none(value_to_test: object, msg: str) -> None:
         raise StatisticsHandlerError(msg)
 
 
-class SimpleTaskStatisticsHandler(ISimpleTaskStatisticsHandler):
+class BasicTaskResult(IBasicTaskResult):
     """
     A simple statistics handler for simple task.
     """
@@ -105,7 +106,7 @@ class SimpleTaskStatisticsHandler(ISimpleTaskStatisticsHandler):
     def forecast(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
         return self._forecast[compressor]
 
-    def __eq__(self, other: 'SimpleTaskStatisticsHandler') -> bool:
+    def __eq__(self, other: 'BasicTaskResult') -> bool:
         return self._forecast == other._forecast
 
 
@@ -175,7 +176,8 @@ def _compute_standard_deviations(results, observed, horizon):
     return to_return
 
 
-class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
+class TrainingTaskResult(ITrainingTaskResult):
+
     def __init__(self):
         self._history = None
         self._forecast = None
@@ -221,23 +223,23 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
         assert self._upper_bounds is not None
 
     def history(self) -> Union[TimeSeries, MultivariateTimeSeries]:
-        _raise_if_none(self._history, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._history, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._history
 
     def forecast(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
-        _raise_if_none(self._forecast, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._forecast, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._forecast[compressor]
 
     def mean_absolute_errors(self, compressor: str):
-        _raise_if_none(self._absolute_errors, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._absolute_errors, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._absolute_errors[compressor]
 
     def relative_errors(self, compressor: str):
-        _raise_if_none(self._relative_errors, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._relative_errors, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._relative_errors[compressor]
 
     def lower_bounds(self, compressor: str):
-        _raise_if_none(self._lower_bounds, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._lower_bounds, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._lower_bounds[compressor]
 
     def upper_bounds(self, compressor: str) -> Union[TimeSeries, MultivariateTimeSeries]:
@@ -247,14 +249,14 @@ class ComplexTaskStatisticsHandler(IComplexTaskStatisticsHandler):
         :param compressor: The name of a compressor for which predictions the lower bounds should be returned.
         :return: The lower bounds.
         """
-        _raise_if_none(self._upper_bounds, "ComplexTaskStatisticsHandler: set_results_of_computations wasn't called")
+        _raise_if_none(self._upper_bounds, "TrainingTaskResult: set_results_of_computations wasn't called")
         return self._upper_bounds[compressor]
 
-    def __eq__(self, other: 'ComplexTaskStatisticsHandler') -> bool:
+    def __eq__(self, other: 'TrainingTaskResult') -> bool:
         return self._forecast == other._forecast
 
 
-class SumOfErrorsStatisticsHandler(IComplexTaskStatisticsHandler):
+class AddingUpErrorsResultsProcessor(ITrainingTaskResult):
     def __init__(self):
         self._history = None
         self._forecast = None

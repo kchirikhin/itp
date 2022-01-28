@@ -2,8 +2,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from abc import abstractmethod
-from .statistics_handler import IStatisticsHandler
-from .visualizer import Visualizer, has_method
+from .statistics_handler import ITaskResult
+from .ivisualizer import IVisualizer, has_method
 
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -118,7 +118,7 @@ class CustomGenerator(TicsGenerator):
         return self._ticks[self._current_tick.postfix_increment()]
 
 
-class Plot(Visualizer):
+class Plot(IVisualizer):
     def __init__(self, compressor, xtics_generator, xlabel='', ylabel='', filename=None, series_number=0, tail=None,
                  legend_loc=None):
         self._compressor = compressor
@@ -130,7 +130,7 @@ class Plot(Visualizer):
         self._tail = tail
         self._legend_loc = legend_loc
 
-    def visualize(self, statistics_handler: IStatisticsHandler):
+    def visualize(self, statistics_handler: ITaskResult):
         if self._filename is not None:
             matplotlib.use('agg')
 

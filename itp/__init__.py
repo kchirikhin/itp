@@ -6,4 +6,4 @@ from .task import *
 from .task_pool import *
 from .time_series import *
 from .utils import *
-from .visualizer import *
+from .ivisualizer import *

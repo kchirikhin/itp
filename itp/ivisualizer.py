@@ -1,14 +1,14 @@
 from abc import abstractmethod
-from .statistics_handler import IStatisticsHandler
+from .statistics_handler import ITaskResult
 
 
-class Visualizer:
+class IVisualizer:
     """
     A mean of visualizing results of forecasting (plot, table, etc.)
     """
 
     @abstractmethod
-    def visualize(self, statistics_handler: IStatisticsHandler) -> None:
+    def visualize(self, statistics_handler: ITaskResult) -> None:
         """
         Perform the visualization.
 
@@ -29,7 +29,7 @@ def has_method(obj: object, method: str) -> bool:
     return callable(getattr(obj, method, None))
 
 
-class TextVisualizer(Visualizer):
+class TextVisualizer(IVisualizer):
     """
     Prints to the standard output results of forecasting.
     """
@@ -46,7 +46,7 @@ class TextVisualizer(Visualizer):
         self._series_number = series_number
         self._description = description
 
-    def visualize(self, statistics_handler: IStatisticsHandler) -> None:
+    def visualize(self, statistics_handler: ITaskResult) -> None:
         if self._description is not None:
             print(self._description)
         print(self._compressor + ':')
