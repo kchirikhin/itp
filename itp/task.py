@@ -1,13 +1,12 @@
 from abc import abstractmethod
-from collections import namedtuple
 import copy
 
 from basic_types import ConcatenatedCompressorGroup, Forecast
 from itp_core_bindings import InformationTheoreticPredictor, NonCompressionAlgorithm
-from .time_series import TimeSeries, MultivariateTimeSeries
-from .statistics_handler import ITaskResult, IBasicTaskResult, ITrainingTaskResult
-from .statistics_handler import BasicTaskResult, TrainingTaskResult
-from .hooks import ITimeSeriesTransformator, EmptyTimeSeriesTransformator
+from time_series import TimeSeries, MultivariateTimeSeries
+from statistics_handler import ITaskResult, IBasicTaskResult, ITrainingTaskResult
+from statistics_handler import BasicTaskResult, TrainingTaskResult
+from transformators import ITimeSeriesTransformator, EmptyTimeSeriesTransformator
 
 from typing import Dict, List, Type
 
@@ -79,7 +78,8 @@ class ItpAccessor:
 
     def forecast_discrete(self, time_series, compressors, horizon, difference, sparse) -> Dict[str, TimeSeries]:
         result = self._itp.forecast_discrete(time_series.to_list(), compressors, horizon, difference, sparse)
-        return {key: TimeSeries([round(x) for x in value], time_series.frequency(), time_series.dtype()) for key, value in result.items()}
+        return {key: TimeSeries([round(x) for x in value], time_series.frequency(), time_series.dtype()) for key, value
+                in result.items()}
 
     def forecast_multialphabet(self, time_series, compressors, horizon, difference, max_quanta_count,
                                sparse) -> Dict[str, TimeSeries]:
@@ -124,10 +124,11 @@ class RealUnivariateElemetaryTask(IElementaryTask):
     """
     Prediction of a single continuous univariate time series. Just for internal usage.
     """
-    def __init__(self, time_series, compressors, horizon, difference, sparse,
-                 max_quanta_count, predictor_interface=ItpAccessor(), hook: ITimeSeriesTransformator = EmptyTimeSeriesTransformator()):
-        if predictor_interface is None:
-            raise ValueError("predictor_interface is None")
+    def __init__(self, time_series, compressors, horizon, difference, sparse, max_quanta_count,
+                 itp_accessor: ItpAccessor = None,
+                 transformator: ITimeSeriesTransformator = EmptyTimeSeriesTransformator()):
+        if itp_accessor is None:
+            itp_accessor = ItpAccessor()
 
         self._time_series = time_series
         self._compressors = compressors
@@ -135,12 +136,12 @@ class RealUnivariateElemetaryTask(IElementaryTask):
         self._difference = difference
         self._sparse = sparse
         self._max_quanta_count = max_quanta_count
-        self._predictor_interface = predictor_interface
-        self._hook = copy.deepcopy(hook)
+        self._itp_accessor = itp_accessor
+        self._transformator = copy.deepcopy(transformator)
 
     def run(self):
-        return self._hook.inverse_transform(self._predictor_interface.forecast_multialphabet(
-            self._hook.transform(self._time_series), self._compressors, self._horizon, self._difference,
+        return self._transformator.inverse_transform(self._itp_accessor.forecast_multialphabet(
+            self._transformator.transform(self._time_series), self._compressors, self._horizon, self._difference,
             self._max_quanta_count, self._sparse))
 
 
@@ -149,9 +150,10 @@ class RealMultivariateElemetaryTask(IElementaryTask):
     Prediction of a single continuous multivariate time series. Just for internal usage.
     """
     def __init__(self, time_series, compressors, horizon, difference, sparse,
-                 max_quanta_count, predictor_interface=ItpAccessor(), hook: ITimeSeriesTransformator = EmptyTimeSeriesTransformator()):
-        if predictor_interface is None:
-            raise ValueError("predictor_interface is None")
+                 max_quanta_count, itp_accessor: ItpAccessor = None,
+                 transformator: ITimeSeriesTransformator = EmptyTimeSeriesTransformator()):
+        if itp_accessor is None:
+            itp_accessor = ItpAccessor()
 
         self._time_series = time_series
         self._compressors = compressors
@@ -159,12 +161,12 @@ class RealMultivariateElemetaryTask(IElementaryTask):
         self._difference = difference
         self._sparse = sparse
         self._max_quanta_count = max_quanta_count
-        self._predictor_interface = predictor_interface
-        self._hook = copy.deepcopy(hook)
+        self._itp_accessor = itp_accessor
+        self._transformator = copy.deepcopy(transformator)
 
     def run(self):
-        return self._hook.inverse_transform(self._predictor_interface.forecast_multialphabet_vec(
-            self._hook.transform(self._time_series), self._compressors, self._horizon, self._difference,
+        return self._transformator.inverse_transform(self._itp_accessor.forecast_multialphabet_vec(
+            self._transformator.transform(self._time_series), self._compressors, self._horizon, self._difference,
             self._max_quanta_count, self._sparse))
 
 
@@ -184,7 +186,7 @@ class BasicTask(ITask):
         self._task_result_handler = task_result_handler
         self._elementary_task_type = elementary_task_type
         self._time_series = time_series
-        self._elementary_task = self._types.elementary_task_type(time_series, *args, **kwargs)
+        self._elementary_task = elementary_task_type(time_series, *args, **kwargs)
 
     def get_elementary_tasks(self) -> List[IElementaryTask]:
         return [self._elementary_task]
@@ -311,8 +313,8 @@ class DiscreteUnivariateTrainingTask(TrainingTask):
     """
     def __init__(self, time_series, training_start_index, compressors, horizon,
                  statistics_handler=TrainingTaskResult(), *args, **kwargs):
-        super().__init__(statistics_handler, DiscreteUnivariateElemetaryTask, time_series, training_start_index, compressors,
-                         horizon, *args, **kwargs)
+        super().__init__(statistics_handler, DiscreteUnivariateElemetaryTask, time_series, training_start_index,
+                         compressors, horizon, *args, **kwargs)
 
 
 class RealUnivariateTrainingTask(TrainingTask):
@@ -321,8 +323,8 @@ class RealUnivariateTrainingTask(TrainingTask):
     """
     def __init__(self, time_series, training_start_index, compressors, horizon,
                  statistics_handler=TrainingTaskResult(), *args, **kwargs):
-        super().__init__(statistics_handler, RealUnivariateElemetaryTask, time_series, training_start_index, compressors,
-                         horizon, *args, **kwargs)
+        super().__init__(statistics_handler, RealUnivariateElemetaryTask, time_series, training_start_index,
+                         compressors, horizon, *args, **kwargs)
 
 
 class RealMultivariateTrainingTask(TrainingTask):

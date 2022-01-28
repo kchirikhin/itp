@@ -1,13 +1,13 @@
 from abc import abstractmethod
 from basic_types import ConcatenatedCompressorGroup
 from typing import Dict, Union, List
-from .time_series import TimeSeries, MultivariateTimeSeries
+from time_series import TimeSeries, MultivariateTimeSeries
 
 import numpy as np
 import copy
 
 
-class StatisticsHandlerError(Exception):
+class TaskResultError(Exception):
     """
     A common exception class for all errors in this module.
     """
@@ -84,7 +84,7 @@ def _raise_if_none(value_to_test: object, msg: str) -> None:
     :param msg: The content of exception description.
     """
     if not value_to_test:
-        raise StatisticsHandlerError(msg)
+        raise TaskResultError(msg)
 
 
 class BasicTaskResult(IBasicTaskResult):
@@ -142,7 +142,7 @@ def ts_standard_deviation(series: Union[TimeSeries, MultivariateTimeSeries]):
 
 def _compute_mean_errors(results, observed, horizon):
     if len(results) == 0:
-        raise StatisticsHandlerError("Empty results were passed")
+        raise TaskResultError("Empty results were passed")
 
     mean_errors = {}
     for compressor in results[0].keys():
@@ -161,7 +161,7 @@ def _compute_mean_errors(results, observed, horizon):
 
 def _compute_standard_deviations(results, observed, horizon):
     if len(results) == 0:
-        raise StatisticsHandlerError("Empty results were passed")
+        raise TaskResultError("Empty results were passed")
 
     to_return = {}
     for compressor in results[0].keys():
@@ -290,7 +290,7 @@ class AddingUpErrorsResultsProcessor(ITrainingTaskResult):
 
 def _compute_sum_of_errors(results, observed, horizon):
     if len(results) == 0:
-        raise StatisticsHandlerError("Empty results were passed")
+        raise TaskResultError("Empty results were passed")
 
     sum_of_errors = {}
     for compressor in results[0].keys():

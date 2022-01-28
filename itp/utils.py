@@ -1,9 +1,6 @@
 from basic_types import CompressorName, ConcatenatedCompressorGroup
 
-from collections import namedtuple
-from typing import Iterable, List, Set, Union
-
-Configuration = namedtuple('Configuration', 'compressors horizon difference max_quanta_count sparse')
+from typing import Iterable, List, Set, NamedTuple, Union
 
 
 class CompressorsGroup:
@@ -19,10 +16,18 @@ class CompressorsGroup:
             self._compressors = self._compressors[:-1]
 
     def as_list(self) -> List[CompressorName]:
-        return List[map(CompressorName, self._compressors.split('_'))]
+        return self._compressors.split('_')
 
     def as_string(self) -> ConcatenatedCompressorGroup:
         return ConcatenatedCompressorGroup(self._compressors)
 
     def as_set(self) -> Set[CompressorName]:
         return set(self.as_list())
+
+
+class Configuration(NamedTuple):
+    compressors: CompressorsGroup
+    horizon: int
+    difference: int
+    max_quanta_count: int
+    sparse: int

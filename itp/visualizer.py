@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from .statistics_handler import ITaskResult
+from statistics_handler import ITaskResult
 
 
 class IVisualizer:

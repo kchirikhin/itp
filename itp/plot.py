@@ -2,8 +2,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from abc import abstractmethod
-from .statistics_handler import ITaskResult
-from .ivisualizer import IVisualizer, has_method
+from statistics_handler import ITaskResult
+from visualizer import IVisualizer, has_method
 
 plt.rcParams["font.family"] = "Times New Roman"
 
