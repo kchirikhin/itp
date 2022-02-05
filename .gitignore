@@ -3,7 +3,11 @@ build
 __pycache__
 *.so
 \#*
-predictor.egg-info
+itp.egg-info
 *(conflicted)*
 .eggs
 .idea
+venv
+dist
+cmake-build-debug
+.vscode
