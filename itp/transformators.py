@@ -3,8 +3,8 @@ Transformators provide a mechanism of time series preprocessing and postprocessi
 """
 
 from abc import abstractmethod, ABC
-from basic_types import Forecast
-from time_series import TimeSeries
+from .basic_types import Forecast
+from .time_series import TimeSeries
 from typing import Dict, List
 
 

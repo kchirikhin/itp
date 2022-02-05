@@ -1,4 +1,4 @@
-from time_series import TimeSeries
+from .time_series import TimeSeries
 from typing import Dict, NewType
 
 CompressorName = NewType('CompressorName', str)

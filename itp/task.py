@@ -1,12 +1,12 @@
 from abc import abstractmethod
 import copy
 
-from basic_types import ConcatenatedCompressorGroup, Forecast
-from itp_core_bindings import InformationTheoreticPredictor, NonCompressionAlgorithm
-from time_series import TimeSeries, MultivariateTimeSeries
-from statistics_handler import ITaskResult, IBasicTaskResult, ITrainingTaskResult
-from statistics_handler import BasicTaskResult, TrainingTaskResult
-from transformators import ITimeSeriesTransformator, EmptyTimeSeriesTransformator
+from .basic_types import ConcatenatedCompressorGroup, Forecast
+from .itp_core_bindings import InformationTheoreticPredictor, NonCompressionAlgorithm
+from .time_series import TimeSeries, MultivariateTimeSeries
+from .statistics_handler import ITaskResult, IBasicTaskResult, ITrainingTaskResult
+from .statistics_handler import BasicTaskResult, TrainingTaskResult
+from .transformators import ITimeSeriesTransformator, EmptyTimeSeriesTransformator
 
 from typing import Dict, List, Type
 
@@ -89,7 +89,7 @@ class ItpAccessor:
 
     def register_non_compression_algorithm(self, name: str, algorithm: NonCompressionAlgorithm):
         self._registered_algorithms[name] = algorithm
-        self._itp.RegisterNonCompressionAlgorithm(name, algorithm)
+        self._itp.register_non_compression_algorithm(name, algorithm)
 
 
 class DiscreteUnivariateElemetaryTask(IElementaryTask):

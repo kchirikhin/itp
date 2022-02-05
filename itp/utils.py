@@ -1,4 +1,4 @@
-from basic_types import CompressorName, ConcatenatedCompressorGroup
+from .basic_types import CompressorName, ConcatenatedCompressorGroup
 
 from typing import Iterable, List, Set, NamedTuple, Union
 

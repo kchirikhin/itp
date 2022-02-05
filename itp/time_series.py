@@ -1,5 +1,5 @@
 import numpy as np
-from chrono import TimePoint
+from .chrono import TimePoint
 
 
 class TimeSeriesError(Exception):

@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from basic_types import ConcatenatedCompressorGroup
+from .basic_types import ConcatenatedCompressorGroup
 from typing import Dict, Union, List
-from time_series import TimeSeries, MultivariateTimeSeries
+from .time_series import TimeSeries, MultivariateTimeSeries
 
 import numpy as np
 import copy

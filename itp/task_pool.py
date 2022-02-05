@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
-from task import ITask
+from .task import ITask
 from typing import Tuple
-from visualizer import IVisualizer
+from .visualizer import IVisualizer
 
 
 class TaskPool(ABC):
