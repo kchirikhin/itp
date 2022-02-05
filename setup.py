@@ -21,8 +21,9 @@ def my_test_suite():
 # 1. https://www.benjack.io/2018/02/02/python-cpp-revisited.html
 # 2. https://python.plainenglish.io/building-hybrid-python-c-packages-8985fa1c5b1d
 class CMakeExtension(Extension):
-    def __init__(self, name, source_dir=''):
+    def __init__(self, name, output_dir='', source_dir=''):
         Extension.__init__(self, name, sources=[])
+        self.output_dir = output_dir
         self.source_dir = os.path.abspath(source_dir)
 
 
@@ -43,7 +44,11 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        ext_name = ext.name
+        if ext.output_dir:
+            ext_name = os.path.join(ext.output_dir, ext_name)
+        ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext_name)))
+        print(f"{ext_dir=}")
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + ext_dir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
@@ -100,12 +105,10 @@ setup(
     author_email='chirihin@gmail.com',
     description='An information-theoretic predictor for time series',
     long_description='',
-    packages=find_packages('itp', 'extensions', 'mpi_tools'),
-    package_dir={"itp": "itp",
-                 "mpi_tools": "itp/mpi_tools"},
+    packages=find_packages(exclude=["tests"]),
     package_data={'': ['tests/*.dat']},
     install_requires=['numpy', 'pandas', 'matplotlib'],
-    ext_modules=[CMakeExtension('itp_core_bindings')],
+    ext_modules=[CMakeExtension('itp_core_bindings', 'itp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     test_suite='tests',
