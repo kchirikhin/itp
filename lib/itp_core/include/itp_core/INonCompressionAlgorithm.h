@@ -11,9 +11,9 @@ namespace itp
 
 enum class ConfidenceLevel : unsigned char
 {
-	// Do not reorder! Python extensions return numeric representations of this values.
-	kConfident = 0,
-	kNotConfident = 1
+	// Do not reorder! Python extensions return numeric representations of these values.
+	Confident = 0,
+	NotConfident = 1
 };
 
 class INonCompressionAlgorithm
@@ -29,4 +29,4 @@ using INonCompressionAlgorithmPtr = std::unique_ptr<INonCompressionAlgorithm>;
 
 } // namespace itp
 
-#endif //ITP_INONCOMPRESSIONALGORITHM_H
+#endif // ITP_INONCOMPRESSIONALGORITHM_H

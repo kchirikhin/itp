@@ -11,7 +11,6 @@
  * In the paper a word is assumed to be infinite, but the implementation, obviously,
  * works only with finite words. So when any head goues out of the word, the
  * automation stops.
- *
  */
 
 #ifndef SDFA_H_INCLUDED
@@ -20,61 +19,61 @@
 #include "Automaton.h"
 #include "Head.h"
 
-#include <array>
 #include <algorithm>
-#include <iostream>
+#include <array>
 #include <forward_list>
 #include <fstream>
+#include <iostream>
 
 /**
  * Macro to break main infinte loop when move is not possible (head
  * to move reaches the end of the word).
- *
  */
-#define EXIT_IF_IMPOSSIBLE(procedure_call) if(!(procedure_call)) return false;
+#define EXIT_IF_IMPOSSIBLE(procedure_call) \
+	if (!(procedure_call)) \
+		return false;
 
-namespace itp {
-bool less (long lhs, size_t rhs);
+namespace itp
+{
+
+bool Less(long lhs, size_t rhs);
 
 /**
- * 10-head SDFA, completly as described in the paper.
- *
+ * 10-head SDFA, completely as described in the paper.
  */
-class Sensing_DFA : public MultiheadAutomaton<10> {
- public:
-  Sensing_DFA(Symbol min_symbol, Symbol max_symbol);
+class SensingDFA : public MultiheadAutomaton<10>
+{
+public:
+	SensingDFA(Symbol min_symbol, Symbol max_symbol);
 
- private:
-  /**
-   * Run main "infinite" loop.
-   *
-   */
-  void Run() override;
+private:
+	/**
+	 * Run main "infinite" loop.
+	 */
+	void Run() override;
 
-  Symbol mean_symbol() const;
+	Symbol MeanSymbol() const;
 
-  void guess_if_rightmost(const Head &, IsPredictionConfident);
-  void guess_if_rightmost(const Head &, Symbol, IsPredictionConfident);
+	void GuessIfRightmost(const Head&, IsPredictionConfident);
+	void GuessIfRightmost(const Head&, Symbol, IsPredictionConfident);
 
-  /**
-   * All procedures based on pseudocode from the paper and very close to it.
-   *
-   */
-  bool advance_one(size_t);
-  bool advance_many(size_t);
+	/**
+	 * All procedures based on pseudocode from the paper and very close to it.
+	 */
+	bool AdvanceOne(size_t);
+	bool AdvanceMany(size_t);
 
-  bool correction();
-  bool matching();
+	bool Correction();
+	bool Matching();
 
-
-  /**
-   * Actually array of the heads is declared in the base class, but for
-   * more similarity with the paper's code, make references to heads with
-   * special names in the paper.
-   *
-   */
-  const Head &h3a, &inner, &outer, &l, &r, &t;
+	/**
+	 * Actually array of the heads is declared in the base class, but for
+	 * more similarity with the paper's code, make references to heads with
+	 * special names in the paper.
+	 */
+	const Head &h3a_, &inner_, &outer_, &l_, &r_, &t_;
 };
-} // of itp
+
+} // namespace itp
 
 #endif // SDFA_H_INCLUDED

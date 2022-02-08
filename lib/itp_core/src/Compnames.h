@@ -29,7 +29,9 @@ CompressorNamesVec SplitConcatenatedNames(
  *
  * \return Concatenated name.
  */
-ConcatenatedCompressorNames ToConcatenatedCompressorNames(const CompressorNames& compressor_names, char separator = '_');
+ConcatenatedCompressorNames ToConcatenatedCompressorNames(
+	const CompressorNames& compressor_names,
+	char separator = '_');
 
 /**
  * \brief Find all distinct compressor's names in the vector of vectors of names.

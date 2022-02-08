@@ -66,22 +66,18 @@ TEST(SampledSeriesStorageTest, WorksInRealCase)
 	std::vector<size_t> quanta_count{2, 4};
 	SampledSeriesStorage<Double> storage{ts, quanta_count};
 
-	std::vector<std::vector<Symbol>> expected_series =
-    {
-            {0, 1, 1, 0},
-            {1, 2, 3, 0}
-    };
+	std::vector<std::vector<Symbol>> expected_series = {{0, 1, 1, 0}, {1, 2, 3, 0}};
 
 	ExpectContainerRangesEq(storage, expected_series);
-    ExpectTransformedContainerEq(quanta_count, storage, [](const auto& item) { return item.GetAlphabetSize(); });
+	ExpectTransformedContainerEq(quanta_count, storage, [](const auto& item) { return item.GetAlphabetSize(); });
 }
 
 TEST(SampledSeriesStorageTest, QuantedSeriesContainRightQuantaCount)
 {
-    const std::vector<size_t> quanta_count{2, 4};
+	const std::vector<size_t> quanta_count{2, 4};
 
-    const std::vector<Double> ts{4.2, 5.6, 7.8, 1.4};
-    const SampledSeriesStorage<Double> storage{ts, quanta_count};
+	const std::vector<Double> ts{4.2, 5.6, 7.8, 1.4};
+	const SampledSeriesStorage<Double> storage{ts, quanta_count};
 }
 
 TEST(ComputeCorrectionsTest, ReturnsZeroOnEmptyInputInDiscreteCase)
@@ -114,7 +110,7 @@ class SelectorDiscreteCaseTest : public Test
 protected:
 	SelectorDiscreteCaseTest();
 
-	CompressorsFacadeMock *compressors_;
+	CompressorsFacadeMock* compressors_;
 	std::unique_ptr<CodeLengthEvaluator<unsigned char>> evaluator_;
 	std::vector<unsigned char> test_discrete_ts_;
 };
@@ -124,7 +120,7 @@ SelectorDiscreteCaseTest::SelectorDiscreteCaseTest()
 	auto compressors = std::make_unique<CompressorsFacadeMock>();
 	compressors_ = compressors.get();
 	evaluator_ = std::make_unique<CodeLengthEvaluator<unsigned char>>(std::move(compressors));
-	test_discrete_ts_= {2, 5, 4};
+	test_discrete_ts_ = {2, 5, 4};
 }
 
 TEST_F(SelectorDiscreteCaseTest, ReturnsZeroIfInputSeriesIsEmpty)
@@ -143,16 +139,20 @@ TEST_F(SelectorDiscreteCaseTest, ReturnsZeroIfAllItemsAreConsumedByDifferentiati
 TEST_F(SelectorDiscreteCaseTest, CallsCompressorWithNormalizedDiscreteSeriesIgnoringQuantaCounts)
 {
 	std::vector<unsigned char> expected_time_series{0, 3, 2};
-	EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _,
-			expected_time_series.size())).With(Args<1, 2>(ElementsAreArray(expected_time_series))).Times(1).WillOnce(Return(0));
+	EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, expected_time_series.size()))
+		.With(Args<1, 2>(ElementsAreArray(expected_time_series)))
+		.Times(1)
+		.WillOnce(Return(0));
 	evaluator_->Evaluate(test_discrete_ts_, {"zlib"}, 0, {2, 4});
 }
 
 TEST_F(SelectorDiscreteCaseTest, CallsCompressorWithNormalizedDiscreteSeriesEvenIfQuantaCountsIsEmpty)
 {
 	std::vector<unsigned char> expected_time_series{0, 3, 2};
-	EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _,
-										expected_time_series.size())).With(Args<1, 2>(ElementsAreArray(expected_time_series))).Times(1).WillOnce(Return(0));
+	EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, expected_time_series.size()))
+		.With(Args<1, 2>(ElementsAreArray(expected_time_series)))
+		.Times(1)
+		.WillOnce(Return(0));
 	evaluator_->Evaluate(test_discrete_ts_, {"zlib"}, 0, {});
 }
 
@@ -161,7 +161,7 @@ class SelectorRealCaseTest : public Test
 protected:
 	SelectorRealCaseTest();
 
-	CompressorsFacadeMock *compressors_;
+	CompressorsFacadeMock* compressors_;
 	std::unique_ptr<CodeLengthEvaluator<Double>> evaluator_;
 	std::vector<Double> test_real_ts_;
 };
@@ -184,14 +184,20 @@ TEST_F(SelectorRealCaseTest, CallsCompressorWithSeriesDiscretizedUsingAllSpecifi
 {
 	{
 		InSequence s;
-		EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, test_real_ts_.size())).With(Args<1, 2>(ElementsAre(0, 1, 1, 0))).Times(1).WillOnce(Return(0));
-		EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, test_real_ts_.size())).With(Args<1, 2>(ElementsAre(1, 2, 3, 0))).Times(1).WillOnce(Return(0));
+		EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, test_real_ts_.size()))
+			.With(Args<1, 2>(ElementsAre(0, 1, 1, 0)))
+			.Times(1)
+			.WillOnce(Return(0));
+		EXPECT_CALL(*compressors_, Compress(Eq("zlib"), _, test_real_ts_.size()))
+			.With(Args<1, 2>(ElementsAre(1, 2, 3, 0)))
+			.Times(1)
+			.WillOnce(Return(0));
 	}
 
 	evaluator_->Evaluate(test_real_ts_, {"zlib"}, 0, {2, 4});
 }
 
-MATCHER_P(AlphabetsEqual, other,"")
+MATCHER_P(AlphabetsEqual, other, "")
 {
 	return std::tie(arg.min_symbol, arg.max_symbol) == std::tie(other.min_symbol, other.max_symbol);
 }
@@ -258,21 +264,19 @@ TEST(SelectBestCompressorsTest, ThrowsIfResultsOfComputationsAreEmpty)
 
 TEST(SelectBestCompressorsTest, ThrowsIfTargetNumberOfCompressorsIsMoreThanInResultsOfComputations)
 {
-	EXPECT_THROW(GetBestCompressors({{"zlib", 10},
-									 {"ppmd", 20}}, 3), SelectorError);
+	EXPECT_THROW(GetBestCompressors({{"zlib", 10}, {"ppmd", 20}}, 3), SelectorError);
 }
 
 TEST(SelectBestCompressorsTest, TargetNumberOfCompressorsCanBeEqualToTheSizeOfResultsOfComputations)
 {
-	EXPECT_THAT(GetBestCompressors({{"zlib", 10},
-									{"ppmd", 20}}, 2), UnorderedElementsAre("zlib", "ppmd"));
+	EXPECT_THAT(GetBestCompressors({{"zlib", 10}, {"ppmd", 20}}, 2), UnorderedElementsAre("zlib", "ppmd"));
 }
 
 TEST(SelectBestCompressorsTest, SelectsSpecefiedNumberOfCompressorsWithMinimalCodeLengths)
 {
-	EXPECT_THAT(GetBestCompressors({{"zlib",  10},
-									{"ppmd",  20},
-									{"bzip2", 15}}, 2), UnorderedElementsAre("zlib", "bzip2"));
+	EXPECT_THAT(
+		GetBestCompressors({{"zlib", 10}, {"ppmd", 20}, {"bzip2", 15}}, 2),
+		UnorderedElementsAre("zlib", "bzip2"));
 }
 
 TEST(ShareTest, AllowsExplicitInitializationFromDouble)

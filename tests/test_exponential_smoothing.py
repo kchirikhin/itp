@@ -1,4 +1,4 @@
-from itp.extensions.exponential_smoothing import ExponentialSmoothing
+from itp.extensions.holt_winters import HoltWinters
 from itp.itp_core_bindings import ConfidenceLevel
 import unittest
 
@@ -6,7 +6,7 @@ import unittest
 class ExponentialSmoothingTest(unittest.TestCase):
     def setUp(self) -> None:
         self._data = bytes([1, 2, 3, 2, 1, 2, 3])
-        self._predictor = ExponentialSmoothing()
+        self._predictor = HoltWinters(skip_initial=2)
 
     def test_first_prediction_is_not_confident(self):
         _, confidence = self._predictor.PyGiveNextPrediction(bytes())

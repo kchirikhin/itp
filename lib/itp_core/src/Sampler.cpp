@@ -10,21 +10,22 @@ namespace itp
 {
 
 template<typename T>
-Double GeneralizedInverseTransform(Symbol s, const Preproc_info<T> &info)
+Double GeneralizedInverseTransform(Symbol s, const PreprocInfo<T>& info)
 {
-	if (!info.is_sampled())
+	if (!info.IsSampled())
 	{
 		return s;
 	}
 
-	assert(!info.get_desample_table().empty());
-	assert(s < info.get_desample_table().size());
+	assert(!info.GetDesampleTable().empty());
+	assert(s < info.GetDesampleTable().size());
 
-	return info.get_desample_table()[s];
+	return info.GetDesampleTable()[s];
 }
 
-Preprocessed_tseries<Double, Symbol>
-Sampler<Double>::Transform(const Preprocessed_tseries<Double, Double> &points, size_t N)
+PreprocessedTimeSeries<Double, Symbol> Sampler<Double>::Transform(
+	const PreprocessedTimeSeries<Double, Double>& points,
+	size_t N)
 {
 	if (points.size() == 1)
 	{
@@ -56,8 +57,8 @@ Sampler<Double>::Transform(const Preprocessed_tseries<Double, Double> &points, s
 		}
 	}
 
-	Preprocessed_tseries<Double, Symbol> to_return(sampled_ts);
-	to_return.copy_preprocessing_info_from(points);
+	PreprocessedTimeSeries<Double, Symbol> to_return(sampled_ts);
+	to_return.CopyPreprocessingInfoFrom(points);
 
 	std::vector<Double> desample_table(N);
 	for (size_t i = 0; i < N; ++i)
@@ -65,20 +66,19 @@ Sampler<Double>::Transform(const Preprocessed_tseries<Double, Double> &points, s
 		desample_table[i] = min + i * delta + delta / 2;
 	}
 
-	to_return.set_desample_table(desample_table);
-	to_return.set_desample_indent(indent_);
-	to_return.set_sampling_alphabet(N);
+	to_return.SetDesampleTable(desample_table);
+	to_return.SetDesampleIndent(indent_);
+	to_return.SetSamplingAlphabet(N);
 
 	return to_return;
 }
 
-Double Sampler<Double>::InverseTransform(Symbol s, const Preproc_info<Double> &info)
+Double Sampler<Double>::InverseTransform(Symbol s, const PreprocInfo<Double>& info)
 {
 	return GeneralizedInverseTransform(s, info);
 }
 
-Preprocessed_tseries<Double, Symbol>
-Sampler<Symbol>::Transform(const Preprocessed_tseries<Double, Symbol> &points)
+PreprocessedTimeSeries<Double, Symbol> Sampler<Symbol>::Transform(const PreprocessedTimeSeries<Double, Symbol>& points)
 {
 	if (points.empty())
 	{
@@ -90,8 +90,7 @@ Sampler<Symbol>::Transform(const Preprocessed_tseries<Double, Symbol> &points)
 	const auto min_point = *std::min_element(points.cbegin(), points.cend());
 	const auto max_point = *std::max_element(points.cbegin(), points.cend());
 	PlainTimeSeries<Symbol> normalized_points(points.size());
-	std::transform(points.cbegin(), points.cend(), begin(normalized_points),
-				   std::bind(std::minus<>(), _1, min_point));
+	std::transform(points.cbegin(), points.cend(), begin(normalized_points), std::bind(std::minus<>(), _1, min_point));
 	assert(*std::min_element(begin(normalized_points), end(normalized_points)) == 0);
 
 	std::vector<Double> desample_table(max_point - min_point + 1);
@@ -100,20 +99,20 @@ Sampler<Symbol>::Transform(const Preprocessed_tseries<Double, Symbol> &points)
 		desample_table[i] = i + min_point;
 	}
 
-	Preprocessed_tseries<Double, Symbol> to_return(normalized_points);
-	to_return.copy_preprocessing_info_from(points);
-	to_return.set_desample_table(desample_table);
-	to_return.set_sampling_alphabet(max_point - min_point + 1);
+	PreprocessedTimeSeries<Double, Symbol> to_return(normalized_points);
+	to_return.CopyPreprocessingInfoFrom(points);
+	to_return.SetDesampleTable(desample_table);
+	to_return.SetSamplingAlphabet(max_point - min_point + 1);
 
 	return to_return;
 }
 
-Double Sampler<Symbol>::InverseTransform(Symbol s, const Preproc_info<Double> &info)
+Double Sampler<Symbol>::InverseTransform(Symbol s, const PreprocInfo<Double>& info)
 {
 	return GeneralizedInverseTransform(s, info);
 }
 
-VectorSymbol ToVectorSymbol(const VectorDouble &to_convert)
+VectorSymbol ToVectorSymbol(const VectorDouble& to_convert)
 {
 	VectorSymbol to_return(to_convert.size());
 	std::copy(std::cbegin(to_convert), std::cend(to_convert), std::begin(to_return));
@@ -121,7 +120,7 @@ VectorSymbol ToVectorSymbol(const VectorDouble &to_convert)
 	return to_return;
 }
 
-void EnforceMaxValue(VectorSymbol *vec, Symbol max_value)
+void EnforceMaxValue(VectorSymbol* vec, Symbol max_value)
 {
 	assert(vec != nullptr);
 
@@ -129,9 +128,9 @@ void EnforceMaxValue(VectorSymbol *vec, Symbol max_value)
 	std::replace_if(std::begin(*vec), std::end(*vec), std::bind(std::greater<Symbol>(), _1, max_value), max_value);
 }
 
-Preprocessed_tseries<VectorDouble, Symbol>
-Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, VectorDouble> &points,
-								 size_t N)
+PreprocessedTimeSeries<VectorDouble, Symbol> Sampler<VectorDouble>::Transform(
+	const PreprocessedTimeSeries<VectorDouble, VectorDouble>& points,
+	size_t N)
 {
 	if (points.size() == 1)
 	{
@@ -152,10 +151,10 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 		throw IntervalsCountError("Symbols of the alphabet after transformation cannot be represented with 1 byte");
 	}
 
-	auto mins = pointwise_min_elements(points.cbegin(), points.cend());
+	auto mins = PointwiseMinElements(points.cbegin(), points.cend());
 	assert(mins.size() == points[0].size());
 
-	auto maxs = pointwise_max_elements(points.cbegin(), points.cend());
+	auto maxs = PointwiseMaxElements(points.cbegin(), points.cend());
 	assert(maxs.size() == points[0].size());
 
 	VectorDouble widths = abs(maxs - mins);
@@ -170,12 +169,12 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 		EnforceMaxValue(&sampled_ts[i], N - 1);
 	}
 
-	Preprocessed_tseries<VectorDouble, Symbol> to_return;
-	for (auto &vec : sampled_ts)
+	PreprocessedTimeSeries<VectorDouble, Symbol> to_return;
+	for (auto& vec : sampled_ts)
 	{
 		to_return.push_back(ConvertNumberToDec(vec, N));
 	}
-	to_return.copy_preprocessing_info_from(points);
+	to_return.CopyPreprocessingInfoFrom(points);
 
 	std::vector<VectorDouble> desample_table(kCountOfSeries, VectorDouble(N));
 	for (size_t i = 0; i < kCountOfSeries; ++i)
@@ -186,24 +185,24 @@ Sampler<VectorDouble>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 		}
 	}
 
-	to_return.set_desample_table(desample_table);
-	to_return.set_desample_indent(indent_);
-	to_return.set_sampling_alphabet(kNewAlphabetSize);
+	to_return.SetDesampleTable(desample_table);
+	to_return.SetDesampleIndent(indent_);
+	to_return.SetSamplingAlphabet(kNewAlphabetSize);
 
 	return to_return;
 }
 
-inline auto NumberOfDigits(const VectorSymbol &num)
+inline auto NumberOfDigits(const VectorSymbol& num)
 {
 	return num.size();
 }
 
-VectorDouble Sampler<VectorDouble>::InverseTransform(Symbol s, const Preproc_info<VectorDouble> &info)
+VectorDouble Sampler<VectorDouble>::InverseTransform(Symbol s, const PreprocInfo<VectorDouble>& info)
 {
-	const auto &kConversionTable = info.get_desample_table();
+	const auto& kConversionTable = info.GetDesampleTable();
 	const auto kNumberOfSeries = kConversionTable.size();
-	const auto kSingeSeriesAlphabet = static_cast<size_t>(pow(info.get_sampling_alphabet(),
-															  1. / static_cast<ssize_t>(kNumberOfSeries)));
+	const auto kSingeSeriesAlphabet = static_cast<size_t>(
+		pow(info.GetSamplingAlphabet(), 1. / static_cast<ssize_t>(kNumberOfSeries)));
 	auto decomposed_number = ConvertDecToNumber(s, kSingeSeriesAlphabet);
 
 	if (NumberOfDigits(decomposed_number) > kNumberOfSeries)
@@ -228,8 +227,8 @@ VectorDouble Sampler<VectorDouble>::InverseTransform(Symbol s, const Preproc_inf
 	return to_return;
 }
 
-Preprocessed_tseries<VectorDouble, Symbol>
-Sampler<VectorSymbol>::Transform(const Preprocessed_tseries<VectorDouble, VectorSymbol> &points)
+PreprocessedTimeSeries<VectorDouble, Symbol> Sampler<VectorSymbol>::Transform(
+	const PreprocessedTimeSeries<VectorDouble, VectorSymbol>& points)
 {
 	/*if (points.empty()) {
 	  return {};
@@ -252,19 +251,17 @@ Sampler<VectorSymbol>::Transform(const Preprocessed_tseries<VectorDouble, Vector
 	  desample_table[i] = i + min_point;
 	}
 
-	Preprocessed_tseries<Double, Symbol> to_return(normalized_points);
-	to_return.copy_preprocessing_info_from(points);
-	to_return.set_desample_table(desample_table);
-	to_return.set_sampling_alphabet(max_point - min_point + 1);
+	PreprocessedTimeSeries<Double, Symbol> to_return(normalized_points);
+	to_return.CopyPreprocessingInfoFrom(points);
+	to_return.SetDesampleTable(desample_table);
+	to_return.SetSamplingAlphabet(max_point - min_point + 1);
 
 	return to_return;*/
 
 	throw NotImplementedError("Transform for VectorSymbol is not implemented");
 }
 
-[[maybe_unused]]
-VectorDouble
-Sampler<VectorSymbol>::InverseTransform(Symbol, const Preproc_info<VectorDouble> &)
+[[maybe_unused]] VectorDouble Sampler<VectorSymbol>::InverseTransform(Symbol, const PreprocInfo<VectorDouble>&)
 {
 	throw NotImplementedError("InverseTransform for VectorSymbol is not implemented");
 }
@@ -277,7 +274,7 @@ void CheckBase(size_t base)
 	}
 }
 
-Symbol ConvertNumberToDec(const VectorSymbol &number, size_t base)
+Symbol ConvertNumberToDec(const VectorSymbol& number, size_t base)
 {
 	CheckBase(base);
 
@@ -320,4 +317,5 @@ VectorSymbol ConvertDecToNumber(Symbol s, size_t base)
 
 	return VectorSymbol(result.data(), result.size());
 }
-} // itp
+
+} // namespace itp

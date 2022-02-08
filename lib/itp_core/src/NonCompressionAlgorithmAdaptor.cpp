@@ -8,7 +8,8 @@ namespace itp
 namespace
 {
 
-HighPrecDouble KrichevskyPredictor(const size_t sym_freq, const size_t total_freq, const size_t alphabet_size) {
+HighPrecDouble KrichevskyPredictor(const size_t sym_freq, const size_t total_freq, const size_t alphabet_size)
+{
 	return (HighPrecDouble(sym_freq) + 1.0 / 2) / (HighPrecDouble(total_freq) + alphabet_size / 2.0);
 }
 
@@ -91,7 +92,8 @@ void NonCompressionAlgorithmAdaptor::SetTsParams(const Symbol alphabet_min_symbo
 void NonCompressionAlgorithmAdaptor::EvaluateProbability(
 	const unsigned char* data,
 	size_t size,
-	InternalState* internal_state) const {
+	InternalState* internal_state) const
+{
 	assert(internal_state != nullptr);
 
 	for (auto* current_pos = &internal_state->current_pos; *current_pos < size; ++(*current_pos))
@@ -100,31 +102,30 @@ void NonCompressionAlgorithmAdaptor::EvaluateProbability(
 		const auto observed_symbol = data[*current_pos];
 		switch (confidence)
 		{
-			case ConfidenceLevel::kConfident:
-			{
-				++internal_state->confident_estimations_series_len;
-				internal_state->confident_guess_freq[guessed_symbol] =
-						internal_state->confident_estimations_series_len;
-				const auto total_freq = internal_state->confident_estimations_series_len;
-				internal_state->evaluated_probability *= KrichevskyPredictor(
-					internal_state->confident_guess_freq[observed_symbol],
-					total_freq,
-					GetAlphabetRange());
-				internal_state->confident_guess_freq[guessed_symbol] = 0;
-			}
-				break;
-			case ConfidenceLevel::kNotConfident:
-			{
-				internal_state->confident_estimations_series_len = 0;
-				const auto total_freq = *current_pos;
-				internal_state->evaluated_probability *= KrichevskyPredictor(
-					internal_state->letters_freq[observed_symbol],
-					total_freq,
-					GetAlphabetRange());
-			}
-				break;
-			default:
-				assert(false);
+		case ConfidenceLevel::Confident:
+		{
+			++internal_state->confident_estimations_series_len;
+			internal_state->confident_guess_freq[guessed_symbol] = internal_state->confident_estimations_series_len;
+			const auto total_freq = internal_state->confident_estimations_series_len;
+			internal_state->evaluated_probability *= KrichevskyPredictor(
+				internal_state->confident_guess_freq[observed_symbol],
+				total_freq,
+				GetAlphabetRange());
+			internal_state->confident_guess_freq[guessed_symbol] = 0;
+		}
+		break;
+		case ConfidenceLevel::NotConfident:
+		{
+			internal_state->confident_estimations_series_len = 0;
+			const auto total_freq = *current_pos;
+			internal_state->evaluated_probability *= KrichevskyPredictor(
+				internal_state->letters_freq[observed_symbol],
+				total_freq,
+				GetAlphabetRange());
+		}
+		break;
+		default:
+			assert(false);
 		}
 		internal_state->letters_freq[observed_symbol] += 1;
 	}

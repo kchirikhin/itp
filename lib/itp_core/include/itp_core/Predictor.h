@@ -1,7 +1,3 @@
-//
-// Created by kon on 25.10.2021.
-//
-
 #ifndef ITP_CORE_PREDICTOR_H_INCLUDED_
 #define ITP_CORE_PREDICTOR_H_INCLUDED_
 

@@ -1,42 +1,58 @@
 #include "Head.h"
 
-namespace itp {
-    Head::Head(long init_pos, std::string init_name, size_t init_id)
-        : position_on_tape{init_pos}, head_name{init_name}, head_id{init_id} {}
+namespace itp
+{
 
-    void Head::move() {
-        ++position_on_tape;
-    }
+Head::Head(long init_pos, std::string init_name, size_t init_id)
+	: position_on_tape_{init_pos}
+	, head_name_{init_name}
+	, head_id_{init_id}
+{
+}
 
-    void Head::move(long pos) {
-        position_on_tape = pos;
-    }
+void Head::Move()
+{
+	++position_on_tape_;
+}
 
-    void Head::name(const std::string &new_name) {
-        head_name = new_name;
-    }
+void Head::Move(long pos)
+{
+	position_on_tape_ = pos;
+}
 
-    std::string Head::name() const {
-        return head_name;
-    }
+void Head::Name(const std::string& new_name)
+{
+	head_name_ = new_name;
+}
 
-    void Head::id(size_t new_id) {
-        head_id = new_id;
-    }
+std::string Head::Name() const
+{
+	return head_name_;
+}
 
-    size_t Head::id() const {
-        return head_id;
-    }
+void Head::Id(size_t new_id)
+{
+	head_id_ = new_id;
+}
 
-    Head::operator long() const {
-        return position_on_tape;
-    }
+size_t Head::Id() const
+{
+	return head_id_;
+}
 
-    bool Head::operator == (const Head &other) const {
-        return position_on_tape == other.position_on_tape;
-    }
+Head::operator long() const
+{
+	return position_on_tape_;
+}
 
-    bool Head::operator != (const Head &other) const {
-        return !(*this == other);
-    }
-} // itp
+bool Head::operator==(const Head& other) const
+{
+	return position_on_tape_ == other.position_on_tape_;
+}
+
+bool Head::operator!=(const Head& other) const
+{
+	return !(*this == other);
+}
+
+} // namespace itp

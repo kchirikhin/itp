@@ -12,4 +12,4 @@
 // todo: maybe can be generalized with variadic template?
 #define UNUSED(x) ((void)x)
 
-#endif //ITP_MACRO_H
+#endif // ITP_MACRO_H

@@ -20,7 +20,7 @@ namespace itp
  * Converts real-valued series to a discrete one, or converts discrete series to a zero-aligned series (i.e. series of
  * numbers 0...n for some n).
  *
- * @tparam OriginalType Type of values of the series to convert. Needed for inverse transformation (with loss of
+ * \tparam OriginalType Type of values of the series to convert. Needed for inverse transformation (with loss of
  * accuracy in the real-valued case).
  */
 template<typename OriginalType>
@@ -30,12 +30,11 @@ template<>
 class Sampler<Double>
 {
 public:
-	Preprocessed_tseries<Double, Symbol> Transform(const Preprocessed_tseries<Double, Double> &, size_t);
+	PreprocessedTimeSeries<Double, Symbol> Transform(const PreprocessedTimeSeries<Double, Double>&, size_t);
 
-	Double InverseTransform(Symbol, const Preproc_info<Double> &);
+	Double InverseTransform(Symbol, const PreprocInfo<Double>&);
 
 private:
-
 	double indent_ = 0.1;
 };
 
@@ -44,18 +43,20 @@ template<>
 class Sampler<Symbol>
 {
 public:
-	Preprocessed_tseries<Double, Symbol> Transform(const Preprocessed_tseries<Double, Symbol> &);
+	PreprocessedTimeSeries<Double, Symbol> Transform(const PreprocessedTimeSeries<Double, Symbol>&);
 
-	Double InverseTransform(Symbol, const Preproc_info<Double> &);
+	Double InverseTransform(Symbol, const PreprocInfo<Double>&);
 };
 
 template<>
 class Sampler<VectorDouble>
 {
 public:
-	Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorDouble> &, size_t);
+	PreprocessedTimeSeries<VectorDouble, Symbol> Transform(
+		const PreprocessedTimeSeries<VectorDouble, VectorDouble>&,
+		size_t);
 
-	VectorDouble InverseTransform(Symbol, const Preproc_info<VectorDouble> &);
+	VectorDouble InverseTransform(Symbol, const PreprocInfo<VectorDouble>&);
 
 private:
 	double indent_ = 0.1;
@@ -65,17 +66,19 @@ template<>
 class Sampler<VectorSymbol>
 {
 public:
-	Preprocessed_tseries<VectorDouble, Symbol> Transform(const Preprocessed_tseries<VectorDouble, VectorSymbol> &);
+	PreprocessedTimeSeries<VectorDouble, Symbol> Transform(const PreprocessedTimeSeries<VectorDouble, VectorSymbol>&);
 
-	VectorDouble InverseTransform(Symbol, const Preproc_info<VectorDouble> &);
+	VectorDouble InverseTransform(Symbol, const PreprocInfo<VectorDouble>&);
 };
 
 template<typename T>
 using SamplerPtr = std::shared_ptr<Sampler<T>>;
 
 template<typename ForwardIterator, typename Value>
-typename std::iterator_traits<ForwardIterator>::value_type pointwise_operation(
-		ForwardIterator first, ForwardIterator last, std::function<Value(Value, Value)> op)
+typename std::iterator_traits<ForwardIterator>::value_type PointwiseOperation(
+	ForwardIterator first,
+	ForwardIterator last,
+	std::function<Value(Value, Value)> op)
 {
 	using ElemType = typename std::iterator_traits<ForwardIterator>::value_type;
 
@@ -97,46 +100,48 @@ typename std::iterator_traits<ForwardIterator>::value_type pointwise_operation(
 }
 
 template<typename ForwardIterator>
-typename std::iterator_traits<ForwardIterator>::value_type pointwise_max_elements(ForwardIterator first,
-																				  ForwardIterator last)
+typename std::iterator_traits<ForwardIterator>::value_type PointwiseMaxElements(
+	ForwardIterator first,
+	ForwardIterator last)
 {
-	return pointwise_operation<ForwardIterator, Double>(first, last, std::greater<Double>());
+	return PointwiseOperation<ForwardIterator, Double>(first, last, std::greater<Double>());
 }
 
 template<typename ForwardIterator>
-typename std::iterator_traits<ForwardIterator>::value_type pointwise_min_elements(ForwardIterator first,
-																				  ForwardIterator last)
+typename std::iterator_traits<ForwardIterator>::value_type PointwiseMinElements(
+	ForwardIterator first,
+	ForwardIterator last)
 {
-	return pointwise_operation<ForwardIterator, Double>(first, last, std::less<Double>());
+	return PointwiseOperation<ForwardIterator, Double>(first, last, std::less<Double>());
 }
 
-template <typename OriginalType>
-auto InitPreprocessedTs(const PlainTimeSeries<OriginalType> &);
+template<typename OriginalType>
+auto InitPreprocessedTs(const PlainTimeSeries<OriginalType>&);
 
-inline auto InitPreprocessedTs(const PlainTimeSeries<Double> &points)
+inline auto InitPreprocessedTs(const PlainTimeSeries<Double>& points)
 {
-	return Preprocessed_tseries<Double, Double>{points};
+	return PreprocessedTimeSeries<Double, Double>{points};
 }
 
-inline auto InitPreprocessedTs(const PlainTimeSeries<Symbol> &points)
+inline auto InitPreprocessedTs(const PlainTimeSeries<Symbol>& points)
 {
-	return Preprocessed_tseries<Double, Symbol>{points};
+	return PreprocessedTimeSeries<Double, Symbol>{points};
 }
 
-inline auto InitPreprocessedTs(const PlainTimeSeries<VectorDouble> &points)
+inline auto InitPreprocessedTs(const PlainTimeSeries<VectorDouble>& points)
 {
-	return Preprocessed_tseries<VectorDouble, VectorDouble>{points};
+	return PreprocessedTimeSeries<VectorDouble, VectorDouble>{points};
 }
 
-inline auto InitPreprocessedTs(const PlainTimeSeries<VectorSymbol> &points)
+inline auto InitPreprocessedTs(const PlainTimeSeries<VectorSymbol>& points)
 {
-	return Preprocessed_tseries<VectorDouble, VectorSymbol>{points};
+	return PreprocessedTimeSeries<VectorDouble, VectorSymbol>{points};
 }
 
-Symbol ConvertNumberToDec(const VectorSymbol &, size_t);
+Symbol ConvertNumberToDec(const VectorSymbol&, size_t);
 
 VectorSymbol ConvertDecToNumber(Symbol, size_t);
 
-} // of namespace itp
+} // namespace itp
 
 #endif // ITP_SAMPLER_H_INCLUDED_

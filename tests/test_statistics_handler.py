@@ -30,7 +30,8 @@ class TestStandaloneFunctions(unittest.TestCase):
 class TestUtilityFunctions(unittest.TestCase):
     def setUp(self) -> None:
         self._horizon = 3
-        self._predicted = [{'zlib': TimeSeries([1, 1.5, 2], dtype=float)}, {'zlib': TimeSeries([1.4, 1.6, 1.8], dtype=float)}]
+        self._predicted = [{'zlib': TimeSeries([1, 1.5, 2], dtype=float)},
+                           {'zlib': TimeSeries([1.4, 1.6, 1.8], dtype=float)}]
         self._observed = [TimeSeries([1.1, 1.4, 1.8], dtype=float), TimeSeries([1.4, 1.8, 2.0], dtype=float)]
 
     def test_compute_mean_errors_returns_right_answer(self) -> None:
@@ -63,7 +64,7 @@ class TestComplexTaskStatisticsHandler(unittest.TestCase):
                            {'zlib': TimeSeries([1.4, 1.6, 1.8], dtype=float)}]
         self._observed = [TimeSeries([1.1, 1.4, 1.8], dtype=float), TimeSeries([1.4, 1.8, 2.0], dtype=float)]
         self._forecast = {'zlib': TimeSeries([1, 1.5, 2], dtype=float)}
-        self._statistics = sut.TrainingTaskStatisticsHandler()
+        self._statistics = sut.TrainingTaskResult()
         self._statistics.set_results_of_computations(self._history, self._forecast, self._predicted,
                                                      self._observed, self._horizon)
 
@@ -110,7 +111,7 @@ class SumOfErrorsStatisticsHandler(unittest.TestCase):
         self._observed = [TimeSeries([0]), TimeSeries([0]), TimeSeries([0]), TimeSeries([1]), TimeSeries([1]),
                           TimeSeries([1])]
         self._forecast = {'zlib': TimeSeries([1]), 'automaton': TimeSeries([0])}
-        self._statistics = sut.SumOfErrorsStatisticsHandler()
+        self._statistics = sut.AddingUpErrorsResultsProcessor()
         self._statistics.set_results_of_computations(self._history, self._forecast, self._predicted,
                                                      self._observed, self._horizon)
 

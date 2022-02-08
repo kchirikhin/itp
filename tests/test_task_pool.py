@@ -40,7 +40,8 @@ class TestPool(unittest.TestCase):
         tasks = []
         for i in range(n_tasks):
             tasks.append(MagicMock())
-            tasks[-1].get_elementary_tasks = MagicMock(return_value=elementary_tasks[start_index:(start_index+package_size)])
+            tasks[-1].get_elementary_tasks = MagicMock(
+                return_value=elementary_tasks[start_index:(start_index + package_size)])
             start_index = start_index + package_size
 
         for task in tasks:
@@ -68,8 +69,8 @@ class TestPool(unittest.TestCase):
             self._pool.add_task(task, self._visualizer)
         self._pool.execute()
 
-        tasks[0].handle_results_of_computations.assert_called_with([0, 1, 2])
-        tasks[1].handle_results_of_computations.assert_called_with([3, 4, 5])
+        tasks[0].set_results_of_computations.assert_called_with([0, 1, 2])
+        tasks[1].set_results_of_computations.assert_called_with([3, 4, 5])
 
     def test_calls_visualizers_with_assembled_results(self):
         n_elementary_tasks = 6
@@ -89,7 +90,7 @@ class TestPool(unittest.TestCase):
             visualizers.append({MagicMock(), MagicMock()})
 
             tasks[-1].get_elementary_tasks = MagicMock(return_value=elementary_tasks[(i*task_size):((i+1)*task_size)])
-            tasks[-1].handle_results_of_computations = MagicMock(return_value=i*10)
+            tasks[-1].set_results_of_computations = MagicMock(return_value=i*10)
 
         for task, visualizer in zip(tasks, visualizers):
             self._pool.add_task(task, *tuple(visualizer))

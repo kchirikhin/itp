@@ -1,20 +1,14 @@
-from itp import DiscreteUnivariateElemetaryTask, BasicTask, Types, TrainingTask, TimeSeries
+from itp import DiscreteUnivariateElemetaryTask, BasicTask, TrainingTask, TimeSeries
 
 import unittest
 from unittest.mock import MagicMock
-
-
-class TestDiscreteUnivariateElemetaryTask(unittest.TestCase):
-    def test_raises_if_passed_predictor_interface_is_none(self):
-        self.assertRaises(ValueError, DiscreteUnivariateElemetaryTask, time_series=[], compressors='',
-                          horizon=0, difference=0, sparse=-1, predictor_interface=None)
 
 
 class TestSimpleTask(unittest.TestCase):
     def setUp(self):
         self._time_series = TimeSeries([1, 2, 3], dtype=int, frequency=2)
         self._statistics_handler = MagicMock()
-        self._task = BasicTask(self._statistics_handler, Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
+        self._task = BasicTask(self._statistics_handler, DiscreteUnivariateElemetaryTask,
                                time_series=self._time_series, compressors='', horizon=0, difference=0, sparse=-1)
         self._result_of_computation = {'zlib': TimeSeries([1, 2, 3], dtype=int, frequency=1)}
 
@@ -39,7 +33,7 @@ class TestComplexTask(unittest.TestCase):
         self._time_series = TimeSeries([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=int, frequency=1)
         self._horizon = 3
         self._statistics_handler = MagicMock()
-        self._task = TrainingTask(self._statistics_handler, Types(int, TimeSeries, DiscreteUnivariateElemetaryTask),
+        self._task = TrainingTask(self._statistics_handler, DiscreteUnivariateElemetaryTask,
                                   self._time_series, 5, ['zlib'], self._horizon, 0, 0)
 
         self._prediction0 = {'zlib': TimeSeries([10, 11, 12], dtype=int)}

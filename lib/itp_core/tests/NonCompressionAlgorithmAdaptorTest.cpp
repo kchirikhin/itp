@@ -46,14 +46,13 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, CorrectlyEvaluatesCodeLength)
 	adaptor_->SetTsParams(*min, *max);
 
 	const std::array expected_return_values = {
-		Prediction(1, ConfidenceLevel::kNotConfident),
-		Prediction(1, ConfidenceLevel::kNotConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(2, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident)
-	};
+		Prediction(1, ConfidenceLevel::NotConfident),
+		Prediction(1, ConfidenceLevel::NotConfident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(2, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident)};
 
 	testing::InSequence seq;
 	for (size_t i = 0; i < std::size(expected_return_values); ++i)
@@ -61,7 +60,8 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, CorrectlyEvaluatesCodeLength)
 		EXPECT_CALL(*algorithm_, GiveNextPrediction(data_, i)).WillOnce(Return(expected_return_values[i]));
 	}
 
-	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(7.0*9.0*11.0/2.0/4.0/4.0/6.0/8.0/2.0/4.0)));
+	const auto expected_result = static_cast<size_t>(
+		std::ceil(-std::log2(7.0 * 9.0 * 11.0 / 2.0 / 4.0 / 4.0 / 6.0 / 8.0 / 2.0 / 4.0)));
 	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
 
@@ -87,14 +87,13 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, NonConfidentPredictionResetsSeriesOfC
 	adaptor_->SetTsParams(*min, *max);
 
 	const std::array expected_return_values = {
-		Prediction(1, ConfidenceLevel::kNotConfident),
-		Prediction(1, ConfidenceLevel::kNotConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(2, ConfidenceLevel::kNotConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident)
-	};
+		Prediction(1, ConfidenceLevel::NotConfident),
+		Prediction(1, ConfidenceLevel::NotConfident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(2, ConfidenceLevel::NotConfident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident)};
 
 	testing::InSequence seq;
 	for (size_t i = 0; i < std::size(expected_return_values); ++i)
@@ -102,7 +101,8 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, NonConfidentPredictionResetsSeriesOfC
 		EXPECT_CALL(*algorithm_, GiveNextPrediction(data_, i)).WillOnce(Return(expected_return_values[i]));
 	}
 
-	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*3.0*3.0*5.0/2.0/4.0/4.0/6.0/10.0/4.0/6.0)));
+	const auto expected_result = static_cast<size_t>(
+		std::ceil(-std::log2(3.0 * 5.0 * 3.0 * 3.0 * 5.0 / 2.0 / 4.0 / 4.0 / 6.0 / 10.0 / 4.0 / 6.0)));
 	EXPECT_EQ(adaptor_->Compress(data_, size_, &out_buffer_), expected_result);
 }
 
@@ -113,10 +113,9 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, InNonConfidentPredictionCaseAlgorithm
 	adaptor_->SetTsParams(1, 2);
 
 	const std::array expected_return_values = {
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kConfident),
-		Prediction(1, ConfidenceLevel::kNotConfident)
-	};
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::Confident),
+		Prediction(1, ConfidenceLevel::NotConfident)};
 
 	testing::InSequence seq;
 	for (size_t i = 0; i < std::size(expected_return_values); ++i)
@@ -124,7 +123,7 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, InNonConfidentPredictionCaseAlgorithm
 		EXPECT_CALL(*algorithm_, GiveNextPrediction(test_data, i)).WillOnce(Return(expected_return_values[i]));
 	}
 
-	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0*5.0*5.0/4.0/6.0/6.0)));
+	const auto expected_result = static_cast<size_t>(std::ceil(-std::log2(3.0 * 5.0 * 5.0 / 4.0 / 6.0 / 6.0)));
 	EXPECT_EQ(adaptor_->Compress(test_data, size, &out_buffer_), expected_result);
 }
 
@@ -154,8 +153,7 @@ private:
 	std::ostringstream log_;
 };
 
-GiveNextPredictionCallsChecker::GiveNextPredictionCallsChecker(
-	std::vector<std::vector<Symbol>> expected_data_contents)
+GiveNextPredictionCallsChecker::GiveNextPredictionCallsChecker(std::vector<std::vector<Symbol>> expected_data_contents)
 	: expectations_{std::size(expected_data_contents)}
 {
 	for (size_t i = 0; i < std::size(expected_data_contents); ++i)
@@ -180,7 +178,7 @@ GiveNextPredictionCallsChecker::Guess GiveNextPredictionCallsChecker::GiveNextPr
 			}
 
 			expired = true;
-			return {dumb_guess_, ConfidenceLevel::kConfident};
+			return {dumb_guess_, ConfidenceLevel::Confident};
 		}
 	}
 
@@ -199,7 +197,7 @@ GiveNextPredictionCallsChecker::Guess GiveNextPredictionCallsChecker::GiveNextPr
 	}
 	log_ << '\n';
 
-	return {dumb_guess_, ConfidenceLevel::kConfident};
+	return {dumb_guess_, ConfidenceLevel::Confident};
 }
 
 void GiveNextPredictionCallsChecker::SetTsParams(Symbol alphabet_min_symbol, Symbol)
@@ -235,20 +233,19 @@ TEST_F(NonCompressionAlgorithmAdaptorTest, RequestsPredictionsPassingRightData)
 	const std::vector<Symbol> test_data = {0, 1, 0};
 	const std::vector<Continuation<Symbol>> continuations = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
-	auto algorithm = GiveNextPredictionCallsChecker(
-		{
-			{},
-			{0},
-			{0, 1},
-			{0, 1, 0},
-			{0, 1, 0, 0},
-			{0, 1, 0},
-			{0, 1, 0, 0},
-			{0, 1, 0},
-			{0, 1, 0, 1},
-			{0, 1, 0},
-			{0, 1, 0, 1},
-		});
+	auto algorithm = GiveNextPredictionCallsChecker({
+		{},
+		{0},
+		{0, 1},
+		{0, 1, 0},
+		{0, 1, 0, 0},
+		{0, 1, 0},
+		{0, 1, 0, 0},
+		{0, 1, 0},
+		{0, 1, 0, 1},
+		{0, 1, 0},
+		{0, 1, 0, 1},
+	});
 
 	auto adaptor = std::make_unique<NonCompressionAlgorithmAdaptor>(&algorithm);
 	adaptor->SetTsParams(0, 1);

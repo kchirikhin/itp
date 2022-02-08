@@ -12,22 +12,23 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iterator>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <numeric>
+#include <queue>
 #include <stdexcept>
 #include <string>
-#include <vector>
 #include <unordered_map>
-#include <queue>
+#include <vector>
 
 namespace itp::evaluation
 {
 
 /**
  * Allows to get code lengths for the specified series by compressing it with the specified compressors.
- * @tparam T Data type of the series to compress.
+ *
+ * \tparam T Data type of the series to compress.
  */
 template<typename T>
 class CodeLengthEvaluator
@@ -35,10 +36,10 @@ class CodeLengthEvaluator
 public:
 	/**
 	 * Inject interface to call compressors.
-	 * @param compressors An interface, which allows to call a compressor by its name.
+	 * \param compressors An interface, which allows to call a compressor by its name.
 	 */
 	explicit CodeLengthEvaluator(CompressorsFacadePtr compressors)
-			: compressors_{std::move(compressors)}
+		: compressors_{std::move(compressors)}
 	{
 		// DO NOTHING
 	}
@@ -46,28 +47,35 @@ public:
 	/**
 	 * Compresses the specified series with the specified compressors and returns the obtained code lengths. All
 	 * valid preliminary transformations are applied.
-	 * @param history The series (data) to compress.
-	 * @param compressor_names Names of compressors to use. The compressors must be available via CompressorsFacade object
-	 * injected via constructor.
-	 * @param difference Order of difference.
-	 * @param quanta_count For a real-valued time series, all specified quanta count will be considered at the same
-	 * time. For a discrete series this parameter is ignored.
-	 * @return For each compressor its best code length (in the form of <name -> length> mapping).
+	 *
+	 * \param[in] history The series (data) to compress.
+	 * \param[in] compressor_names Names of compressors to use. The compressors must be available via CompressorsFacade
+	 *     object injected via constructor.
+	 * \param[in] difference Order of difference.
+	 * \param[in] quanta_count For a real-valued time series, all specified quanta count will be considered at the same
+	 *     time. For a discrete series this parameter is ignored.
+	 *
+	 * \return For each compressor its best code length (in the form of <name -> length> mapping).
 	 */
-	std::unordered_map<std::string, size_t> Evaluate(const std::vector<T>& history,
-													 const CompressorNames& compressor_names, size_t difference,
-													 const std::vector<size_t>& quanta_count);
+	std::unordered_map<std::string, size_t> Evaluate(
+		const std::vector<T>& history,
+		const CompressorNames& compressor_names,
+		size_t difference,
+		const std::vector<size_t>& quanta_count);
 
 private:
 	CompressorsFacadePtr compressors_;
 };
 
 /**
- * Computes n-th adjacent difference of a sequence,
- * @tparam T Type of elements of the sequence.
- * @param vec The sequence for computations.
- * @param n Number of differences to take.
- * @return Computes series of adjacent differences.
+ * Computes n-th adjacent difference of a sequence.
+ *
+ * \tparam T Type of elements of the sequence.
+ *
+ * \param[in] vec The sequence for computations.
+ * \param[in] n Number of differences to take.
+ *
+ * \return Computes series of adjacent differences.
  */
 template<typename T>
 std::vector<T> diff_n(std::vector<T> vec, size_t n = 1)
@@ -96,20 +104,13 @@ public:
 	using std::vector<T>::vector;
 
 	QuantifiedVector(const std::vector<T>& vec)
-			: std::vector<T>(std::cbegin(vec), std::cend(vec))
+		: std::vector<T>(std::cbegin(vec), std::cend(vec))
 	{
 	}
 
-	void SetAlphabetSize(size_t max_letter)
-	{
-		max_letter_ = max_letter;
-	}
+	void SetAlphabetSize(size_t max_letter) { max_letter_ = max_letter; }
 
-	[[nodiscard]]
-	size_t GetAlphabetSize() const
-	{
-		return max_letter_;
-	}
+	[[nodiscard]] size_t GetAlphabetSize() const { return max_letter_; }
 
 private:
 	size_t max_letter_ = 256;
@@ -125,11 +126,7 @@ public:
 	using difference_type = ptrdiff_t;
 	using size_type = size_t;
 
-	[[nodiscard]]
-	std::size_t size() const
-	{
-		return quantified_series_.size();
-	}
+	[[nodiscard]] std::size_t size() const { return quantified_series_.size(); }
 
 	class const_iterator
 	{
@@ -143,30 +140,19 @@ public:
 		const_iterator() = default;
 
 		explicit const_iterator(const SampledSeriesStorageBase<T>* storage, size_t current_pos = 0)
-				: storage_{storage}, current_pos_{current_pos}
+			: storage_{storage}
+			, current_pos_{current_pos}
 		{
 			// DO NOTHING
 		}
 
-		const_reference operator*() const
-		{
-			return storage_->GetTimeSeries(current_pos_);
-		}
+		const_reference operator*() const { return storage_->GetTimeSeries(current_pos_); }
 
-		const value_type* operator->() const
-		{
-			return &storage_->GetTimeSeries(current_pos_);
-		}
+		const value_type* operator->() const { return &storage_->GetTimeSeries(current_pos_); }
 
-		bool operator==(const const_iterator& other) const
-		{
-			return current_pos_ == other.current_pos_;
-		}
+		bool operator==(const const_iterator& other) const { return current_pos_ == other.current_pos_; }
 
-		bool operator!=(const const_iterator& other) const
-		{
-			return current_pos_ != other.current_pos_;
-		}
+		bool operator!=(const const_iterator& other) const { return current_pos_ != other.current_pos_; }
 
 		const_iterator& operator++()
 		{
@@ -186,25 +172,13 @@ public:
 		size_t current_pos_ = 0;
 	};
 
-	const_iterator cbegin() const
-	{
-		return const_iterator{this};
-	}
+	const_iterator cbegin() const { return const_iterator{this}; }
 
-	const_iterator begin() const
-	{
-		return const_iterator{this};
-	}
+	const_iterator begin() const { return const_iterator{this}; }
 
-	const_iterator cend() const
-	{
-		return const_iterator{this, quantified_series_.size()};
-	}
+	const_iterator cend() const { return const_iterator{this, quantified_series_.size()}; }
 
-	const_iterator end() const
-	{
-		return const_iterator{this, quantified_series_.size()};
-	}
+	const_iterator end() const { return const_iterator{this, quantified_series_.size()}; }
 
 protected:
 	explicit SampledSeriesStorageBase(const std::vector<T>& original_series);
@@ -212,8 +186,7 @@ protected:
 	SampledSeriesStorageBase(const std::vector<T>& original_series, const std::vector<size_t>& quanta_counts);
 
 private:
-	[[nodiscard]]
-	const QuantifiedVector<Symbol>& GetTimeSeries(size_t index) const;
+	[[nodiscard]] const QuantifiedVector<Symbol>& GetTimeSeries(size_t index) const;
 
 	Sampler<T> sampler_;
 	std::vector<QuantifiedVector<Symbol>> quantified_series_;
@@ -224,18 +197,19 @@ SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& orig
 {
 	const auto quantified_series = sampler_.Transform(InitPreprocessedTs(original_series));
 	quantified_series_.push_back(quantified_series.to_plain_tseries());
-	quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
+	quantified_series_.back().SetAlphabetSize(quantified_series.GetSamplingAlphabet());
 }
 
 template<typename T>
-SampledSeriesStorageBase<T>::SampledSeriesStorageBase(const std::vector<T>& original_series,
-													  const std::vector<size_t>& quanta_counts)
+SampledSeriesStorageBase<T>::SampledSeriesStorageBase(
+	const std::vector<T>& original_series,
+	const std::vector<size_t>& quanta_counts)
 {
 	for (const auto quanta_count : quanta_counts)
 	{
 		auto quantified_series = sampler_.Transform(InitPreprocessedTs(original_series), quanta_count);
 		quantified_series_.push_back(quantified_series.to_plain_tseries());
-		quantified_series_.back().SetAlphabetSize(quantified_series.get_sampling_alphabet());
+		quantified_series_.back().SetAlphabetSize(quantified_series.GetSamplingAlphabet());
 	}
 }
 
@@ -253,7 +227,7 @@ class SampledSeriesStorage<Double> : public SampledSeriesStorageBase<Double>
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<Double>& ts, const std::vector<size_t>& quanta_counts)
-			: SampledSeriesStorageBase{ts, quanta_counts}
+		: SampledSeriesStorageBase{ts, quanta_counts}
 	{
 		// DO NOTHING
 	}
@@ -264,7 +238,7 @@ class SampledSeriesStorage<VectorDouble> : public SampledSeriesStorageBase<Vecto
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<VectorDouble>& ts, const std::vector<size_t>& quanta_counts)
-			: SampledSeriesStorageBase{ts, quanta_counts}
+		: SampledSeriesStorageBase{ts, quanta_counts}
 	{
 		// DO NOTHING
 	}
@@ -275,7 +249,7 @@ class SampledSeriesStorage<Symbol> : public SampledSeriesStorageBase<Symbol>
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<Symbol>& ts, const std::vector<size_t>& = {})
-			: SampledSeriesStorageBase{ts}
+		: SampledSeriesStorageBase{ts}
 	{
 		// DO NOTHING
 	}
@@ -286,7 +260,7 @@ class SampledSeriesStorage<VectorSymbol> : public SampledSeriesStorageBase<Vecto
 {
 public:
 	explicit SampledSeriesStorage(const std::vector<VectorSymbol>& ts, const std::vector<size_t>& = {})
-			: SampledSeriesStorageBase{ts}
+		: SampledSeriesStorageBase{ts}
 	{
 		// DO NOTHING
 	}
@@ -303,10 +277,12 @@ std::vector<size_t> ComputeCorrections(const std::vector<size_t>& quanta_counts,
 	std::vector<size_t> to_return(quanta_counts.size());
 	const auto max_quanta_count = *std::max_element(std::cbegin(quanta_counts), std::cend(quanta_counts));
 	const auto max_quanta_count_log = static_cast<size_t>(log2(static_cast<double>(max_quanta_count)));
-	std::transform(std::cbegin(quanta_counts), std::cend(quanta_counts), std::begin(to_return), [=](size_t quanta_count)
-	{
-		return (max_quanta_count_log - static_cast<size_t>(log2(static_cast<double>(quanta_count)))) * ts_length;
-	});
+	std::transform(
+		std::cbegin(quanta_counts),
+		std::cend(quanta_counts),
+		std::begin(to_return),
+		[=](size_t quanta_count)
+		{ return (max_quanta_count_log - static_cast<size_t>(log2(static_cast<double>(quanta_count)))) * ts_length; });
 
 	return to_return;
 }
@@ -333,10 +309,11 @@ template<>
 void CheckQuantaCounts<VectorSymbol>(const std::vector<size_t>&);
 
 template<typename T>
-std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const std::vector<T>& history,
-																		 const CompressorNames& compressor_names,
-																		 const size_t difference,
-																		 const std::vector<size_t>& quanta_counts)
+std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(
+	const std::vector<T>& history,
+	const CompressorNames& compressor_names,
+	const size_t difference,
+	const std::vector<size_t>& quanta_counts)
 {
 	CheckQuantaCounts<T>(quanta_counts);
 
@@ -358,8 +335,11 @@ std::unordered_map<std::string, size_t> CodeLengthEvaluator<T>::Evaluate(const s
 			{
 				compressors_->SetAlphabetDescription({0, static_cast<Symbol>(series.GetAlphabetSize() - 1)});
 				code_lengths.push(
-						compressors_->Compress(compressor_name, reinterpret_cast<const unsigned char*>(series.data()),
-											   series.size() * sizeof(Symbol)) + *correction++);
+					compressors_->Compress(
+						compressor_name,
+						reinterpret_cast<const unsigned char*>(series.data()),
+						series.size() * sizeof(Symbol))
+					+ *correction++);
 			}
 			to_return[compressor_name] = code_lengths.top();
 		}
@@ -375,7 +355,8 @@ namespace ad_hoc
 template<typename InputIt, typename Size, typename UnaryFunction>
 InputIt for_each_n(InputIt first, Size n, UnaryFunction f)
 {
-	for (size_t i = 0; i < n; ++i, f(*first++));
+	for (size_t i = 0; i < n; ++i, f(*first++))
+		;
 	return first;
 }
 
@@ -387,6 +368,6 @@ itp::CompressorNames GetBestCompressors(
 	const std::unordered_map<std::string, size_t>& results_of_computations,
 	const size_t target_number);
 
-} // itp::evaluation
+} // namespace itp::evaluation
 
-#endif //ITP_CORE_SELECTOR_PRIVATE_H_INCLUDED_
+#endif // ITP_CORE_SELECTOR_PRIVATE_H_INCLUDED_

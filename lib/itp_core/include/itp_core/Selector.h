@@ -20,16 +20,13 @@ namespace itp
 class Share
 {
 public:
-	explicit Share(const double init_value = 0.)
-			: share_{init_value}
+	explicit Share(const double init_value = 0.0)
+		: share_{init_value}
 	{
 		ThrowIfShareIsIncorrect();
 	}
 
-	operator double() const
-	{
-		return share_;
-	}
+	operator double() const { return share_; }
 
 private:
 	void ThrowIfShareIsIncorrect() const

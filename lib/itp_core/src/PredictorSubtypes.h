@@ -1,179 +1,225 @@
 #ifndef ITP_PREDICTOR_SUBTYPES_H_INCLUDED_
 #define ITP_PREDICTOR_SUBTYPES_H_INCLUDED_
 
-#include "Types.h"
 #include "ItpExceptions.h"
 #include "Sampler.h"
 #include "TableTransformations.h"
+#include "Types.h"
 
-#include <iterator>
-#include <iostream>
-#include <memory>
 #include <cmath>
+#include <iostream>
+#include <iterator>
+#include <memory>
 
-// Interface of the library.
-namespace itp {
+namespace itp
+{
 
-template <typename T>
-std::ostream& operator << (std::ostream &ost, const ContinuationsDistribution<T> &table);
+template<typename T>
+std::ostream& operator<<(std::ostream& ost, const ContinuationsDistribution<T>& table);
 
-inline bool IsPowerOfTwo(std::size_t n) {
-  return (n > 0 && ((n & (n - 1)) == 0));
+constexpr bool IsPowerOfTwo(std::size_t number)
+{
+	return (number > 0 && ((number & (number - 1)) == 0));
 }
 
-template <typename OrigType, typename NewType>
-class Distribution_predictor {
-  // static_assert(std::is_arithmetic<NewType>::value, "NewType should be an arithmetic type");
- public:
-  virtual ~Distribution_predictor() = default;
+template<typename OrigType, typename NewType>
+class DistributionPredictor
+{
+	// static_assert(std::is_arithmetic<NewType>::value, "NewType should be an arithmetic type");
 
-  virtual ContinuationsDistribution<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history,
-                                                      size_t horizont, const CompressorNamesVec &compressor_groups) const = 0;
+public:
+	virtual ~DistributionPredictor() = default;
+
+	virtual ContinuationsDistribution<OrigType> Predict(
+		PreprocessedTimeSeries<OrigType, NewType> history,
+		size_t horizont,
+		const CompressorNamesVec& compressor_groups) const = 0;
 };
 
-template <typename OrigType, typename NewType>
-using Distribution_predictor_ptr = std::shared_ptr<Distribution_predictor<OrigType, NewType>>;
+template<typename OrigType, typename NewType>
+using DistributionPredictorPtr = std::shared_ptr<DistributionPredictor<OrigType, NewType>>;
 
-template <typename OrigType, typename NewType>
-class Pointwise_predictor {
-  // static_assert(std::is_arithmetic<NewType>::value, "NewType should be an arithmetic type");
- public:
-  virtual ~Pointwise_predictor() = default;
+template<typename OrigType, typename NewType>
+class PointwisePredictor
+{
+	// static_assert(std::is_arithmetic<NewType>::value, "NewType should be an arithmetic type");
 
-  virtual Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                                     const CompressorNamesVec &compressor_groups) const = 0;
+public:
+	virtual ~PointwisePredictor() = default;
+
+	virtual Forecast<OrigType> Predict(
+		PreprocessedTimeSeries<OrigType, NewType> history,
+		size_t horizont,
+		const CompressorNamesVec& compressor_groups) const = 0;
 };
 
-template <typename OrigType, typename NewType>
-using Pointwise_predictor_ptr = std::shared_ptr<Pointwise_predictor<OrigType, NewType>>;
+template<typename OrigType, typename NewType>
+using PointwisePredictorPtr = std::shared_ptr<PointwisePredictor<OrigType, NewType>>;
 
-template <typename OrigType, typename NewType>
-class Basic_pointwise_predictor : public Pointwise_predictor<OrigType, NewType> {
- public:
-  Basic_pointwise_predictor(Distribution_predictor_ptr<OrigType, NewType> distribution_predictor);
-  Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                              const CompressorNamesVec &compressor_groups) const override;
- private:
-  Distribution_predictor_ptr<OrigType, NewType> distribution_predictor;
+template<typename OrigType, typename NewType>
+class BasicPointwisePredictor : public PointwisePredictor<OrigType, NewType>
+{
+public:
+	BasicPointwisePredictor(DistributionPredictorPtr<OrigType, NewType> distribution_predictor);
+	Forecast<OrigType> Predict(
+		PreprocessedTimeSeries<OrigType, NewType> history,
+		size_t horizont,
+		const CompressorNamesVec& compressor_groups) const override;
+
+private:
+	DistributionPredictorPtr<OrigType, NewType> distribution_predictor_;
 };
 
 /**
  * Decorator pattern implementation.
  *
  */
-template <typename OrigType, typename NewType>
-class Sparse_predictor : public Pointwise_predictor<OrigType, NewType> {
- public:
-  Sparse_predictor(Pointwise_predictor_ptr<OrigType, NewType> pointwise_predictor, size_t sparse);
+template<typename OrigType, typename NewType>
+class SparsePredictor : public PointwisePredictor<OrigType, NewType>
+{
+public:
+	SparsePredictor(PointwisePredictorPtr<OrigType, NewType> pointwise_predictor, size_t sparse);
 
-  Forecast<OrigType> Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont,
-                              const CompressorNamesVec &compressor_groups) const override final;
- private:
-  Pointwise_predictor_ptr<OrigType, NewType> pointwise_predictor;
-  size_t sparse;
+	Forecast<OrigType> Predict(
+		PreprocessedTimeSeries<OrigType, NewType> history,
+		size_t horizont,
+		const CompressorNamesVec& compressor_groups) const override final;
+
+private:
+	PointwisePredictorPtr<OrigType, NewType> pointwise_predictor_;
+	size_t sparse_;
 };
 
-template <typename Forward_iterator, typename New_value>
-New_value min_value_of_all_tables(Forward_iterator first, Forward_iterator last);
+template<typename Forward_iterator, typename New_value>
+New_value MinValueOfAllTables(Forward_iterator first, Forward_iterator last);
 
-template <typename Forward_iterator, typename T>
-void add_value_to_each(Forward_iterator first, Forward_iterator last, T value);
+template<typename Forward_iterator, typename T>
+void AddValueToEach(Forward_iterator first, Forward_iterator last, T value);
 
-} // of itp
+} // namespace itp
 
-template <typename T>
-std::ostream & itp::operator << (std::ostream &ost, const ContinuationsDistribution<T> &table) {
-  ost << "-\t";
-  for (const auto &compressor : table.get_factors()) {
-    ost << compressor << '\t';
-  }
-  ost << '\n';
-  for (const auto &continuation : table.get_index()) {
-    ost << continuation << '\t';
-    for (const auto &compressor : table.get_factors()) {
-      ost << table(continuation, compressor) << '\t';
-    }
-    ost << '\n';
-  }
+template<typename T>
+std::ostream& itp::operator<<(std::ostream& ost, const ContinuationsDistribution<T>& table)
+{
+	ost << "-\t";
+	for (const auto& compressor : table.GetFactors())
+	{
+		ost << compressor << '\t';
+	}
+	ost << '\n';
+	for (const auto& continuation : table.GetIndex())
+	{
+		ost << continuation << '\t';
+		for (const auto& compressor : table.GetFactors())
+		{
+			ost << table(continuation, compressor) << '\t';
+		}
+		ost << '\n';
+	}
 
-  return ost;
+	return ost;
 }
 
-template <typename OrigType, typename NewType>
-itp::Forecast<OrigType> itp::Sparse_predictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> history, size_t horizont, const CompressorNamesVec& compressor_groups) const {
-  std::vector<Forecast<OrigType>> results(sparse);
-  size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse));
-  for (size_t i = 0; i < sparse; ++i) {
-	Preprocessed_tseries<OrigType, NewType> sparse_ts_data;
-	sparse_ts_data.copy_preprocessing_info_from(history);
-    for (size_t j = i; j < history.size(); j += sparse) {
-      sparse_ts_data.push_back(history[j]);
-    }
-    results[i] = pointwise_predictor->Predict(sparse_ts_data, sparsed_horizont, compressor_groups);
-  }
+template<typename OrigType, typename NewType>
+itp::Forecast<OrigType> itp::SparsePredictor<OrigType, NewType>::Predict(
+	PreprocessedTimeSeries<OrigType, NewType> history,
+	size_t horizont,
+	const CompressorNamesVec& compressor_groups) const
+{
+	std::vector<Forecast<OrigType>> results(sparse_);
+	size_t sparsed_horizont = ceil(horizont / static_cast<double>(sparse_));
+	for (size_t i = 0; i < sparse_; ++i)
+	{
+		PreprocessedTimeSeries<OrigType, NewType> sparse_ts_data;
+		sparse_ts_data.CopyPreprocessingInfoFrom(history);
+		for (size_t j = i; j < history.size(); j += sparse_)
+		{
+			sparse_ts_data.push_back(history[j]);
+		}
+		results[i] = pointwise_predictor_->Predict(sparse_ts_data, sparsed_horizont, compressor_groups);
+	}
 
-  Forecast<OrigType> result;
-  Forecast<OrigType> full_first_steps =
-      pointwise_predictor->Predict(history, sparsed_horizont, compressor_groups);
-  for (size_t i = 0; i < sparsed_horizont; ++i) {
-    for (const auto &compressor : full_first_steps.get_index()) {
-      result(compressor, i) = full_first_steps(compressor, i);
-    }
-  }
+	Forecast<OrigType> result;
+	Forecast<OrigType> full_first_steps = pointwise_predictor_->Predict(history, sparsed_horizont, compressor_groups);
+	for (size_t i = 0; i < sparsed_horizont; ++i)
+	{
+		for (const auto& compressor : full_first_steps.GetIndex())
+		{
+			result(compressor, i) = full_first_steps(compressor, i);
+		}
+	}
 
-  for (size_t i = 0; i < sparsed_horizont; ++i) {
-    for (size_t j = 0; j < sparse; ++j) {
-      if ((i*sparse+j >= sparsed_horizont) && (i*sparse+j < horizont)) {
-        for (const auto compressor : results[j].get_index()) {
-          result(compressor, i*sparse+j) = results[j](compressor, i);
-        }
-      }
-    }
-  }
-  return result;
+	for (size_t i = 0; i < sparsed_horizont; ++i)
+	{
+		for (size_t j = 0; j < sparse_; ++j)
+		{
+			if ((i * sparse_ + j >= sparsed_horizont) && (i * sparse_ + j < horizont))
+			{
+				for (const auto compressor : results[j].GetIndex())
+				{
+					result(compressor, i * sparse_ + j) = results[j](compressor, i);
+				}
+			}
+		}
+	}
+	return result;
 }
 
-template <typename OrigType, typename NewType>
-itp::Basic_pointwise_predictor<OrigType, NewType>::Basic_pointwise_predictor(Distribution_predictor_ptr<OrigType, NewType> distribution_predictor)
-    : distribution_predictor {distribution_predictor} {
-  // DO NOTHING
+template<typename OrigType, typename NewType>
+itp::BasicPointwisePredictor<OrigType, NewType>::BasicPointwisePredictor(
+	DistributionPredictorPtr<OrigType, NewType> distribution_predictor)
+	: distribution_predictor_{distribution_predictor}
+{
+	// DO NOTHING
 }
 
-template <typename OrigType, typename NewType>
-itp::Forecast<OrigType> itp::Basic_pointwise_predictor<OrigType, NewType>::Predict(Preprocessed_tseries<OrigType, NewType> ts, size_t horizont,
-                                                                                      const CompressorNamesVec& compressor_groups) const {
-  auto distribution = distribution_predictor->Predict(ts, horizont, compressor_groups);
-  auto forecasts = to_pointwise_forecasts(distribution, horizont);
-  integrate(forecasts);
-  return forecasts;
+template<typename OrigType, typename NewType>
+itp::Forecast<OrigType> itp::BasicPointwisePredictor<OrigType, NewType>::Predict(
+	PreprocessedTimeSeries<OrigType, NewType> ts,
+	size_t horizont,
+	const CompressorNamesVec& compressor_groups) const
+{
+	auto distribution = distribution_predictor_->Predict(ts, horizont, compressor_groups);
+	auto forecasts = ToPointwiseForecasts(distribution, horizont);
+	Integrate(forecasts);
+	return forecasts;
 }
 
-template <typename OrigType, typename NewType>
-itp::Sparse_predictor<OrigType, NewType>::Sparse_predictor(Pointwise_predictor_ptr<OrigType, NewType> pointwise_predictor, size_t sparse)
-    : pointwise_predictor(pointwise_predictor), sparse(sparse) {
-  assert(pointwise_predictor != nullptr);
+template<typename OrigType, typename NewType>
+itp::SparsePredictor<OrigType, NewType>::SparsePredictor(
+	PointwisePredictorPtr<OrigType, NewType> pointwise_predictor,
+	size_t sparse)
+	: pointwise_predictor_{pointwise_predictor}
+	, sparse_{sparse}
+{
+	assert(pointwise_predictor != nullptr);
 }
 
-template <typename Forward_iterator, typename New_value>
-New_value itp::min_value_of_all_tables(Forward_iterator first, Forward_iterator last) {
-  New_value global_minimum {-1};
-  while (first != last) {
-    auto local_minimum = *std::min_element(begin(*first), end(*first));
-    ++first;
-    if ((local_minimum < global_minimum) || (global_minimum < 0)) {
-      global_minimum = static_cast<New_value>(local_minimum);
-    }
-  }
+template<typename Forward_iterator, typename New_value>
+New_value itp::MinValueOfAllTables(Forward_iterator first, Forward_iterator last)
+{
+	New_value global_minimum{-1};
+	while (first != last)
+	{
+		auto local_minimum = *std::min_element(begin(*first), end(*first));
+		++first;
+		if ((local_minimum < global_minimum) || (global_minimum < 0))
+		{
+			global_minimum = static_cast<New_value>(local_minimum);
+		}
+	}
 
-  return global_minimum;
+	return global_minimum;
 }
 
-template <typename Forward_iterator, typename T>
-void itp::add_value_to_each(Forward_iterator first, Forward_iterator last, T value) {
-  while (first != last) {
-    *first += value;
-    ++first;
-  }
+template<typename Forward_iterator, typename T>
+void itp::AddValueToEach(Forward_iterator first, Forward_iterator last, T value)
+{
+	while (first != last)
+	{
+		*first += value;
+		++first;
+	}
 }
 
 #endif // ITP_PREDICTOR_SUBTYPES_H_INCLUDED_

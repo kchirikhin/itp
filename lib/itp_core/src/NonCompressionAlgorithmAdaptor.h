@@ -14,10 +14,7 @@ class NonCompressionAlgorithmAdaptor : public ICompressor
 public:
 	explicit NonCompressionAlgorithmAdaptor(INonCompressionAlgorithm* non_compression_algorithm);
 
-	SizeInBits Compress(
-		const unsigned char* data,
-		size_t size,
-		std::vector<unsigned char>* output_buffer) override;
+	SizeInBits Compress(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) override;
 
 	std::vector<SizeInBits> CompressContinuations(
 		const std::vector<Symbol>& historical_values,

@@ -26,10 +26,7 @@ public:
 	 *
 	 * \return Size of the compressed data in bits.
 	 */
-	virtual SizeInBits Compress(
-		const unsigned char* data,
-		size_t size,
-		std::vector<unsigned char>* output_buffer) = 0;
+	virtual SizeInBits Compress(const unsigned char* data, size_t size, std::vector<unsigned char>* output_buffer) = 0;
 
 	/**
 	 * Compresses each passed trajectory after the historical values and returns the code lengths for each trajectory.
@@ -39,9 +36,8 @@ public:
 	 *
 	 * \return Code lengths in bits for each trajectory.
 	 */
-	virtual std::vector<SizeInBits> CompressContinuations(
-		const std::vector<Symbol>& historical_values,
-		const Continuations& possible_endings) = 0;
+	virtual std::vector<SizeInBits>
+	CompressContinuations(const std::vector<Symbol>& historical_values, const Continuations& possible_endings) = 0;
 
 	/**
 	 * Inform algorithm about the minimal and maximal possible values in data.

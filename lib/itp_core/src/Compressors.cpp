@@ -26,7 +26,10 @@ std::vector<CompressorBase::SizeInBits> CompressorBase::CompressContinuations(
 	std::vector<SizeInBits> result(std::size(possible_endings));
 	for (size_t i = 0; i < std::size(possible_endings); ++i)
 	{
-		std::copy(possible_endings[i].cbegin(), possible_endings[i].cend(), buffer.get() + std::size(historical_values));
+		std::copy(
+			possible_endings[i].cbegin(),
+			possible_endings[i].cend(),
+			buffer.get() + std::size(historical_values));
 		result[i] = Compress(buffer.get(), full_series_length, &output_buffer);
 	}
 
@@ -59,13 +62,8 @@ ZstdCompressor::SizeInBits ZstdCompressor::Compress(
 	size_t dst_capacity = ZSTD_compressBound(size);
 	FitBuffer(dst_capacity, output_buffer);
 
-	return BytesToBits(ZSTD_compressCCtx(
-		context_,
-		output_buffer->data(),
-		output_buffer->size(),
-		data,
-		size,
-		ZSTD_maxCLevel()));
+	return BytesToBits(
+		ZSTD_compressCCtx(context_, output_buffer->data(), output_buffer->size(), data, size, ZSTD_maxCLevel()));
 }
 
 ZlibCompressor::SizeInBits ZlibCompressor::Compress(
@@ -75,8 +73,7 @@ ZlibCompressor::SizeInBits ZlibCompressor::Compress(
 {
 	size_t dst_capacity = compressBound(size * sizeof(Symbol));
 	FitBuffer(dst_capacity, output_buffer);
-	if (compress2(output_buffer->data(), &dst_capacity,
-				  data, size, Z_BEST_COMPRESSION) != Z_OK)
+	if (compress2(output_buffer->data(), &dst_capacity, data, size, Z_BEST_COMPRESSION) != Z_OK)
 	{
 		throw CompressorsError{"zlib: an error is occured"};
 	}
@@ -95,10 +92,7 @@ PpmCompressor::SizeInBits PpmCompressor::Compress(
 	return BytesToBits(Ppmd::ppmd_compress(output_buffer->data(), output_buffer->size(), data, size));
 }
 
-RpCompressor::SizeInBits RpCompressor::Compress(
-	const unsigned char* data,
-	size_t size,
-	std::vector<unsigned char>*)
+RpCompressor::SizeInBits RpCompressor::Compress(const unsigned char* data, size_t size, std::vector<unsigned char>*)
 {
 	return BytesToBits(Rp::rp_compress(data, size));
 }
@@ -115,8 +109,15 @@ Bzip2Compressor::SizeInBits Bzip2Compressor::Compress(
 	std::copy(data, data + size, src.get());
 	uint dst_capacity = static_cast<uint>(size * sizeof(Symbol) + ceil(size * sizeof(Symbol) * 0.01) + 600);
 	FitBuffer(dst_capacity, output_buffer);
-	if (BZ2_bzBuffToBuffCompress(reinterpret_cast<char*>(output_buffer->data()), &dst_capacity,
-								 src.get(), static_cast<uint>(size), 9, 0, 30) != BZ_OK)
+	if (BZ2_bzBuffToBuffCompress(
+			reinterpret_cast<char*>(output_buffer->data()),
+			&dst_capacity,
+			src.get(),
+			static_cast<uint>(size),
+			9,
+			0,
+			30)
+		!= BZ_OK)
 	{
 		throw CompressorsError{"bzip2: an error occured"};
 	}
@@ -124,10 +125,7 @@ Bzip2Compressor::SizeInBits Bzip2Compressor::Compress(
 	return BytesToBits(dst_capacity);
 }
 
-LcaCompressor::SizeInBits LcaCompressor::Compress(
-	const unsigned char* data,
-	size_t size,
-	std::vector<unsigned char>*)
+LcaCompressor::SizeInBits LcaCompressor::Compress(const unsigned char* data, size_t size, std::vector<unsigned char>*)
 {
 	return BytesToBits(Lcacomp::lcacomp_compress(data, size));
 }
@@ -139,7 +137,8 @@ class ZpaqReader : public libzpaq::Reader
 {
 public:
 	ZpaqReader(const unsigned char* const data, const size_t size)
-			: data_{data}, size_{size}
+		: data_{data}
+		, size_{size}
 	{
 		// DO NOTHING
 	}
@@ -178,10 +177,7 @@ private:
 class ZpaqWriter : public libzpaq::Writer
 {
 public:
-	void put(int) override
-	{
-		++bytes_read_;
-	}
+	void put(int) override { ++bytes_read_; }
 
 	void write(const char*, int n) override
 	{
@@ -189,18 +185,15 @@ public:
 		bytes_read_ += static_cast<size_t>(n);
 	}
 
-	[[nodiscard]] size_t GetCompressedSize() const
-	{
-		return bytes_read_;
-	}
+	[[nodiscard]] size_t GetCompressedSize() const { return bytes_read_; }
 
 private:
 	size_t bytes_read_ = 0;
 };
 
-} // of namespace
+} // namespace
 
-} // of namespace itp
+} // namespace itp
 
 void libzpaq::error(const char* msg)
 {
@@ -210,10 +203,7 @@ void libzpaq::error(const char* msg)
 namespace itp
 {
 
-ZpaqCompressor::SizeInBits ZpaqCompressor::Compress(
-	const unsigned char* data,
-	size_t size,
-	std::vector<unsigned char>*)
+ZpaqCompressor::SizeInBits ZpaqCompressor::Compress(const unsigned char* data, size_t size, std::vector<unsigned char>*)
 {
 	const char* kMaxCompressionLevel = "5";
 	ZpaqReader reader{data, size};
@@ -224,7 +214,7 @@ ZpaqCompressor::SizeInBits ZpaqCompressor::Compress(
 }
 
 AutomatonCompressor::AutomatonCompressor()
-		: automation{new Sensing_DFA{0, 255}}
+	: automation{new SensingDFA{0, 255}}
 {
 	// DO NOTHING
 }
@@ -263,7 +253,8 @@ void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<IComp
 		throw CompressorsError{"RegisterCompressor: compressor is nullptr"};
 	}
 
-	if (auto[compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor)); !success)
+	if (auto [compressor_iter, success] = compressor_instances_.emplace(std::move(name), std::move(compressor));
+		!success)
 	{
 		throw CompressorsError{"RegisterCompressor: trying to register already registered compressor"};
 	}
@@ -291,7 +282,8 @@ std::vector<ICompressor::SizeInBits> CompressorsPool::CompressContinuations(
 {
 	try
 	{
-		return compressor_instances_.at(compressor_name)->CompressContinuations(historical_values, possible_continuations);
+		return compressor_instances_.at(compressor_name)
+			->CompressContinuations(historical_values, possible_continuations);
 	}
 	catch (const std::out_of_range& e)
 	{
@@ -301,7 +293,7 @@ std::vector<ICompressor::SizeInBits> CompressorsPool::CompressContinuations(
 
 void CompressorsPool::SetAlphabetDescription(AlphabetDescription alphabet_description)
 {
-	for (auto&[name, compressor] : compressor_instances_)
+	for (auto& [name, compressor] : compressor_instances_)
 	{
 		compressor->SetTsParams(alphabet_description.min_symbol, alphabet_description.max_symbol);
 	}
@@ -323,4 +315,4 @@ CompressorsFacadePtr MakeStandardCompressorsPool()
 	return to_return;
 }
 
-} // of namespace itp
+} // namespace itp

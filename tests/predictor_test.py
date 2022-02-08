@@ -27,14 +27,14 @@ class TestPredictor(unittest.TestCase):
         ts = np.array([940.66, 1084.86, 1244.98, 1445.02, 1683.17, 2038.15, 2342.52, 2602.45,
                        2927.87, 3103.96, 3360.27, 3807.63, 4387.88, 4936.99])
         forecast = self._itp.forecast_multialphabet(ts, groups=["zlib_rp"], h=6, max_quants_count=4, sparse=2,
-                                                         difference=1)
+                                                    difference=1)
         np.testing.assert_array_almost_equal(np.array(forecast["zlib_rp"]),
                                              np.array([5427.0124308808, 5917.0363290153,
                                                        6407.0594768841, 6262.0988838384,
                                                        6165.6275143097, 6999.809906989]))
 
         forecast = self._itp.forecast_multialphabet(ts, groups=["zstd_ppmd"], h=6, max_quants_count=4, sparse=2,
-                                                         difference=1)
+                                                    difference=1)
         np.testing.assert_array_almost_equal(np.array(forecast["zstd_ppmd"]),
                                              np.array([5427.0304921905, 5916.0763075179,
                                                        6406.1167892739, 5976.9412898617,

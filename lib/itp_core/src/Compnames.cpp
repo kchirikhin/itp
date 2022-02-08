@@ -21,9 +21,7 @@ CompressorNames SplitConcatenatedNames(const ConcatenatedCompressorNames& concat
 	return result;
 }
 
-CompressorNamesVec SplitConcatenatedNames(
-	const ConcatenatedCompressorNamesVec& concatenated_names_vec,
-	char separator)
+CompressorNamesVec SplitConcatenatedNames(const ConcatenatedCompressorNamesVec& concatenated_names_vec, char separator)
 {
 	const auto transformator = [separator](const auto& concatenated_names)
 	{ return SplitConcatenatedNames(concatenated_names, separator); };
