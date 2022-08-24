@@ -309,7 +309,7 @@ CompressorsFacadePtr MakeStandardCompressorsPool()
 	to_return->RegisterCompressor("bzip2", std::make_unique<Bzip2Compressor>());
 	to_return->RegisterCompressor("zlib", std::make_unique<ZlibCompressor>());
 	to_return->RegisterCompressor("ppmd", std::make_unique<PpmCompressor>());
-	to_return->RegisterCompressor("automation", std::make_unique<AutomatonCompressor>());
+	to_return->RegisterCompressor("automaton", std::make_unique<AutomatonCompressor>());
 	to_return->RegisterCompressor("zpaq", std::make_unique<ZpaqCompressor>());
 
 	return to_return;
