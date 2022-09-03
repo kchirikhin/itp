@@ -4,6 +4,3 @@
 [submodule "itp/lib/pybind11"]
 	path = external/pybind11
 	url = https://github.com/pybind/pybind11
-[submodule "itp/lib/zpaq"]
-	path = lib/itp_core/external/zpaq
-	url = https://github.com/zpaq/zpaq
