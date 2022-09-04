@@ -38,11 +38,11 @@ protected:
 
 TEST_F(KIndexDataTest, PureAutomaton)
 {
-	const ConcatenatedCompressorNamesVec compressor_groups_vec{"automation"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec{"automaton"};
 	const auto res = predictor_.ForecastDiscrete(ts_, compressor_groups_vec, horizon_, difference_, sparse_);
 
 	ASSERT_EQ(std::size(res), std::size(compressor_groups_vec));
-	EXPECT_EQ(std::size(res.at("automation")), horizon_);
+	EXPECT_EQ(std::size(res.at("automaton")), horizon_);
 }
 
 TEST_F(KIndexDataTest, PureCompressor)
@@ -59,17 +59,17 @@ TEST_F(KIndexDataTest, PureCompressor)
 	}
 }
 
-TEST_F(KIndexDataTest, CompressorWithAutomation)
+TEST_F(KIndexDataTest, CompressorWithAutomaton)
 {
-	ConcatenatedCompressorNamesVec groups = {"zlib_automation"};
+	ConcatenatedCompressorNamesVec groups = {"zlib_automaton"};
 	auto res = predictor_.ForecastDiscrete(ts_, groups, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(res.size(), 3);
-	EXPECT_EQ(res["zlib_automation"].size(), 24);
+	EXPECT_EQ(res["zlib_automaton"].size(), 24);
 
 	for (size_t i = 0; i < horizon_; ++i)
 	{
-		EXPECT_FALSE(std::isnan(res["zlib_automation"][i]));
+		EXPECT_FALSE(std::isnan(res["zlib_automaton"][i]));
 	}
 }
 
@@ -178,24 +178,24 @@ protected:
 
 TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibTogether)
 {
-	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"automation_zlib"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"automaton_zlib"};
 
 	const auto res = predictor_.ForecastDiscrete(ts_, compressor_groups_vec, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(std::size(res), 3);
-	EXPECT_EQ(std::size(res.at("automation")), 24);
+	EXPECT_EQ(std::size(res.at("automaton")), 24);
 	EXPECT_EQ(std::size(res.at("zlib")), 24);
-	EXPECT_EQ(std::size(res.at("automation_zlib")), 24);
+	EXPECT_EQ(std::size(res.at("automaton_zlib")), 24);
 }
 
 TEST_F(MakeForecastDiscreteTest, KIndexDataWithAutomataAndZlibSeparately)
 {
-	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"zlib", "automation"};
+	const ConcatenatedCompressorNamesVec compressor_groups_vec = {"zlib", "automaton"};
 
 	const auto res = predictor_.ForecastDiscrete(ts_, compressor_groups_vec, horizon_, difference_, sparse_);
 
 	EXPECT_EQ(std::size(res), 2);
-	EXPECT_EQ(std::size(res.at("automation")), 24);
+	EXPECT_EQ(std::size(res.at("automaton")), 24);
 	EXPECT_EQ(std::size(res.at("zlib")), 24);
 }
 

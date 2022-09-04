@@ -107,7 +107,7 @@ setup(
     long_description='',
     packages=find_packages(exclude=["tests"]),
     package_data={'': ['tests/*.dat']},
-    install_requires=['numpy', 'pandas', 'matplotlib'],
+    install_requires=['numpy', 'pandas', 'matplotlib', 'statsmodels'],
     ext_modules=[CMakeExtension('itp_core_bindings', 'itp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
