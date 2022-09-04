@@ -101,7 +101,7 @@ protected:
 };
 
 template<typename DoubleT, typename SymbolT>
-class ForecastingAlgorithmDiscreteAutomation : public ForecastingAlgorithm<DoubleT, SymbolT>
+class ForecastingAlgorithmDiscreteAutomaton : public ForecastingAlgorithm<DoubleT, SymbolT>
 {
 public:
 	using ForecastingAlgorithm<DoubleT, SymbolT>::ForecastingAlgorithm;
@@ -137,7 +137,7 @@ protected:
 };
 
 template<typename DoubleT>
-class ForecastingAlgorithmRealAutomation : public ForecastingAlgorithmReal<DoubleT>
+class ForecastingAlgorithmRealAutomaton : public ForecastingAlgorithmReal<DoubleT>
 {
 public:
 	using ForecastingAlgorithm<DoubleT, DoubleT>::ForecastingAlgorithm;
@@ -163,7 +163,7 @@ protected:
 };
 
 template<typename DoubleT>
-class ForecastingAlgorithmMultialphabetAutomation : public ForecastingAlgorithmRealAutomation<DoubleT>
+class ForecastingAlgorithmMultialphabetAutomaton : public ForecastingAlgorithmRealAutomaton<DoubleT>
 {
 public:
 	using ForecastingAlgorithm<DoubleT, DoubleT>::ForecastingAlgorithm;

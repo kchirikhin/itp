@@ -58,7 +58,7 @@ private:
 /**
  * Common interface for all kinds of prediction automatons.
  */
-class PredictionAutomation
+class PredictionAutomaton
 {
 public:
 	/**
@@ -69,7 +69,7 @@ public:
 	 * \return Evaluated probability of the word.
 	 */
 	virtual HighPrecDouble EvalProbability(const PlainTimeSeries<Symbol>& w) = 0;
-	virtual ~PredictionAutomation() = default;
+	virtual ~PredictionAutomaton() = default;
 
 	/**
 	 * This functions are required because the size of an alphabet does kNot important for data
@@ -80,7 +80,7 @@ public:
 	virtual void SetMaxSymbol(Symbol);
 };
 
-using PredictionAutomationPtr = std::shared_ptr<PredictionAutomation>;
+using PredictionAutomatonPtr = std::shared_ptr<PredictionAutomaton>;
 
 template<size_t N>
 class MultiheadAutomaton;
@@ -89,7 +89,7 @@ class MultiheadAutomaton;
  * N - count of heads.
  */
 template<size_t N = 1>
-class MultiheadAutomaton : public PredictionAutomation
+class MultiheadAutomaton : public PredictionAutomaton
 {
 public:
 	static_assert(sizeof(Symbol) <= sizeof(size_t), "");
@@ -106,7 +106,7 @@ public:
 	HighPrecDouble EvalProbability(const PlainTimeSeries<Symbol>& w) override final;
 
 	/**
-	 * Assuming that heads of an automation are (somehow) numbered, allows
+	 * Assuming that heads of an automaton are (somehow) numbered, allows
 	 * to get a head with specified number (for visualization, etc.)
 	 *
 	 * \param[in] head_num Number of the head.
@@ -134,8 +134,8 @@ protected:
 	/**
 	 * Updates evaluated probability of the word.
 	 *
-	 * \param[in] guessed_symbol Automation "thinks" that that symbol will be next.
-	 * \param[in] confidence In several cases an automation can't make sensing prediction,
+	 * \param[in] guessed_symbol Automaton "thinks" that that symbol will be next.
+	 * \param[in] confidence In several cases an automaton can't make sensing prediction,
 	 * to indicate such situation that parameter should be set to "No", otherwise "Yes".
 	 */
 	void Guess(Symbol guessed_symbol, IsPredictionConfident confidence);

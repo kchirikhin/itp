@@ -214,7 +214,7 @@ ZpaqCompressor::SizeInBits ZpaqCompressor::Compress(const unsigned char* data, s
 }
 
 AutomatonCompressor::AutomatonCompressor()
-	: automation{new SensingDFA{0, 255}}
+	: automaton{new SensingDFA{0, 255}}
 {
 	// DO NOTHING
 }
@@ -224,7 +224,7 @@ AutomatonCompressor::SizeInBits AutomatonCompressor::Compress(
 	size_t size,
 	std::vector<unsigned char>*)
 {
-	auto probability = automation->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
+	auto probability = automaton->EvalProbability(PlainTimeSeries<Symbol>(data, data + size));
 	const auto code_length = ceil(-log2(probability));
 
 	if (HighPrecDouble(std::numeric_limits<AutomatonCompressor::SizeInBits>::max()) < code_length)
@@ -237,8 +237,8 @@ AutomatonCompressor::SizeInBits AutomatonCompressor::Compress(
 
 void AutomatonCompressor::SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol)
 {
-	automation->SetMinSymbol(alphabet_min_symbol);
-	automation->SetMaxSymbol(alphabet_max_symbol);
+	automaton->SetMinSymbol(alphabet_min_symbol);
+	automaton->SetMaxSymbol(alphabet_max_symbol);
 }
 
 void CompressorsPool::RegisterCompressor(std::string name, std::unique_ptr<ICompressor> compressor)

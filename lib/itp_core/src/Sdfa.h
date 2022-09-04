@@ -3,14 +3,14 @@
  * @author Konstantin <user10101@user10101-Satellite-L855>
  * @date   Thu Apr 19 21:28:04 2018
  *
- * @brief  Predicting Sensing Multihead Deterministic Finite-State Automation implementation.
+ * @brief  Predicting Sensing Multihead Deterministic Finite-State Automaton implementation.
  *
  * The implemetation follows the paper:
- * Smith T. Prediction of infinite words with automation //Theory of Computing Systems. – 2018.
+ * Smith T. Prediction of infinite words with automata //Theory of Computing Systems. – 2018.
  * – Т. 62. – №. 3. – С. 653-681.
  * In the paper a word is assumed to be infinite, but the implementation, obviously,
  * works only with finite words. So when any head goues out of the word, the
- * automation stops.
+ * automaton stops.
  */
 
 #ifndef SDFA_H_INCLUDED

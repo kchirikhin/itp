@@ -32,12 +32,12 @@ const AutomatonWord::Ext_symbol_t& AutomatonWord::operator[](ssize_t n) const
 	return kBeginningDelimiter;
 }
 
-void PredictionAutomation::SetMinSymbol(Symbol)
+void PredictionAutomaton::SetMinSymbol(Symbol)
 {
 	// DO NOTHING
 }
 
-void PredictionAutomation::SetMaxSymbol(Symbol)
+void PredictionAutomaton::SetMaxSymbol(Symbol)
 {
 	// DO NOTHING
 }

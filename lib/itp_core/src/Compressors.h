@@ -136,7 +136,7 @@ public:
 	void SetTsParams(Symbol alphabet_min_symbol, Symbol alphabet_max_symbol) override;
 
 private:
-	PredictionAutomationPtr automation;
+	PredictionAutomatonPtr automaton;
 };
 
 /**
